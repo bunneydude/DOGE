@@ -14,7 +14,7 @@
 #ifndef NRF24
 #define NRF24
 
-#include "nrf24l01p-const-enums.h"
+#include "nrf24l01p-const-list.h"
 #include <stdint.h>
 #define NRF24L01P_SET(id, value) ((value << nrf24l01p_shiftList[id]) & nrf24l01p_maskList[id])
 

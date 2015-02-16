@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#include "nrf24l01p-const-defs.h"
+#include "nrf24l01p-const-defines.h"
 
 
 void nrf24_ce_digitalWrite(uint8_t state)

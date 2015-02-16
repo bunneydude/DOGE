@@ -14,7 +14,7 @@
 #ifndef NRF24
 #define NRF24
 
-#include "nrf24l01p-const-defs.h"
+#include "nrf24l01p-const-defines.h"
 #include <stdint.h>
 
 #define LOW 0

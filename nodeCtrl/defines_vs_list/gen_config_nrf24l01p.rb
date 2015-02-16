@@ -1,6 +1,14 @@
+method = ARGV[0].to_s
+
+if(method.casecmp("defines").zero?)
+	defines = true
+elsif(method.casecmp("list").zero?)
+	defines = false
+else
+	abort("Unrecognized input: #{method.inspect}. Must be one of 'defines' or 'list'.")
+end
 
 driverName = "NRF24L01P"
-
 # name, address, mask, shift, fields
 nrfConfig = [{:name => "config", :address=>0x0, :fields => [{:name=>"mask_rx_dr",  :bits=>[6,6]},
                                                             {:name=>"mask_tx_ds",  :bits=>[5,5]},
@@ -118,7 +126,6 @@ configStrings[:commands] << 'enum nrf24l01p_commands{'
 id = 0
 fieldID = 0
 
-defines = true
 
 nrfConfig.each do |register|
    configStrings[:regAddress] << "   NRF24L01P_REG_#{register[:name].upcase} = 0x#{register[:address].to_s(16)}," + "\n"
@@ -155,7 +162,7 @@ configStrings.each_pair do |key, value|
 end
 
 
-dest = File.open("nrf24l01p-const-#{defines == true ? 'defs' : 'enums'}.h", 'w')
+dest = File.open("nrf24l01p-const-#{defines == true ? 'defines' : 'list'}.h", 'w')
 
 dest.puts("#ifndef NRF24L01P_CONST\n#define NRF24L01P_CONST\n\n")
 dest.puts("#include <stdint.h>\n\n")
