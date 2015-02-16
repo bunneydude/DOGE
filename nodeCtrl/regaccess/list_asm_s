@@ -1,0 +1,40 @@
+	.file	"lists.c"
+	.text
+	.globl	set_addr
+	.type	set_addr, @function
+set_addr:
+.LFB15:
+	.cfi_startproc
+	andl	$63, %edi
+	leal	(%rdi,%rdi), %eax
+	ret
+	.cfi_endproc
+.LFE15:
+	.size	set_addr, .-set_addr
+	.section	.rodata.str1.1,"aMS",@progbits,1
+.LC0:
+	.string	"Value = %d\n"
+	.section	.text.startup,"ax",@progbits
+	.globl	main
+	.type	main, @function
+main:
+.LFB16:
+	.cfi_startproc
+	pushq	%rax
+	.cfi_def_cfa_offset 16
+	movl	$3, %edi
+	call	set_addr
+	movl	$.LC0, %esi
+	movzbl	%al, %edx
+	movl	$1, %edi
+	xorl	%eax, %eax
+	call	__printf_chk
+	xorl	%eax, %eax
+	popq	%rdx
+	.cfi_def_cfa_offset 8
+	ret
+	.cfi_endproc
+.LFE16:
+	.size	main, .-main
+	.ident	"GCC: (Ubuntu 4.8.2-19ubuntu1) 4.8.2"
+	.section	.note.GNU-stack,"",@progbits

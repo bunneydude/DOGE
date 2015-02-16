@@ -1,0 +1,29 @@
+Addresses where the level shifts only one time (that is, 000FFFFFFF) can often be detected in
+noise and can give a false detection, which may give a raised Packet Error Rate. Addresses
+as a continuation of the preamble (hi-low toggling) also raises the Packet Error Rate.
+
+
+Uses 2-bit packet ID to tell if the received packet is new or retransmitted. If several packets are lost on the link, the PID fields might be equal to the last sucessfully received PID. The nRF then compares the CRC values for the two packets. If the CRCs are equal, the second packet is considered a copy and discarded
+
+
+1 byte CRC = CRC-8-CCITT
+2 byte CRC = CRC-16-CCITT
+
+Only when a data pipe receives a complete packet can other data pipes begin to receive data. When mul-
+tiple PTXs are transmitting to a PRX, the ARD can be used to skew the auto retransmission so that they
+only block each other once.
+
+
+if doing auto-ack w/ payload, add the payload before switching on the receiver
+
+Tx fifo not cleared if MAX_RT is hit. Toggling CE starts a new cycle w/ the same packet or the fifo can be flushed with FLUSH_TX
+
+Max SPI is 10MBps
+MSbit first
+LSByte first
+
+The nRF24L01+ transmitter PLL operates in open loop when in TX
+mode. It is important never to keep the nRF24L01+ in TX mode for more than 4ms at a time. If the
+Enhanced ShockBurstTM features are enabled, nRF24L01+ is never in TX mode longer than 4ms.
+
+http://wiki.lijun.xyz/misc-nrf24-ble.html

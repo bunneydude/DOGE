@@ -1,0 +1,37 @@
+all:
+	msp430-gcc -c -Os defines.c -o def_s
+	msp430-gcc -c -O3 defines.c -o def_3
+	msp430-gcc -c -O2 defines.c -o def_2
+	msp430-gcc -c -O1 defines.c -o def_1
+	msp430-gcc -c -O0 defines.c -o def_0
+	
+	msp430-gcc -c -Os -S defines.c -o def_asm_s
+	msp430-gcc -c -O3 -S defines.c -o def_asm_3
+	msp430-gcc -c -O2 -S defines.c -o def_asm_2
+	msp430-gcc -c -O1 -S defines.c -o def_asm_1
+	msp430-gcc -c -O0 -S defines.c -o def_asm_0
+	
+
+	msp430-gcc -c -Os lists_function.c -o list_f_s
+	msp430-gcc -c -O3 lists_function.c -o list_f_3
+	msp430-gcc -c -O2 lists_function.c -o list_f_2
+	msp430-gcc -c -O1 lists_function.c -o list_f_1
+	msp430-gcc -c -O0 lists_function.c -o list_f_0
+
+	msp430-gcc -c -Os -S lists_function.c -o list_f_asm_s
+	msp430-gcc -c -O3 -S lists_function.c -o list_f_asm_3
+	msp430-gcc -c -O2 -S lists_function.c -o list_f_asm_2
+	msp430-gcc -c -O1 -S lists_function.c -o list_f_asm_1
+	msp430-gcc -c -O0 -S lists_function.c -o list_f_asm_0
+	
+	msp430-gcc -c -Os lists_macro.c -o list_m_s
+	msp430-gcc -c -O3 lists_macro.c -o list_m_3
+	msp430-gcc -c -O2 lists_macro.c -o list_m_2
+	msp430-gcc -c -O1 lists_macro.c -o list_m_1
+	msp430-gcc -c -O0 lists_macro.c -o list_m_0
+
+	msp430-gcc -c -Os -S lists_macro.c -o list_m_asm_s
+	msp430-gcc -c -O3 -S lists_macro.c -o list_m_asm_3
+	msp430-gcc -c -O2 -S lists_macro.c -o list_m_asm_2
+	msp430-gcc -c -O1 -S lists_macro.c -o list_m_asm_1
+	msp430-gcc -c -O0 -S lists_macro.c -o list_m_asm_0

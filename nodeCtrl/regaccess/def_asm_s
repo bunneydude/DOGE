@@ -1,0 +1,27 @@
+	.file	"defines.c"
+	.section	.rodata.str1.1,"aMS",@progbits,1
+.LC0:
+	.string	"addr = %d\n"
+	.section	.text.startup,"ax",@progbits
+	.globl	main
+	.type	main, @function
+main:
+.LFB14:
+	.cfi_startproc
+	leal	(%rdi,%rdi), %edx
+	pushq	%rax
+	.cfi_def_cfa_offset 16
+	movl	$.LC0, %esi
+	movl	$1, %edi
+	xorl	%eax, %eax
+	andl	$126, %edx
+	call	__printf_chk
+	xorl	%eax, %eax
+	popq	%rdx
+	.cfi_def_cfa_offset 8
+	ret
+	.cfi_endproc
+.LFE14:
+	.size	main, .-main
+	.ident	"GCC: (Ubuntu 4.8.2-19ubuntu1) 4.8.2"
+	.section	.note.GNU-stack,"",@progbits

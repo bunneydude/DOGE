@@ -1,0 +1,151 @@
+Commands
+
+GPIO
+
+   pin_dir (RW)
+      0 = input
+      1 = output
+
+   pin_output (RW)
+      0 = output low
+      1 = output high
+
+   pull_dir (RW)
+      0 = pull down resistor
+      1 = pull up resistor
+
+   resistor_en (RW)
+      0 = pull resistor disconnected
+      1 = pull resistor connected
+
+   pin_type (RW)
+      0 = push-pull
+      1 = open drain
+
+
+
+
+   pin_value (R)
+      single
+         SIZE = null
+         addr = pin number (0-255)
+
+      multiple
+         SIZE = sizeof(MASK) +1
+         addr = pin number (0-255)
+         mask
+            0 = skip
+            1 = read value
+
+
+   pin_toggle (W)
+      single
+         SIZE = null
+         addr = pin number (0-255)
+
+      multiple
+         SIZE = sizeof(MASK) +1
+         addr = pin number (0-255)
+         mask
+            0 = no change
+            1 = toggle output value
+
+
+   pull_toggle? (W) 
+      single
+         SIZE = null
+         addr = pin number (0-255)
+
+      multiple
+         SIZE = sizeof(MASK) +1
+         addr = pin number (0-255)
+         mask
+            0 = no change
+            1 = toggle pull direction
+
+     
+
+---------
+
+
+toggle pin 0
+   CMD = PIN_TOGGLE. single
+   (size = 0x01)
+   addr = 0x00
+
+toggle pins 0 & 6
+   CMD = PIN_TOGGLE, multiple
+   size = 0x2
+   addr = 0x00
+   mask = 0x40 (0b0100_0001)
+
+toggle pins 0, 6, 10
+   CMD = PIN_TOGGLE, multiple
+   size = 0x3
+   addr = 0x00
+   mask = 0x0441 (0b0000_0100_0100_0001)
+   
+   MASK_B = SIZE - 1
+===========
+
+set pin 4 to output
+   cmd = PIN_DIR, single
+   size = 0x02
+   addr = 0x04
+   value = 0x01
+
+read pin 4's direction
+   cmd = PIN_DIR, single
+   size = 0x01
+   addr = 0x04
+
+
+
+set pins 4 & 6 to outputs
+   cmd = PIN_DIR, multiple
+   size = 0x03
+   addr = 0x00
+   mask = 0x50 (0b0101_0000)
+   value = 0x03
+
+set pin 4 to output, alt
+   cmd = PIN_DIR, multiple
+   size = 0x3
+   addr = 0x00
+   mask = 0x10 (0b0001_0000)
+   value = 0x01
+
+read pins 4 & 6's directions
+   cmd = PIN_DIR, multiple
+   size = 0x2
+   addr = 0x00
+   mask = 0x50 (0b0101_0000)
+
+
+read pin 4's direction, alt
+   cmd = PIN_DIR, multiple
+   size = 0x2
+   addr = 0x00
+   mask = 0x10 (0x0001_0000)
+
+
+R = 1 + (MASK_B) + 0
+W = 1 + (MASK_B) + [1, MASK_B]
+
+
+
+CMD = PIN_DIR, multiple
+
+MASK_B,  SIZE-R   SIZE-W
+1        2        3
+2        3        3, 4
+
+set pins 0, 4, 6, 10 to outputs
+   cmd = PIN_DIR, multiple
+   size = 0x04
+   addr = 0x00
+   mask_1 = 0b01010001
+   mask_2 = 0b00000100
+   value = 0x0f -> 0x000f
+
+--> MASK_B == VALUE_B, otherwise SIZE isn't enough to tell how many mask bytes there are

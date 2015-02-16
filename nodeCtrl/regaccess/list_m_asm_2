@@ -1,0 +1,28 @@
+	.file	"lists_macro.c"
+	.section	.rodata.str1.1,"aMS",@progbits,1
+.LC0:
+	.string	"addr = %d\n"
+	.section	.text.startup,"ax",@progbits
+	.p2align 4,,15
+	.globl	main
+	.type	main, @function
+main:
+.LFB24:
+	.cfi_startproc
+	andl	$63, %edi
+	subq	$8, %rsp
+	.cfi_def_cfa_offset 16
+	movl	$.LC0, %esi
+	leal	(%rdi,%rdi), %edx
+	xorl	%eax, %eax
+	movl	$1, %edi
+	call	__printf_chk
+	xorl	%eax, %eax
+	addq	$8, %rsp
+	.cfi_def_cfa_offset 8
+	ret
+	.cfi_endproc
+.LFE24:
+	.size	main, .-main
+	.ident	"GCC: (Ubuntu 4.8.2-19ubuntu1) 4.8.2"
+	.section	.note.GNU-stack,"",@progbits

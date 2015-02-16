@@ -1,0 +1,67 @@
+LPC812
+   analog comparator (ACMP)
+      possible inputs: pins, 0.9 bandgap, 32-stage voltage ladder
+
+   GPIO
+      18 pins
+      pushpull/open drain
+      up to 8 interrupts
+         rising/falling edge
+         high/low active
+      pattern match - up to 8 pins
+
+   ADC
+      no hardware ADC
+
+
+STM32
+   2 analog comparators
+      1 w/ fixed threshold
+      1 w/ DAC output, external I/O, internal bandgap (submultiple)
+
+   GPIO
+      51 pins
+      pushpull/open drain
+      up to 23 interrupts
+         rising/falling/both edge
+         16 for GPIO, 7 to other events (RTC, PVD, USB, comparator)
+
+   ADC
+      12bit, 20ch
+      interrupt: completion, voltage threshold
+      single-shot or scan mode
+
+MSP430
+   Analog comparator
+      8ch
+      references: external, vcc/4, vcc/2, diode
+      RC filter (tau = 2ns)
+      output interrupt rising/falling edge
+      reference mux'd to either input
+      short circuit inputs
+
+   GPIO
+      16 pins
+      pushpull only
+      16 interrupts
+         rising/falling edge
+      pin oscillator
+
+   ADC
+      10bit, 8ch
+      sample-and-hold periods
+      SW or timer trigger
+      reference: internal or external, upper and lower
+      conversion clock
+      modes: single ch, repeat single ch, sequence, repeated sequence
+      DMA results
+      format: straight binary, 2's complement
+      50ksps & 200ksps modes
+      interrupts: conversion or DMA block complete
+      
+
+   UART
+      7- or 8-bit data
+      parity: odd, even, non
+      LSB- or MSB-first rx&tx
+
