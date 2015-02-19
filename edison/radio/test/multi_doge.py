@@ -42,7 +42,7 @@ SREG_PING = 11
 PING = 1
 
 for frame in range(0,frameNumber):
-	for target in range(2,4):
+	for target in range(2,3):
 		# Set target node
 		toSend = Protocol.form_packet(cmd=WRITE, addr=SREG_TARGET, data=target)
 		for b in toSend:
