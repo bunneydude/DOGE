@@ -28,8 +28,8 @@ typedef union Addressu
   uint8_t u2[2];
 }Address;
 
-#define PROXY_TEST
-//#define PROXY_MSP
+//#define PROXY_TEST
+#define PROXY_MSP
 
 #endif
 

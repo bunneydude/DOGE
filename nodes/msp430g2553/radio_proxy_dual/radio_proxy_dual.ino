@@ -70,13 +70,13 @@ void setup()
   myProtocol.serial_registers[SREG_PING] = 0;
   
   Radio.begin(0x01, CHANNEL_1, POWER_MAX);
-
+#ifdef DUAL_RADIO
  SPI.begin(); 
   nrf24_init();
   nrf24_config(2,PROXY_PAYLOAD);
   nrf24_tx_address(nrf_address);
   nrf24_rx_address(nrf_address);  
-
+#endif
   Serial.begin(9600);
   
   uint8_t temp;
@@ -131,6 +131,7 @@ void loop(){
         myProtocol.form_packet(&rxData[2], NACK, 0, TIMEOUT);     
       }
     }else if( (myProtocol.serial_registers[SREG_PING] & 0x3) == 0x2){
+      #ifdef DUAL_RADIO
       SPI.begin();
       //write temperature
       myProtocol.form_packet(&txData[2], WRITE_REG, SREG_TEMPERATURE, myProtocol.serial_registers[SREG_TEMPERATURE]);
@@ -148,7 +149,10 @@ void loop(){
         myProtocol.form_packet(&rxData[2], NACK, 0, TIMEOUT);     
       }*/
       myProtocol.form_packet(&rxData[2], ACK, SREG_TEMPERATURE, myProtocol.serial_registers[SREG_TEMPERATURE]);      
- 
+
+      #else
+      myProtocol.form_packet(&rxData[2], NACK, 0, FEATURE_WIP);
+      #endif
     }else{ //unknown value in SREG_PING
       myProtocol.form_packet(&rxData[2], NACK, 0, BAD_COMMAND);     
     }    

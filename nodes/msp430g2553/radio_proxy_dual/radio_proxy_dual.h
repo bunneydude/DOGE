@@ -19,5 +19,7 @@
 
 #define PROXY_PAYLOAD 7
 
+//#define DUAL_RADIO
+
 
 #endif
