@@ -1,3 +1,9 @@
+Useful setup links
+http://www.itopen.it/msp430-energia-on-linux/
+
+
+---
+
 MSP430G2553
 
 radio_proxy (Nov 15)
