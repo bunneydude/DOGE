@@ -1,0 +1,29 @@
+MSP430G2553
+
+radio_proxy (Nov 15)
+	only has 915MHz radio, not 2.4GHz
+	*safe for delete
+
+proxy_nrf_only (Nov 23)
+	added timeout read for nrf
+	*safe for delete
+
+dual_radio (Nov 16)
+	added 915MHz radio
+	doesn't send response to edison
+	Has typo, can't be correct. radio_proxy_dual looks correct
+	*safe for delete
+
+---
+
+doge_node (Nov 17)
+	Only 915mhz
+	*Used in demo as bp_node
+
+radio_proxy_dual (Nov 17)
+	*used on edison's BP 
+	
+doge_node_msp_nrf (Nov 16)
+	only has 2.4GHz, not 915MHz
+	very similar to doge_node
+	*keep for now
