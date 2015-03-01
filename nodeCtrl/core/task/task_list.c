@@ -1,29 +1,31 @@
-struct taskSlot{
-   uint8_t command[4]; //opcode, dest, misc
-   uint8_t period; //resolution might be determined by RDC period
-   uint8_t counter;
-   uint8_t linkflag; 
-   uint8_t reload;
+#include "task_list.h"
+uint8_t print_task(struct taskSlot* s)
+{
+	return s->counter + 1;
 }
+
+/*
 
 #define NUMBER_TASKS 8;
 volatile static struct taskSlot taskList[NUMBER_TASKS];
 
 // Invalidate all entries (linkFlag = period = 0)
-uint8_t i = 0;
-for(i=0; i<NUMBER_TASKS; i++){
-   taskList[i].linkFlag = 0;
-   taskList[i].counter = 0;
+init()
+{
+	uint8_t i = 0;
+	for(i=0; i<NUMBER_TASKS; i++){
+		taskList[i].linkFlag = 0;
+		taskList[i].counter = 0;
+	}
 }
-
 timer_isr()
 {
    uint8_t i = 0;
    for(i=0; i<NUMBER_TASKS; i++){
       if(taskList[i].counter > 1){taskList[i].counter--;}
    }
-}
-
+}*/
+/*
 void reset_task(uint8_t initialIndex)
 {
    uint8_t i = initialIndex;
@@ -92,6 +94,4 @@ uint8_t run_active_tasks()
 
 run_active_tasks();
 
-
-
-
+*/
