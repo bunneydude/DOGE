@@ -1,0 +1,8 @@
+#ifndef NEIGHBOR_CONFIG_H
+#define NEIGHBOR_CONFIG_H
+
+#ifndef BITFIELD_STRUCT
+#define BITFIELD_STRUCT 0
+#endif
+
+#endif
