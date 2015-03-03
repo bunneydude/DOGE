@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "neighbor-config.h"
 
-#if BITFIELD_STRUCT == 1
+#if PACK_STRUCT == 1
 struct neighborEntry{
 	uint16_t shNodeID;
 	uint16_t shLQE : 12;

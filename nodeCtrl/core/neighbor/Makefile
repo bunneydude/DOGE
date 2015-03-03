@@ -4,11 +4,15 @@ DEPS = neighbor.h neighbor-config.h
 
 OBJ = neighbor.o
 
+PACK = 0
+
 %.o: %.c $(DEPS)
-	$(CC) -c -Os -o $@ $< 
+	$(CC) -c -Os -DPACK_STRUCT=$(PACK) -o $@ $< 
 
 pgrm: $(OBJ)
 	$(CC) -o $@ $^
+
+test: clean pgrm 
 
 .PHONY: clean
 
