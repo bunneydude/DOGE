@@ -20,6 +20,16 @@ struct neighborEntry{
 };
 #endif
 
+#ifdef LINUX
+#pragma message("Linux target")
+#else
+	#ifdef MSP430
+	#pragma message("MSP430 target")
+	#else
+	#pragma error("No target defined")
+	#endif
+#endif
+
 
 
 

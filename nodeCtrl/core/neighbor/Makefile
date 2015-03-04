@@ -1,4 +1,10 @@
 CC=gcc
+PLATFORM=LINUX
+
+ifeq ($(PLATFORM),MSP430)
+	MCU=-mmcu=msp430g2553
+	CC=msp430-gcc
+endif
 
 DEPS = neighbor.h neighbor-config.h
 
@@ -7,10 +13,12 @@ OBJ = neighbor.o
 PACK = 0
 
 %.o: %.c $(DEPS)
-	$(CC) -c -Os -DPACK_STRUCT=$(PACK) -o $@ $< 
+	$(CC) -c -Os -DPACK_STRUCT=$(PACK) -D$(PLATFORM) -o $@ $< 
+	$(CC) -S -Os -DPACK_STRUCT=$(PACK) -D$(PLATFORM) -o $(basename $@)_$(PACK)_$(PLATFORM).asm $< 
 
 pgrm: $(OBJ)
-	$(CC) -o $@ $^
+	$(CC) $(MCU) -o $@ $^
+	size pgrm
 
 test: clean pgrm 
 
