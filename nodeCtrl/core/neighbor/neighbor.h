@@ -21,16 +21,4 @@ struct neighborEntry{
 };
 #endif
 
-//Determine what we're trying to build for. Currently used to omit printfs
-//might move this out to a more global file
-#ifdef LINUX
-#pragma message("Linux target")
-#else
-	#ifdef MSP430
-	#pragma message("MSP430 target")
-	#else
-	#pragma error("No target defined")
-	#endif
-#endif
-
 #endif
