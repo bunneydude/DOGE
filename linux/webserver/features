@@ -1,0 +1,90 @@
+Seems ok however the interface design is a bit convoluted. So here is a potential design to consider and it might be cleaner. This is assuming I have the features you want correctly. 
+
+Features Basic:
+
+0) The user is presented with a list of board to work with image to the left: board name and details to the right.
+
+1) When the user selects a board application they are presented with the board at the top of the screen with each (editable)  pin numbered. 
+
+2) As the user looks down  they will see  is the editable pins listed out along with basic status  infomation.
+
+    a) The numbered pins will no be clickable and only the listed out pins will be this is to allow the application to be more easily deployable and maintable across mutiple devices and browser types.
+
+    b) When the use clicks the pin they want to select
+        i) then they are presented with the in/out screen and that screen has 3 tabs in/out, advanced, and details
+            a) if a pin does not have any advanced features you 
+            b) breadcrumbs will appear at the top to show what pin was selected and help the user travel back.
+        ii) the user can then set either the input or output for the selected particular pin
+
+    c) the user selects the advanced tab
+        i) The user form here is presnted with a screen that looks simlar to the main interface (numbered image at the top and a list below). 
+        ii) seletion of a subpin from the list leads the user back to section 3.
+
+    d) the user selects the details tab which gives a large variety of detailed infomation about this particular pin.
+    
+3) once the users eyes reach the bottom of the screen they will see two tabls one being board the other being details.
+    
+    a) selection of the details tab will give a text list infomation about the current state of the board.
+    
+    
+Server Features: 
+    From a server side prespective what will need to be done to accomidate this. is the node server will need to be running express and socket.io.  upon connection the socket.io part will need to send something in the following structure initally: 
+    
+    [{ 
+        name: 'Audrino board insert name here ',
+        image: 'imagefilenametouse.png (or the svg to use which would be prefered)',
+        status: 'status'
+        pins: [{
+                image: 'imagetouse.png',
+                pinid:id,
+                activeMode: 'input/output',
+                input:' pullup/pulldown/float/off',
+                output:' high/low/off',
+                otherDetailedinfomation: 'what ever other details you many need'
+                name: 'name',
+                status:'status',
+                mapping: 'mapping',
+ 
+                subpinsImage: 'imagefilenametouse.png (or the svg to use)',
+                subpins:[{
+                    image: 'imagetouse.png',
+                    activeMode: 'input/output',
+                    pinid:id,
+                    mapping: 'mapping',
+                    input:' pullup/pulldown/float/off',
+                    output:' high/low/off',
+                    otherDetailedinfomation: 'what ever other details you many need'
+                    name: 'name',
+                    status:'status',
+                    ]}
+             }]
+        otherDetailedinfomation: 'what ever other details you many need'
+    }]
+
+The server will only listen for one command update and update will send the following infomation
+
+{
+ pinid:id,
+ activeMode: 'input/output',
+ input:' pullup/pulldown/float/off',
+ output:' high/low/off',
+}
+ the server can also repond with an update command sending the same infomation back or it can send an error for a particular pin
+ 
+ {
+    pinid:id,
+    errorcode: 'code'
+    errorDetails: 'details'
+ } 
+ 
+
+Features Advanced: 
+
+1) When the user first opens the applicaiton they are presented with a tutorial that will walk them though the basic features of the app the tutorial will help then turn things on and off and will be presented by the AudrinoFae
+
+
+2) The user can save and load profiles for a particular board this can be either stored locally or on the server.
+
+Timing : 
+
+interms of timing if you like this potential design i can mock something up with in a day or so. 
