@@ -1,7 +1,8 @@
 from SparkfunData import SparkfunData
+import json
 #import SparkfunData
 
-def connect_cloud(service, stream):
+def connect_cloud(service):
     stream = None
     if service.lower() == 'sparkfun':
         stream = SparkfunData()
@@ -10,10 +11,24 @@ def connect_cloud(service, stream):
         #stream = IntelAnalytics.IntelAnalytics()
     return stream
 
-def getLatestNodeData(dataFilter, stream):
-    _dataFeed = stream.pull('json')
-    #for(
-    return _dataFeed
+def getLatestNodeData(stream, dataFilter):
+    if type(dataFilter) != type(dict()):
+        return {}
+    _rawData = stream.pull('json')
+    _jsonData = json.loads(_rawData)
+    for row in _jsonData:
+        match = 0
+        for key in row.viewkeys() & dataFilter.viewkeys():
+            if dataFilter[key] == row[key]:
+                match += 1
+            else:
+                break
+        if match == len(row.viewkeys() & dataFilter.viewkeys()):
+#        if row['network'] == 'wifi' and row['id'] == '0':
+#            return row['temperature']
+            return row
+#    return _rawData
+    return {}
 
 
 """Connect to a data stream from a specified cloud server
