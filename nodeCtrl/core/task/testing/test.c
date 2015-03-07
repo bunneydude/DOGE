@@ -6,6 +6,8 @@ int main(int argc, char const *argv[])
 {
 	struct taskSlot a;
 	a.counter = 1;
+	#ifdef LINUX
 	printf("Hello wld! %d\n", print_task(&a) );
+	#endif
 	return 0;
 }
