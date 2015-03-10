@@ -1,44 +1,47 @@
 #include "task_list.h"
+#include <stdlib.h>
+#include <stdio.h>
+
 uint8_t print_task(struct taskSlot* s)
 {
-	return s->counter + 1;
+	return 1;//s->counter + 1;
 }
-
 /*
-
-#define NUMBER_TASKS 8;
-volatile static struct taskSlot taskList[NUMBER_TASKS];
-
 // Invalidate all entries (linkFlag = period = 0)
 init()
 {
 	uint8_t i = 0;
 	for(i=0; i<NUMBER_TASKS; i++){
-		taskList[i].linkFlag = 0;
+		taskList[i].linkflag = 0;
 		taskList[i].counter = 0;
 	}
 }
-timer_isr()
+
+void timer_isr()
 {
+#ifdef LINUX
+	printf("In timer ISR\n");
+#endif
    uint8_t i = 0;
    for(i=0; i<NUMBER_TASKS; i++){
       if(taskList[i].counter > 1){taskList[i].counter--;}
    }
-}*/
-/*
+}
+
+
 void reset_task(uint8_t initialIndex)
 {
    uint8_t i = initialIndex;
    do{
       taskList[i].counter = taskList[i].period;
       i--;
-   }while( (i < initialIndex) && (taskList[i].linkFlag == 1));
+   }while( (i < initialIndex) && (taskList[i].linkflag == 1));
 }
 
 uint8_t get_next_task_group(uint8_t index)
 {
    do{
-      if(taskList[index].linkFlag == 0){
+      if(taskList[index].linkflag == 0){
          return (index+1) % NUMBER_TASKS; //could still return 0, but that's fine
       }else{
          index++;
@@ -72,14 +75,14 @@ uint8_t run_active_tasks()
          }else{
             next = (i+1) % NUMBER_TASKS;
             //update linked status
-            linked = taskList[i].linkFlag //update
+            linked = taskList[i].linkflag; //update
                if((linked == 0) && (taskList[i].reload == 1)){
                   // last task in this group (or not linked at all). Start reset if needed
                   reset_task(i);
                }
          }
          
-         execute_command(&taskList[i].command); //run this task
+         //execute_command(&taskList[i].command); //run this task
 
       }else{
          next = (i+1) % NUMBER_TASKS;
@@ -87,11 +90,9 @@ uint8_t run_active_tasks()
    }while(next != 0);
    //enable sw timer
 }
-
+*/
 //start timer and interrupts
 
 //wake up from sleep for radios
 
-run_active_tasks();
-
-*/
+//run_active_tasks();
