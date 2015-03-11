@@ -2,11 +2,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-uint8_t print_task(struct taskSlot* s)
-{
-	return 1;//s->counter + 1;
-}
-/*
 // Invalidate all entries (linkFlag = period = 0)
 init()
 {
@@ -14,6 +9,7 @@ init()
 	for(i=0; i<NUMBER_TASKS; i++){
 		taskList[i].linkflag = 0;
 		taskList[i].counter = 0;
+		taskList[i].reload = 0;
 	}
 }
 
@@ -90,7 +86,7 @@ uint8_t run_active_tasks()
    }while(next != 0);
    //enable sw timer
 }
-*/
+
 //start timer and interrupts
 
 //wake up from sleep for radios

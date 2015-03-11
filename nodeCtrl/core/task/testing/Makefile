@@ -1,11 +1,16 @@
 IDIR =..
 CC=gcc
+NM=nm
+SIZE=size
+
 PLATFORM=LINUX
 CFLAGS= ../task_list.o
 
 ifeq ($(PLATFORM),MSP430)
 	MCU=-mmcu=msp430g2553
 	CC=msp430-gcc
+	NM=msp430-nm
+	SIZE=msp430-size
 else
 	CFLAGS += -lrt
 endif
@@ -24,8 +29,8 @@ pgrm: $(OBJ)
 	cd ..; make clean
 	cd ..; make pgrm PLATFORM=$(PLATFORM)
 	$(CC) $(MCU) -o $(basename $@)_$(PLATFORM) $^ $(CFLAGS)
-	size $(basename $@)_$(PLATFORM)
-
+	$(SIZE) $(basename $@)_$(PLATFORM)
+	$(NM) -S $(basename $@)_$(PLATFORM) | grep " T [a-z]" | awk '{print strtonum("0x"$$2),$$3,$$4}'
 
 all: clean pgrm
 

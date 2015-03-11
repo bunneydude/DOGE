@@ -50,6 +50,19 @@ handler(int sig, siginfo_t *si, void *uc)
 //	print_siginfo(si);
 	//           signal(sig, SIG_IGN);
 }
+
+
+void print_taskList(struct taskSlot *list)
+{
+	uint8_t i = 0;
+	struct taskSlot entry;
+	for(i=0; i<NUMBER_TASKS; i++){
+		entry = list[i];
+		printf("Slot %d; period %d; counter %d; linkflag %d, reload %d\n", entry.period, entry.counter, entry.linkflag, entry.reload);	
+	}
+}
+
+
 #endif
 
 
@@ -125,12 +138,17 @@ main(int argc, char *argv[])
 
 
 //Actual test content
+	init();
 
-	//struct taskSlot a;
-	//a.counter = 1;
+
 	#ifdef LINUX
-	printf("Hello wld! %d\n", print_task(&a) );
+	printf("taskSlot size = %d\n", sizeof(struct taskSlot));
+	printf("taskList size = %d\n", sizeof(taskList));
+	print_taskList(&taskList);
+	printf("Reset task 0\n");
 	#endif
+
+	reset_task(0);
 
 	while(1){}
 }
