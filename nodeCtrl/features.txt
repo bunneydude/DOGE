@@ -63,5 +63,5 @@ MSP430
    UART
       7- or 8-bit data
       parity: odd, even, non
-      LSB- or MSB-first rx&tx
+      LSB- r MSB-first rx&tx
 
