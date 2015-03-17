@@ -13,11 +13,10 @@ OBJ = memory_map.o
 
 %.o: %.c $(DEPS)
 	$(CC) -c -Os -D$(PLATFORM) -o $@ $< 
-	$(CC) -c -Os -D$(PLATFORM) -o $(basename $@)_$(PLATFORM).asm $< 
+	$(CC) -S -Os -D$(PLATFORM) -o $(basename $@)_$(PLATFORM).asm $< 
 
 pgrm: $(OBJ)
-	$(CC) -o $(basename $@) $^ $(CFLAGS)
-	$(SIZE) $(basename $@)
+	echo "build memory_map"
 
 .PHONY: clean
 

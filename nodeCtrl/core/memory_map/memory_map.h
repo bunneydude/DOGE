@@ -21,6 +21,8 @@ enum mm_base_sizes{ //number of bytes needed, for now round up to next power of 
 };
 
 
+uint8_t check_mm_space(uint8_t addr);
+	
 //GPIO
 //6 bytes of registers needed for every 8 pins
 
@@ -34,7 +36,19 @@ enum mm_gpio_registers{
 	GPIO_INPUT_VAL = 0x5, //input value
 	GPIO_OUTPUT_VAL = 0x6, //output value
 };
+
+//collapse RES, UPPER_REF, LOWER_REF, and SAMPLE_TIME into one register
+
+enum mm_adc_registers{
+	ADC_RES = 0x1, //1 bit;   1 or 2 byte results
+	ADC_UPPER_REF = 0x3, //2 bits;   at least 4 valid ones for MSP430
+	ADC_LOWER_REF = 0x4, //1 bit;   gnd or external
+	ADC_SAMPLE_TIME = 0x4, //2 bits;   for now, 4 options (b/c MSP uses 4, 8, 16, or 64 clks)	
+
+	ADC_SPEED = 0x5, //value is interpreted as a division of the max ADC speed
 	
+	ADC_INPUT_VAL = 0x2,
+};
 
 
 #endif
