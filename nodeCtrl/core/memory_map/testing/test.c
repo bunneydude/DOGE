@@ -8,6 +8,7 @@
 #include "memory_map.h"
 
 #define mappedVariable *((&(memoryMap[1].u32)))
+
 static uint8_t* mappedArray = ((&(memoryMap[0].u8[2])));
 
 #ifdef LINUX
@@ -46,18 +47,55 @@ void linux_debug_print()
 }
 #endif
 
+
+uint8_t gpio_print(uint8_t rw, uint8_t addr, uint8_t data)
+{
+#ifdef LINUX
+	printf("In gpio_print. rw = 0x%x, address = 0x%x, data = 0x%x\n", rw, addr, data);
+#endif
+	return 0;
+}
+
+uint8_t adc_print(uint8_t rw, uint8_t addr, uint8_t data)
+{
+#ifdef LINUX
+	printf("In adc_print. rw = 0x%x, address = 0x%x, data = 0x%x\n", rw, addr, data);
+#endif
+	return 0;
+}
+
+uint8_t uart_print(uint8_t rw, uint8_t addr, uint8_t data)
+{
+#ifdef LINUX
+	printf("In uart_print. rw = 0x%x, address = 0x%x, data = 0x%x\n", rw, addr, data);
+#endif
+	return 0;
+}
+
+struct mmMethods memoryMapRegionMethods;
+
 void main(){
+
+memoryMapRegionMethods.gpio_handler = gpio_print;
+memoryMapRegionMethods.adc_handler = adc_print;
+memoryMapRegionMethods.uart_handler = uart_print;
+
+
 #ifdef LINUX
 	//linux_debug_print();
 #endif
 
 	uint8_t inputAddress = 0x10;
 	uint8_t result = 0;
-	result = check_mm_space(inputAddress);
-
-	#ifdef LINUX
-	printf("Address 0x%x is in memory space %d\n", inputAddress, result);
-	#endif
+	uint8_t inputData = 10;
+	
+	for(inputAddress = 0x0; inputAddress < 0x20; inputAddress++){
+		
+		result = check_mm_space(inputAddress, inputData++);
+#ifdef LINUX
+		printf("Address 0x%x is in memory space %d\n\n", inputAddress, result);
+#endif
+	}
 
 }
 
