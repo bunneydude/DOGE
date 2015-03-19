@@ -72,6 +72,14 @@ uint8_t uart_print(uint8_t rw, uint8_t addr, uint8_t data)
 	return 0;
 }
 
+uint8_t dsp_print(uint8_t rw, uint8_t addr, uint8_t data)
+{
+#ifdef LINUX
+	printf("In dsp_print. rw = 0x%x, address = 0x%x, data = 0x%x\n", rw, addr, data);
+#endif
+	return 0;
+}
+
 struct mmMethods memoryMapRegionMethods;
 
 void main(){
@@ -79,6 +87,7 @@ void main(){
 memoryMapRegionMethods.gpio_handler = gpio_print;
 memoryMapRegionMethods.adc_handler = adc_print;
 memoryMapRegionMethods.uart_handler = uart_print;
+memoryMapRegionMethods.dsp_handler = dsp_print;
 
 
 #ifdef LINUX

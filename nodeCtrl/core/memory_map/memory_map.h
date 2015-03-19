@@ -8,26 +8,37 @@ union memoryMapEntry{
 	uint8_t u8[4];
 };
 
-union memoryMapEntry memoryMap[2]; 
 
+//method arguments are (read-write flag, address, data)
 struct mmMethods{
 	uint8_t (*gpio_handler)(uint8_t, uint8_t, uint8_t);
 	uint8_t (*adc_handler)(uint8_t, uint8_t, uint8_t);
 	uint8_t (*uart_handler)(uint8_t, uint8_t, uint8_t);
+	uint8_t (*dsp_handler)(uint8_t, uint8_t, uint8_t);
 } memoryMapRegionMethods;
 	
 
 enum mm_bases{
-	MM_GPIO_BASE = 0x0,
-	MM_ADC_BASE = 0x10,
-	MM_UART_BASE = 0x14,
+	MM_PHYSICAL_BAR = 0x0, //actual memory
+	MM_NETWORK_BASE = 0x0,
+
+	MM_FUNCTION_BAR = 0x8, //start of memory-mapped functions
+	MM_GPIO_BASE = 0x8,
+	MM_ADC_BASE = 0x18,
+	MM_UART_BASE = 0x1C,
+	MM_DSP_BASE = 0x20,
 };
 
 enum mm_base_sizes{ //number of bytes needed, for now round up to next power of 2
+	MM_NETWORK_SIZE = 8,
+	
 	MM_GPIO_SIZE = 0x10,
 	MM_ADC_SIZE = 0x4,
 	MM_UART_SIZE = 0x4,
+	MM_DSP_SIZE = 0x4
 };
+
+union memoryMapEntry memoryMap[MM_NETWORK_SIZE]; 
 
 //mm region is [base, base + size -1]
 
@@ -64,9 +75,7 @@ enum mm_adc_registers{
 //	ADC_LOWER_REF = 0x0, //1 bit;   gnd or external
 //	ADC_SAMPLE_TIME = 0x0, //2 bits;   for now, 4 options (b/c MSP uses 4, 8, 16, or 64 clks)	
 	ADC_CFG0 = 0x0,	
-
-	ADC_SPEED = 0x1, //value is interpreted as a division of the max ADC speed
-	
+	ADC_SPEED = 0x1, //value is interpreted as a division of the max ADC speed	
 	ADC_INPUT_VAL = 0x2,
 };
 
@@ -77,8 +86,14 @@ enum mm_uart_registers{
 //	UART_ORDER = 0x0, //1 bit - MSB or LSB-first
 
 	UART_CFG0 = 0x0,
-
 	UART_TX = 0x1, //write to this register to transmit TODO does 1byte cause an issue for 9-bit data?
 	UART_RX = 0x2, //read from this register to get received data (no mask needed)
 };
+
+enum mm_dsp_registers{
+	DSP_RUN_LENGTH = 0x0, //1-255
+	DSP_AVERAGE = 0x1,
+	DSP_VARIANCE = 0x2,
+};
+
 #endif
