@@ -23,36 +23,10 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-###################################################################
-# This program will:
-#   * Authenticate a user using existing credentials
-#   * Create a device
-#   * Activate the device (but currently does not persist the token)
-#   * Register 2 time series for the device - one for temperature and
-#     one for humidity (The component types for these are already
-#      defined in the account catalog)
-#   * Send observations for both time series. As configured it will 
-#     send one per hour for the last 25 hours for each time series.
-#   * Read the observations back and display the count.
-#
-#  To use:
-#   * On the web:
-#       * Go to https://dashboard.us.enableiot.com
-#       * Register - be sure to click the "Sign Up Here" link. Do not use
-#       * any of the OAuth options, or you will not be able to use the API.#
-#       * Verify your email address
-#       * Enter a name for your account
-#   * Below line 39 in this file:
-#       * Update your username, password and account_name
-#       * Update the proxy address if required
-#       * Update the device id below. The device id MUST be unique or
-#         the step to create the device will fail
-#   * Install the python "requests" library. You can use Python 
-#     virtual environments, or install it globally:
-#       $ pip install requests
-#   * Run the program
-#       $ python iotkit_client.py
-#
+#Usage:
+#Make sure you enter your credentials in the script below before using this script
+#The component catalog type has to be registered in the IoT Analtyics Dashboard for the current script to work. 
+#example: Register boosterpack or leafnode as a component catalog type
 
 import sys
 import requests
