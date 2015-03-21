@@ -17,8 +17,7 @@ PACK = 0
 	$(CC) -S -Os -DPACK_STRUCT=$(PACK) -D$(PLATFORM) -o $(basename $@)_$(PACK)_$(PLATFORM).asm $< 
 
 pgrm: $(OBJ)
-	$(CC) $(MCU) -o $@ $^
-	size pgrm
+	echo "built network"
 
 test: clean pgrm 
 
