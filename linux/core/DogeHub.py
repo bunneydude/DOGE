@@ -1,14 +1,13 @@
 from SparkfunData import SparkfunData
+from IntelAnalytics import IntelAnalytics
 import json
-#import SparkfunData
 
 def connect_cloud(service):
     stream = None
     if service.lower() == 'sparkfun':
         stream = SparkfunData()
     elif service.lower() == 'intel':
-        stream = stream
-        #stream = IntelAnalytics.IntelAnalytics()
+        stream = IntelAnalytics()
     return stream
 
 def getLatestNodeData(stream, dataFilter):
