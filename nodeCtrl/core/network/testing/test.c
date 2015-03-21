@@ -6,7 +6,7 @@
 void print_entry(union networkEntry e, enum networkEntryType type)
 {
 	printf("Number neighbor entries = %d, number routing entries = %d, division index = %d\n", networkTable.numberEntries[NEIGHBOR_ENTRY], networkTable.numberEntries[ROUTING_ENTRY], networkTable.divisionIndex);
-/*
+
 	switch(type){
 		case NEIGHBOR_ENTRY :
 			printf("Neighbor entry:\n");
@@ -22,16 +22,16 @@ void print_entry(union networkEntry e, enum networkEntryType type)
 			printf("   neighborIndex = %d\n\n", e.routing.neighborIndex);
 			break;
 	}
-*/
+
 }
 
 #endif
 
 void main(){
 //init network
-networkTable.numberEntries[NEIGHBOR_ENTRY] = 0;
-networkTable.numberEntries[ROUTING_ENTRY] = 0;
-networkTable.divisionIndex = 4;
+
+network_init(NETWORK_DIVISION_DEFAULT);
+
 
 printf("N size = 0x%lu, R size = 0x%lu\n", sizeof(struct neighborEntry), sizeof(struct routingEntry));
 printf("N entries = %d, R entries = %d\n", networkTable.numberEntries[NEIGHBOR_ENTRY], networkTable.numberEntries[ROUTING_ENTRY]);

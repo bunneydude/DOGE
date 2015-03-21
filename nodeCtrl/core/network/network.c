@@ -1,6 +1,19 @@
 #include <stdio.h>
 #include "network.h"
 
+void network_init(uint8_t division)
+{
+network = ( (union networkEntry*)(&(memoryMap[MM_NETWORK_BASE].u8[0])));
+
+networkTable.numberEntries[NEIGHBOR_ENTRY] = 0;
+networkTable.numberEntries[ROUTING_ENTRY] = 0;
+networkTable.divisionIndex = 4;
+
+
+}
+
+
+
 uint8_t network_room_check(enum networkEntryType type)
 {
 	//TODO could combine the first two ifs

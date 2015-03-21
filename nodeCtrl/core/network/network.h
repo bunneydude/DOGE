@@ -6,7 +6,9 @@
 #include "../routing/routing.h"
 #include "../memory_map/memory_map.h"
 
-#define MAX_NETWORK_ENTRIES 16 //for now, can't be higher than 255, 0-based indexing
+#define MAX_NETWORK_ENTRIES 8 //for now, can't be higher than 255, 0-based indexing
+#define NETWORK_DIVISION_DEFAULT 4
+
 //TODO add preprocessor check for <255
 
 enum networkEntryType{
@@ -33,13 +35,15 @@ struct networkIndices{
 //This allows the max number of either entry type to change at runtime without wasting memory
 //neighbor table entries are in the range [0, maxNeighborEntries]
 //routing table entries are in the range [MAX_NETWORK_ENTRIES-1 - maxRoutingEntries, MAX_NETWORK_ENTRIES-1]
-union networkEntry network[MAX_NETWORK_ENTRIES];
+union networkEntry* network;//[MAX_NETWORK_ENTRIES];
 struct networkIndices networkTable;
 
 //TODO insert into memory map
 
 
 //functions
+
+void network_init(uint8_t division);
 
 //add an entry to network array
 uint8_t network_insert(union networkEntry* entry, enum networkEntryType type);
