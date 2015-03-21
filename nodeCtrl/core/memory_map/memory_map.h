@@ -50,21 +50,28 @@ uint8_t check_mm_space(uint8_t addr, uint8_t data);
 //MSP430G2553 has 16 pins -> needs 2*6=12 bytes in memory map -> round to 16
 //LPC812 has 18 pins -> needs 3*6=18 bytes in memory map -> round to 24
 enum mm_gpio_registers{
-	GPIO_0_DIR = 0x0, //Direction: input, output
-	GPIO_0_OUTPUT_TYPE = 0x1, //Output type: pushpull, open-drain
-	GPIO_0_RESISTOR_EN = 0x2, //Pull resistor enable
-	GPIO_0_RESISTOR_DIR = 0x3, //pull resistor direction
-	GPIO_0_INPUT_VAL = 0x4, //input value
-	GPIO_0_OUTPUT_VAL = 0x5, //output value
-	GPIO_0_TOGGLE = 0x6,
+	GPIO_RO_BAR      = 0x0,
+	GPIO_0_INPUT_VAL = 0x0, //input value
+	GPIO_1_INPUT_VAL = 0x1, //input value
+	GPIO_RO_MAX      = 0x2, 
 
-	GPIO_1_DIR          = 0x7, //Direction: input, output
-	GPIO_1_OUTPUT_TYPE  = 0x8, //Output type: pushpull, open-drain
-	GPIO_1_RESISTOR_EN  = 0x9, //Pull resistor enable
-	GPIO_1_RESISTOR_DIR = 0xa, //pull resistor direction
-	GPIO_1_INPUT_VAL    = 0xb, //input value
-	GPIO_1_OUTPUT_VAL   = 0xc, //output value
-	GPIO_1_TOGGLE       = 0xd,
+	GPIO_RW_BAR         = 0x2,
+	GPIO_0_OUTPUT_VAL   = 0x2, //output value
+	GPIO_0_RESISTOR_DIR = 0x2, //pull resistor direction //Special - on MSP430, the output reg control pull resistor direction
+	GPIO_0_DIR          = 0x3, //Direction: input, output
+	GPIO_0_RESISTOR_EN  = 0x4, //Pull resistor enable
+	GPIO_1_OUTPUT_VAL   = 0x5, //output value
+	GPIO_1_RESISTOR_DIR = 0x5, //pull resistor direction //Special - on MSP430, the output reg control pull resistor direction
+	GPIO_1_DIR          = 0x6, //Direction: input, output
+	GPIO_1_RESISTOR_EN  = 0x7, //Pull resistor enable
+	GPIO_RW_MAX         = 0x8,
+
+	GPIO_EMU_BAR       = 0x8,	
+	GPIO_0_OUTPUT_TYPE = 0x8, //Output type: pushpull, open-drain
+	GPIO_0_TOGGLE      = 0x9,
+	GPIO_1_OUTPUT_TYPE = 0xa, //Output type: pushpull, open-drain
+	GPIO_1_TOGGLE      = 0xb,
+	GPIO_EMU_MAX       = 0xc,
 };
 
 //collapse RES, UPPER_REF, LOWER_REF, and SAMPLE_TIME into one register

@@ -16,7 +16,13 @@
  *              of the result will always be 0.
  *  @return The return data if a read was requested.
  */
-uint8_t gpio_mm_handler(uint8_t rw, uint8_t addr, uint8_t data, uint8_t mask);
+uint8_t gpio_mm_handler(uint8_t rw, uint8_t addr, uint8_t* data, uint8_t mask);
 
+
+enum gpioErrorCodes{
+	RO_REGISTER         = 0x1,
+	ADDR_OUT_OF_RANGE   = 0x2,
+	UNSUPPORTED_FEATURE = 0x3,
+};
 
 #endif
