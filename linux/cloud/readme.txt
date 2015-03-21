@@ -8,4 +8,5 @@ Make sure you enter your credentials in the IntelAnalytics.py in this section:
  device_id = ""
  device_token = ""
 
-The component catalog type has to be registered in the IoT Analtyics Dashboard for the current script to work. eg. Register boosternode or leafnode. 
+The component catalog type has to be registered in the IoT Analtyics Dashboard for the current script to work. 
+eg. Register boosterpack or leafnode. 
