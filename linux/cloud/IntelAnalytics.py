@@ -23,10 +23,36 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#Usage:
-#Make sure you enter your credentials in the script below before using this script
-#The component catalog type has to be registered in the IoT Analtyics Dashboard for the current script to work. 
-#example: Register boosterpack or leafnode as a component catalog type
+###################################################################
+# This program will:
+#   * Authenticate a user using existing credentials
+#   * Create a device
+#   * Activate the device (but currently does not persist the token)
+#   * Register 2 time series for the device - one for temperature and
+#     one for humidity (The component types for these are already
+#      defined in the account catalog)
+#   * Send observations for both time series. As configured it will 
+#     send one per hour for the last 25 hours for each time series.
+#   * Read the observations back and display the count.
+#
+#  To use:
+#   * On the web:
+#       * Go to https://dashboard.us.enableiot.com
+#       * Register - be sure to click the "Sign Up Here" link. Do not use
+#       * any of the OAuth options, or you will not be able to use the API.#
+#       * Verify your email address
+#       * Enter a name for your account
+#   * Below line 39 in this file:
+#       * Update your username, password and account_name
+#       * Update the proxy address if required
+#       * Update the device id below. The device id MUST be unique or
+#         the step to create the device will fail
+#   * Install the python "requests" library. You can use Python 
+#     virtual environments, or install it globally:
+#       $ pip install requests
+#   * Run the program
+#       $ python iotkit_client.py
+#
 
 import sys
 import requests
@@ -61,6 +87,10 @@ class IntelAnalytics():
  device_name = "Device-{0}".format(device_id)
 
  def __init__(self):
+   global g_user_token,g_uid,g_aid
+   g_user_token = self.get_token()
+   g_uid = self.get_user_id()
+   g_aid =  self.get_account_id(g_uid)
    self = self
 
  def get_user_headers(self):
@@ -192,6 +222,7 @@ class IntelAnalytics():
     resp = requests.post(url, data=data, headers=self.get_device_headers(), proxies=self.proxies, verify=self.verify)
     self.check(resp, 201)
     js = resp.json()
+    print js
     return js["cid"]
 
 
@@ -245,6 +276,30 @@ class IntelAnalytics():
     js = resp.json()
     return js
 
+ #Returns component id if component name is present. If not present, creates one. 
+ def get_cid (self,ctype,cname):
+    url =  "{0}/accounts/{1}/devices/{2}".format(self.base_url, g_aid,self.device_id)
+    resp = requests.get(url, headers=self.get_user_headers(), proxies=self.proxies, verify=self.verify)
+    self.check(resp, 200)
+    js = resp.json()
+    series = js['components']
+    series = sorted(series, key=lambda u: u["type"])
+    for u in series:
+        #print "Type: {0} Name: {1} Cid: {2}".format(u["type"], u["name"], u["cid"])
+        if cname == str(u["name"]):
+          #print "Match Ctype {0} with CID {1}".format(u["type"], u["cid"])
+          myCid = u["cid"]
+          cname_found = 1
+        if ctype == str(u["type"]):
+          ctype_found = 1
+
+    #FIXME register component type if not found 
+    #if ctype == 0:
+
+    if cname_found == 0:
+        myCid = self.create_component(g_aid,  ctype, cname) 
+    return myCid
+ 
 
 # print all of the device names and observation counts, sorted by device name
  def print_observation_counts(js):  # js is result of /accounts/{account}/data/search
@@ -256,48 +311,19 @@ class IntelAnalytics():
 
 
 
- 
-
  def push (self,data):
-
-    global g_user_token
-
-    #Get an authentication token for use in the following API calls.
-    # It will be put in every header by get_user_headers()
-    g_user_token = self.get_token()
-
-
-    # get my user_id (uid) within the Intel IoT Analytics Platform
-    uid =  self.get_user_id()
-    print "UserId: {0}".format(uid)
-
-    # for all the accounts I have access to, find the first account
-    # with the name {account_name} and return the account_id (aid)
-    aid = self.get_account_id(uid)
-    print "AccountId: {0}".format(aid)
-
-
 
     # refresh the activation code. It can be used any number of times
     # in the next 60 minutes to activate devices.
-    ac = self.generate_activation_code(aid)
-    print "Activation code: {0}".format(ac)
+    ac = self.generate_activation_code(g_aid)
+    #print "Activation code: {0}".format(ac)
 
-
-    # this registers a time series for this device. The component will have a
-    # Component Type of "temperature.v1.0" which defines the data type of the
-    # value, the format, the unit of measure, etc. This way, we don't need to
-    # specify all of that here.
-    # Within the scope of the device, this time series will be named "temp".
-    # This call returns the component_id (cid) which is globally unique
-    # within the Intel IoT Analytics platform.
-    #print "Ctype:{0} Cname:{1}".format(data['ctype'], data['cname'])
     component_type = str( data['network'])+".v1.0"
     component_name =  "node:"+str(data['id'])+"tempF"
-    cid = self.create_component(aid,  component_type, component_name)
-    #print "ComponentID (cid): {0}".format(cid)
 
+    cid = self.get_cid(component_type,component_name)
+ 
     #Submit observation to the cloud
-    self.create_observations(aid, self.device_id, cid, data)
+    self.create_observations(g_aid, self.device_id, cid, data)
 
 
