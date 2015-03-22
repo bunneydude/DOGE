@@ -33,8 +33,12 @@ uint8_t gpio_mm_handler(uint8_t rw, uint8_t addr, uint8_t* data, uint8_t mask)
 		}
 			
 	}else if(addr < GPIO_EMU_MAX){ //in EMU range
+		if(rw == 1){ //all emulated gpio registers are write-only
+			return WO_REGISTER;
+		}
+
 		switch(addr - GPIO_EMU_BAR){
-			case GPIO_0_TOGGLE:
+			case GPIO_0_TOGGLE:				
 				P1OUT ^= *data & ~mask;
 				break;
 			case GPIO_1_TOGGLE:

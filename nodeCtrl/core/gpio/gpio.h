@@ -21,8 +21,9 @@ uint8_t gpio_mm_handler(uint8_t rw, uint8_t addr, uint8_t* data, uint8_t mask);
 
 enum gpioErrorCodes{
 	RO_REGISTER         = 0x1,
-	ADDR_OUT_OF_RANGE   = 0x2,
-	UNSUPPORTED_FEATURE = 0x3,
+	WO_REGISTER         = 0x2,
+	ADDR_OUT_OF_RANGE   = 0x3,
+	UNSUPPORTED_FEATURE = 0x4,
 };
 
 #endif
