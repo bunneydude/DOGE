@@ -1,6 +1,8 @@
 #ifndef GPIO_H
 #define GPIO_H
 
+#include "../nodeCtrl_errno.h"
+
 /** @brief Handles reads and writes to the memmory-mappped
  *         function section for GPIO.
  *
@@ -20,10 +22,10 @@ uint8_t gpio_mm_handler(uint8_t rw, uint8_t addr, uint8_t* data, uint8_t mask);
 
 
 enum gpioErrorCodes{
-	RO_REGISTER         = 0x1,
-	WO_REGISTER         = 0x2,
-	ADDR_OUT_OF_RANGE   = 0x3,
-	UNSUPPORTED_FEATURE = 0x4,
+	RO_REGISTER         = ERROR_GPIO_BASE + 0x0,
+	WO_REGISTER         = ERROR_GPIO_BASE + 0x1,
+	ADDR_OUT_OF_RANGE   = ERROR_GPIO_BASE + 0x2,
+	UNSUPPORTED_FEATURE = ERROR_GPIO_BASE + 0x3
 };
 
 #endif

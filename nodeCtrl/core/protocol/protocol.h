@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include "../memory_map/memory_map.h"
+#include "../nodeCtrl_errno.h"
 
 #define MAX_PAYLOAD_SIZE 16
 
@@ -24,12 +25,12 @@ enum Protocol_commands{
 
 //error codes
 enum Protocol_errors{
-	ERR_CHECKSUM = 0x1,
-	ERR_COMMAND = 0x2,
-	ERR_FEATURE_WIP = 0x3,
-	ERR_CAT = 0x4,
-	ERR_RANGE = 0x5,
-	ERR_TIMEOUT = 0x6
+	ERR_CHECKSUM    = ERROR_PROTOCOL_BASE + 0x1,
+	ERR_COMMAND     = ERROR_PROTOCOL_BASE + 0x2,
+	ERR_FEATURE_WIP = ERROR_PROTOCOL_BASE + 0x3,
+	ERR_CAT         = ERROR_PROTOCOL_BASE + 0x4,
+	ERR_RANGE       = ERROR_PROTOCOL_BASE + 0x5,
+	ERR_TIMEOUT     = ERROR_PROTOCOL_BASE + 0x6
 };
 
 struct Protocol{
