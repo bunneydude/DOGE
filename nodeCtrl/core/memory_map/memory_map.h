@@ -9,12 +9,12 @@ union memoryMapEntry{
 };
 
 
-//method arguments are (read-write flag, address, data)
+//method arguments are (read-write flag, address, data ptr, mask)
 struct mmMethods{
-	uint8_t (*gpio_handler)(uint8_t, uint8_t, uint8_t);
-	uint8_t (*adc_handler)(uint8_t, uint8_t, uint8_t);
-	uint8_t (*uart_handler)(uint8_t, uint8_t, uint8_t);
-	uint8_t (*dsp_handler)(uint8_t, uint8_t, uint8_t);
+	uint8_t (*gpio_handler)(uint8_t, uint8_t, uint8_t*, uint8_t);
+	uint8_t (*adc_handler)(uint8_t, uint8_t, uint8_t*, uint8_t);
+	uint8_t (*uart_handler)(uint8_t, uint8_t, uint8_t*, uint8_t);
+	uint8_t (*dsp_handler)(uint8_t, uint8_t, uint8_t*, uint8_t);
 } memoryMapRegionMethods;
 	
 
@@ -41,10 +41,12 @@ enum mm_bases{
 };
 
 
-union memoryMapEntry memoryMap[MM_NETWORK_SIZE]; 
+union memoryMapEntry memoryMap[MM_NETWORK_SIZE/4]; 
+
 
 //mm region is [base, base + size -1]
-uint8_t check_mm_space(uint8_t addr, uint8_t data);
+uint8_t check_mm_space(uint8_t rw, uint8_t addr, uint8_t* data, uint8_t mask);
+
 	
 //GPIO
 //6 bytes of registers needed for every 8 pins
