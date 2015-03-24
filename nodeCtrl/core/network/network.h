@@ -8,6 +8,8 @@
 
 #define MAX_NETWORK_ENTRIES 8 //for now, can't be higher than 255, 0-based indexing
 #define NETWORK_DIVISION_DEFAULT 4
+//neighbor entries allowed in range [0, division)
+//routing entries allowed in range [division, MAX_NETWORK_ENTRIES)
 
 //TODO add preprocessor check for <255
 

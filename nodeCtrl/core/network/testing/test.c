@@ -32,10 +32,11 @@ void main(){
 
 network_init(NETWORK_DIVISION_DEFAULT);
 
-
+#ifdef LINUX
 printf("N size = 0x%lu, R size = 0x%lu\n", sizeof(struct neighborEntry), sizeof(struct routingEntry));
 printf("N entries = %d, R entries = %d\n", networkTable.numberEntries[NEIGHBOR_ENTRY], networkTable.numberEntries[ROUTING_ENTRY]);
 printf("Entry division index = %d, max network entries = %d\n", networkTable.divisionIndex, MAX_NETWORK_ENTRIES);
+#endif
 
 union networkEntry nEntry;
 union networkEntry rEntry;
@@ -52,7 +53,6 @@ rEntry.routing.neighborIndex = 1;
 #ifdef LINUX
 print_entry(nEntry, NEIGHBOR_ENTRY);
 print_entry(rEntry, ROUTING_ENTRY);
-#endif
 
 network_insert(&nEntry, NEIGHBOR_ENTRY);
 print_entry(nEntry, NEIGHBOR_ENTRY);
@@ -74,6 +74,7 @@ for(i=0; i<16; i++){
 	network_insert(&rEntry, ROUTING_ENTRY);
 	print_entry(rEntry, ROUTING_ENTRY);
 }
+#endif
 /*
    network_insert(&rEntry, ROUTING_ENTRY);
 

@@ -19,7 +19,8 @@ struct mmMethods{
 	
 
 enum mm_base_sizes{ //number of bytes needed, for now round up to next power of 2
-	MM_NETWORK_SIZE = 8,
+	MM_DEVICE_SIZE = 4,
+	MM_NETWORK_SIZE = 0x20, //each entry is 4 bytes
 	
 	MM_GPIO_SIZE = 0x10,
 	MM_ADC_SIZE = 0x10,
@@ -29,15 +30,16 @@ enum mm_base_sizes{ //number of bytes needed, for now round up to next power of 
 
 enum mm_bases{
 	MM_PHYSICAL_BAR = 0x0, //actual memory
-	MM_NETWORK_BASE = 0x0,
-	MM_PHYSICAL_MAX = 0x8,
+	MM_DEVICE_BASE  = MM_PHYSICAL_BAR,
+	MM_NETWORK_BASE = MM_DEVICE_BASE + MM_DEVICE_SIZE,
+	MM_PHYSICAL_MAX = MM_NETWORK_BASE + MM_NETWORK_SIZE,
 
-	MM_FUNCTION_BAR = 0x8, //start of memory-mapped functions
-	MM_GPIO_BASE    = 0x8,
-	MM_ADC_BASE     = 0x18,
-	MM_UART_BASE    = 0x28,
-	MM_DSP_BASE     = 0x2c,
-	MM_FUNCTION_MAX = 0x30,
+	MM_FUNCTION_BAR = MM_PHYSICAL_MAX, //start of memory-mapped functions
+	MM_GPIO_BASE    = MM_FUNCTION_BAR,
+	MM_ADC_BASE     = MM_GPIO_BASE + MM_GPIO_SIZE,
+	MM_UART_BASE    = MM_ADC_BASE + MM_ADC_SIZE,
+	MM_DSP_BASE     = MM_UART_BASE + MM_UART_SIZE,
+	MM_FUNCTION_MAX = MM_DSP_BASE + MM_DSP_SIZE,
 };
 
 
