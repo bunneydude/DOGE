@@ -24,35 +24,11 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ###################################################################
-# This program will:
-#   * Authenticate a user using existing credentials
-#   * Create a device
-#   * Activate the device (but currently does not persist the token)
-#   * Register 2 time series for the device - one for temperature and
-#     one for humidity (The component types for these are already
-#      defined in the account catalog)
-#   * Send observations for both time series. As configured it will 
-#     send one per hour for the last 25 hours for each time series.
-#   * Read the observations back and display the count.
-#
-#  To use:
-#   * On the web:
-#       * Go to https://dashboard.us.enableiot.com
-#       * Register - be sure to click the "Sign Up Here" link. Do not use
-#       * any of the OAuth options, or you will not be able to use the API.#
-#       * Verify your email address
-#       * Enter a name for your account
-#   * Below line 39 in this file:
-#       * Update your username, password and account_name
-#       * Update the proxy address if required
-#       * Update the device id below. The device id MUST be unique or
-#         the step to create the device will fail
-#   * Install the python "requests" library. You can use Python 
-#     virtual environments, or install it globally:
-#       $ pip install requests
-#   * Run the program
-#       $ python iotkit_client.py
-#
+#Usage: 
+#Make sure you enter user credentials in intel_credentials.txt
+#You can leave the device_id and device_token fields empty and the script
+#will populate this with device_id = "Edison_DOGE" and a unique device_token
+
 
 import sys
 import requests
@@ -60,6 +36,8 @@ import json
 import uuid
 import time
 import random
+import re 
+import os
 
 class IntelAnalytics():
 
@@ -71,28 +49,72 @@ class IntelAnalytics():
  proxies = {
     # "https": "http://proxy.example.com:8080"
  }
-
- username = ""
- password = ""
- account_name = ""
- device_id = ""
- device_token = ""
-
-
+ 
  verify = True # whether to verify certs
  #####################################
 
  api_root = "/v1/api"
  base_url = "https://{0}{1}".format(host, api_root)
- device_name = "Device-{0}".format(device_id)
+
+ g_user_token = ""
+ g_uid = ""
+ g_aid = ""
+ username = ""
+ password = ""
+ account_name  = ""
+ device_id = ""
+ device_token = ""
+ 
+ filename = "intel_credentials.txt"
+   #Extract all user credentials from the file intel_credentials.txt
+ with open(filename, 'r') as f:
+    for line in f:
+      searchObj = re.search( r'(.*)\s*=\s*\"(.*)\"', line, re.M|re.I)
+      if searchObj:
+        if (searchObj.group(1) == "username" ):
+          username =  searchObj.group(2)
+        elif (searchObj.group(1) == "password" ):
+          password =  searchObj.group(2)
+        elif (searchObj.group(1) == "account_name" ):
+          account_name =  searchObj.group(2)
+        elif (searchObj.group(1) == "device_id" ):
+          device_id =  searchObj.group(2)
+        elif (searchObj.group(1) == "device_token" ):
+          device_token =  searchObj.group(2)
+ f.closed
 
  def __init__(self):
    global g_user_token,g_uid,g_aid
    g_user_token = self.get_token()
    g_uid = self.get_user_id()
    g_aid =  self.get_account_id(g_uid)
+   if self.device_id == "":
+     self.device_id = "Edison_DOGE"
+     device_name = "Device-{0}".format(self.device_id)
+     print "Creating device {0}".format(self.device_id)
+     self.create_device (g_aid,self.device_id,device_name)
+     #Get device token
+     ac = self.generate_activation_code(g_aid)
+     self.device_token = self.activate(g_aid,self.device_id,ac)
+     self.save_user_cred()
    self = self
-
+ 
+ def save_user_cred (self):
+   fr = open(self.filename, 'r')
+   fw = open(self.filename+"_tmp", 'w')
+   for line in fr:
+      searchObj = re.search( r'(.*)\s*=\s*\"(.*)\"', line, re.M|re.I)
+      if searchObj:
+        if (searchObj.group(1) == "device_id" ):
+          fw.write(re.sub( r'device_id\s*=\s*\"(.*)\"', "device_id=\"{0}\"".format(self.device_id),line))
+        elif (searchObj.group(1) == "device_token" ):
+          fw.write(re.sub( r'device_token\s*=\s*\"(.*)\"', "device_token=\"{0}\"".format(self.device_token),line))
+        else :
+          fw.write(line)
+   fr.close()
+   fw.close()
+   os.rename (self.filename+"_tmp",self.filename)
+ 
  def get_user_headers(self):
     headers = {
         'Authorization': 'Bearer ' + g_user_token,
@@ -136,7 +158,6 @@ class IntelAnalytics():
     resp = requests.get(url, headers=self.get_user_headers(), proxies=self.proxies, verify=self.verify)
     self.check(resp, 200)
     js = resp.json()
-    #print js
     user_id = js["payload"]["sub"]
     return user_id
 
@@ -158,7 +179,7 @@ class IntelAnalytics():
     return None
 
 
-# create a device
+ # create a device
  def create_device(self,account, device_id, device_name):
     url = "{0}/accounts/{1}/devices".format(self.base_url, account)
     device = {
@@ -181,8 +202,8 @@ class IntelAnalytics():
     return resp
 
 
-# Generate an activation code and return it
-# This activation code will be good for 60 minutes
+ # Generate an activation code and return it
+ # This activation code will be good for 60 minutes
  def generate_activation_code(self,account_id):
     url = "{0}/accounts/{1}/activationcode/refresh".format(self.base_url, account_id)
     resp = requests.put(url, headers=self.get_user_headers(), proxies=self.proxies, verify=self.verify)
@@ -204,6 +225,7 @@ class IntelAnalytics():
     js = resp.json()
     if "deviceToken" in js:
         token = js["deviceToken"]
+        print "Device token:{0}".format(token)
         return token
     else:
         print js
@@ -211,18 +233,18 @@ class IntelAnalytics():
 
 
 # Given an account_id and device_id, and a component type name and name - create a component and return the cid
- def create_component(self, account_id, component_type_name, name):
+ def create_component(self, account_id, component_type, component_name):
+    print "In create_component: Component type={0} Component name={1}".format (component_type,component_name) 
     url = "{0}/accounts/{1}/devices/{2}/components".format(self.base_url, account_id, self.device_id)
     component = {
-        "type": component_type_name,
-        "name": name,
+        "type": component_type,
+        "name": component_name,
         "cid": str(uuid.uuid4())
     }
     data = json.dumps(component)
     resp = requests.post(url, data=data, headers=self.get_device_headers(), proxies=self.proxies, verify=self.verify)
     self.check(resp, 201)
     js = resp.json()
-    print js
     return js["cid"]
 
 
@@ -254,7 +276,7 @@ class IntelAnalytics():
     self.check(resp, 201)
 
 
-#get_observations
+ #get_observations
  def get_observations(self,account_id, device_id, component_id):
     url = "{0}/accounts/{1}/data/search".format(self.base_url, account_id)
     search = {
@@ -277,14 +299,23 @@ class IntelAnalytics():
     return js
 
  #Returns component id if component name is present. If not present, creates one. 
- def get_cid (self,ctype,cname):
+ def get_cid (self,ctype,cversion,cname):
+    ctype_found = 0
+    cname_found = 0
     url =  "{0}/accounts/{1}/devices/{2}".format(self.base_url, g_aid,self.device_id)
     resp = requests.get(url, headers=self.get_user_headers(), proxies=self.proxies, verify=self.verify)
     self.check(resp, 200)
     js = resp.json()
-    series = js['components']
-    series = sorted(series, key=lambda u: u["type"])
-    for u in series:
+    #If json has a component attribute check for component name and cid
+    #if js['components'] is not None:
+    if 'components' not in js:
+     print "No components found for device,registering:{0}".format(ctype)
+     cname_found = 0
+     ctype_found = 0
+    else :
+     series = js['components']
+     series = sorted(series, key=lambda u: u["type"])
+     for u in series:
         #print "Type: {0} Name: {1} Cid: {2}".format(u["type"], u["name"], u["cid"])
         if cname == str(u["name"]):
           #print "Match Ctype {0} with CID {1}".format(u["type"], u["cid"])
@@ -293,15 +324,36 @@ class IntelAnalytics():
         if ctype == str(u["type"]):
           ctype_found = 1
 
-    #FIXME register component type if not found 
-    #if ctype == 0:
-
+    if ctype_found == 0:
+        self.register_component_type (ctype,"float","Degree Farenheit")
     if cname_found == 0:
+        ctype = ctype+"."+cversion
         myCid = self.create_component(g_aid,  ctype, cname) 
     return myCid
  
+ #Register a new component type
+ def register_component_type (self,component_type,component_format,component_measureunit):
+    url =  "{0}/accounts/{1}/cmpcatalog".format(self.base_url, g_aid)
+    payload = {   
+      "dimension": str(component_type),
+      "version": "1.0",
+      "type": "sensor",
+      "dataType":"Number",
+      "format": str(component_format),
+      "min": -150,
+      "max": 150,
+      "measureunit": str(component_measureunit),
+      "display": "timeSeries"
+    }
+    data = json.dumps(payload)
+    resp = requests.post(url, data=data,headers=self.get_user_headers(), proxies=self.proxies, verify=self.verify)
+    #Check if component was created successfully (201) or if already exists (409)
+    if (resp.status_code != 201 and resp.status_code != 409):
+        print "Expected 201 or 409. Got {0} {1}".format( resp.status_code, resp.text)
+        sys.exit(1)
 
-# print all of the device names and observation counts, sorted by device name
+
+ # print all of the device names and observation counts, sorted by device name
  def print_observation_counts(js):  # js is result of /accounts/{account}/data/search
     if 'series' in js:
         series = js["series"]
@@ -318,10 +370,10 @@ class IntelAnalytics():
     ac = self.generate_activation_code(g_aid)
     #print "Activation code: {0}".format(ac)
 
-    component_type = str( data['network'])+".v1.0"
-    component_name =  "node:"+str(data['id'])+"tempF"
+    component_type = "temperaturef"
+    component_name =  "node:"+str(data['id'])
 
-    cid = self.get_cid(component_type,component_name)
+    cid = self.get_cid(component_type,"v1.0",component_name)
  
     #Submit observation to the cloud
     self.create_observations(g_aid, self.device_id, cid, data)
