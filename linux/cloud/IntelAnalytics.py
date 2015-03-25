@@ -249,7 +249,7 @@ class IntelAnalytics():
 
 
  # Create observations and submit them
- def create_observations(self,account_id, device_id, cid, jsonData):
+ def create_observations(self,account_id, device_id, cid, jsonData,value):
     url = "{0}/data/{1}".format(self.base_url, device_id)
     timestamp = int(time.time()) * 1000;
     body = {
@@ -264,7 +264,7 @@ class IntelAnalytics():
         # if the device is mobile, you can record where it was when
         # this observation was captured
         #"loc": [ 45.5434085, -122.654422, 124.3 ],
-        "value": str(jsonData['temp_f']),
+        "value": str(jsonData[value]),
         #"attributes": {
         #    "pkt_loss": pkt_loss
         #  }
@@ -299,7 +299,10 @@ class IntelAnalytics():
     return js
 
  #Returns component id if component name is present. If not present, creates one. 
- def get_cid (self,ctype,cversion,cname):
+ def get_cid (self,iotkitJson,cname):
+    ctype = iotkitJson['component_type']
+    cversion = iotkitJson['component_version']
+    component_type = ctype+".v"+cversion
     ctype_found = 0
     cname_found = 0
     url =  "{0}/accounts/{1}/devices/{2}".format(self.base_url, g_aid,self.device_id)
@@ -307,42 +310,35 @@ class IntelAnalytics():
     self.check(resp, 200)
     js = resp.json()
     #If json has a component attribute check for component name and cid
-    #if js['components'] is not None:
-    if 'components' not in js:
-     print "No components found for device,registering:{0}".format(ctype)
-     cname_found = 0
-     ctype_found = 0
-    else :
+    if 'components' in js:
      series = js['components']
      series = sorted(series, key=lambda u: u["type"])
      for u in series:
         #print "Type: {0} Name: {1} Cid: {2}".format(u["type"], u["name"], u["cid"])
-        if cname == str(u["name"]):
+        if ( cname == str(u["name"]) and component_type == str(u["type"]) ) :
           #print "Match Ctype {0} with CID {1}".format(u["type"], u["cid"])
           myCid = u["cid"]
           cname_found = 1
-        if ctype == str(u["type"]):
           ctype_found = 1
-
     if ctype_found == 0:
-        self.register_component_type (ctype,"float","Degree Farenheit")
+        print "No components found for device,registering:{0}".format(ctype)
+        self.register_component_type (iotkitJson)
     if cname_found == 0:
-        ctype = ctype+"."+cversion
-        myCid = self.create_component(g_aid,  ctype, cname) 
+        myCid = self.create_component(g_aid,  component_type, cname) 
     return myCid
  
  #Register a new component type
- def register_component_type (self,component_type,component_format,component_measureunit):
+ def register_component_type (self,iotkitJson):
     url =  "{0}/accounts/{1}/cmpcatalog".format(self.base_url, g_aid)
     payload = {   
-      "dimension": str(component_type),
-      "version": "1.0",
+      "dimension": iotkitJson['component_type'],
+      "version": iotkitJson['component_version'],
       "type": "sensor",
       "dataType":"Number",
-      "format": str(component_format),
+      "format": iotkitJson['component_format'],
       "min": -150,
       "max": 150,
-      "measureunit": str(component_measureunit),
+      "measureunit": iotkitJson['component_measureunit'],
       "display": "timeSeries"
     }
     data = json.dumps(payload)
@@ -363,19 +359,19 @@ class IntelAnalytics():
 
 
 
- def push (self,data):
+ def push (self,data,iotkitJson,val):
 
     # refresh the activation code. It can be used any number of times
     # in the next 60 minutes to activate devices.
     ac = self.generate_activation_code(g_aid)
     #print "Activation code: {0}".format(ac)
 
-    component_type = "temperaturef"
-    component_name =  "node:"+str(data['id'])
+    component_type = iotkitJson['component_type']
+    component_name =  str(data['network'])+"-node:"+str(data['id'])+"-"+component_type
 
-    cid = self.get_cid(component_type,"v1.0",component_name)
+    cid = self.get_cid(iotkitJson,component_name)
  
     #Submit observation to the cloud
-    self.create_observations(g_aid, self.device_id, cid, data)
+    self.create_observations(g_aid, self.device_id, cid, data,val)
 
 
