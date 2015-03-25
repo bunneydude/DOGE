@@ -20,12 +20,4 @@
  */
 uint8_t gpio_mm_handler(uint8_t rw, uint8_t addr, uint8_t* data, uint8_t mask);
 
-
-enum gpioErrorCodes{
-	RO_REGISTER         = ERROR_GPIO_BASE + 0x0,
-	WO_REGISTER         = ERROR_GPIO_BASE + 0x1,
-	ADDR_OUT_OF_RANGE   = ERROR_GPIO_BASE + 0x2,
-	UNSUPPORTED_FEATURE = ERROR_GPIO_BASE + 0x3
-};
-
 #endif

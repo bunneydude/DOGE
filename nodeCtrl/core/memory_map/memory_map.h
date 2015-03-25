@@ -133,4 +133,12 @@ enum mm_dsp_registers{
 	DSP_EMU_MAX    = 0x3,
 };
 
+enum memoryMapErrorCodes{
+	RO_REGISTER         = ERROR_MEMORY_MAP_BASE + 0x0,
+	WO_REGISTER         = ERROR_MEMORY_MAP_BASE + 0x1,
+	ADDR_OUT_OF_RANGE   = ERROR_MEMORY_MAP_BASE + 0x2,
+	UNSUPPORTED_FEATURE = ERROR_MEMORY_MAP_BASE + 0x3
+};
+
+
 #endif
