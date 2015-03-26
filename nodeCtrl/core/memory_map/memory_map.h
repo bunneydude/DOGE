@@ -15,7 +15,9 @@ struct mmMethods{
 	uint8_t (*adc_handler)(uint8_t, uint8_t, uint8_t*, uint8_t);
 	uint8_t (*uart_handler)(uint8_t, uint8_t, uint8_t*, uint8_t);
 	uint8_t (*dsp_handler)(uint8_t, uint8_t, uint8_t*, uint8_t);
-} memoryMapRegionMethods;
+};
+
+extern struct mmMethods memoryMapRegionMethods;
 	
 
 enum mm_base_sizes{ //number of bytes needed, for now round up to next power of 2
@@ -43,7 +45,7 @@ enum mm_bases{
 };
 
 
-union memoryMapEntry memoryMap[MM_NETWORK_SIZE/4]; 
+extern union memoryMapEntry memoryMap[MM_PHYSICAL_SIZE/4]; 
 
 
 //mm region is [base, base + size -1]

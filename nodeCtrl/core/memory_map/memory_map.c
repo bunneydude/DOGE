@@ -6,6 +6,10 @@
 //#define mappedVariable *((&(memoryMap[1].u32)))
 //static uint8_t* mappedArray = ((&(memoryMap[0].u8[2])));
 
+union memoryMapEntry memoryMap[MM_PHYSICAL_SIZE/4]; 
+struct mmMethods memoryMapRegionMethods;
+
+
 uint8_t check_mm_space(uint8_t rw, uint8_t addr, uint8_t* data, uint8_t mask)
 {
 	if( addr < MM_FUNCTION_BAR ){
