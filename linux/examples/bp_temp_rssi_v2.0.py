@@ -1,8 +1,22 @@
-import RadioInterface
+import os, sys, inspect
 import time
-import sys
 from collections import defaultdict
-from sigfig import to_precision
+
+#cmd_folder = os.path.realpath(os.path.dirname(inspect.getfile(inspect.currentframe())))
+#if cmd_folder not in sys.path:
+#	sys.path.insert(0, cmd_folder)
+
+
+cmd_subfolder = os.path.realpath(os.path.abspath(os.path.join(os.path.split(inspect.getfile(inspect.currentframe()))[0],"../radio")))
+if cmd_subfolder not in sys.path:
+	sys.path.insert(0, cmd_subfolder)
+
+cmd_subfolder = os.path.realpath(os.path.abspath(os.path.join(os.path.split(inspect.getfile(inspect.currentframe()))[0],"../libs")))
+if cmd_subfolder not in sys.path:
+	sys.path.insert(0, cmd_subfolder)
+
+import RadioInterface
+from to_precision import to_precision
 
 pipe = RadioInterface.RadioInterface("edison")
 
@@ -75,6 +89,10 @@ except IndexError:
     stream = 0
 
 if(stream == 1):
+    cmd_subfolder = os.path.realpath(os.path.abspath(os.path.join(os.path.split(inspect.getfile(inspect.currentframe()))[0],"../cloud")))
+    if cmd_subfolder not in sys.path:
+        sys.path.insert(0, cmd_subfolder)
+
     from DogeHub import connect_cloud
     cloudStream = connect_cloud("sparkfun")
     jsonData = {'location':'indoors','network':'boosterpack','id':node,'rssi':avgRssi,'rssi_std':stdRssi,'temp_c':avgTempC,'temp_c_std':stdTempC,'temp_f':avgTempF,'temp_f_std':stdTempF,'pkt_loss':pktLoss}
