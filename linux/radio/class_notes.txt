@@ -1,0 +1,73 @@
+Node (ABC)
+   pull_data()
+   push_data()
+   subscribe(field, rate)
+   unsubscribe(streamID)
+   edit_subscription(streamID, params)
+
+
+
+Cloud Node
+   Stream
+   Fields in stream
+
+
+Hardware Node
+   Device
+      Microcontroller
+         Firmware version
+         Memory map
+
+      IO objects (private)
+         SPIs
+         I2C
+         UART
+         PWM
+         GPIO
+
+      Task list
+      DSP
+
+   Sensors
+      name
+      units & resolution
+      config
+      IO object
+      get_data()
+
+   
+
+   Radios
+      name
+      config (frequency, data rate, etc)
+      IO
+         physical interface
+         protocol/encoding
+
+   NetworkTable
+      neighborArray
+         NeighborTableEntry
+      routingArray
+         RoutingTableEntry
+      divisionIndex
+      max_possible_neighbors
+      max_possible_routes
+
+------
+
+root = HardwareNode.new(id = 1) #this is the Node object corresponding to Edison
+
+network = [root] #initially the network is just edison
+
+root.search_for_neighbors(hardware) # wait for this to complete
+neighborIDs = root.get_neighbors() # returns an array of nodeIDs
+
+networkIDs = [x.nodeID() for x in network]
+for newID in neighborIDs:
+   if(newID not in networkIDs):
+      network << HardwareNode.new(id = newID)
+
+------
+
+Node.get_neighbor_IDs()    # return an array of nodeIDs 
+Node.get_neighbor_entires()   # return array of NeighborEntry objects
