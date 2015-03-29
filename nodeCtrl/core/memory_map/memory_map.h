@@ -129,10 +129,11 @@ enum mm_uart_registers{
 
 enum mm_dsp_registers{
 	DSP_EMU_BAR    = 0x0,
-	DSP_RUN_LENGTH = 0x0, //1-255
+	DSP_RUN_LENGTH = 0x0, //1-255, power of 2
 	DSP_AVERAGE    = 0x1,
 	DSP_VARIANCE   = 0x2,
-	DSP_EMU_MAX    = 0x3,
+	DSP_CHANNEL    = 0x3,
+	DSP_EMU_MAX    = 0x4,
 };
 
 enum memoryMapErrorCodes{

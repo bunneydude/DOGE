@@ -1,0 +1,24 @@
+The current protocol is variable width and is broken down into four groups: command, size, payload, and checksum.
+
+There are only five commands: read, write, ack, nack, and nop. The payload consists of between 0 and 2 operands, depending on the command.
+
+Command
+READ: Read the memory located at the address in operand 1
+	Operand 1 = source address
+
+WRITE: Write the data to the address specified
+	Operand 1: destination address
+	Operand 2: write data
+
+ACK: Send this command to signal an acknowledgement.
+	No operands
+
+NACK: Send this command to signal a negative-acknowledgement along with an error code
+	Operand 1: error code
+
+NOP: This command does nothing. It is mostly used in debug.
+
+The size of a packet is equal to the number of operands. The checksum is the sum of the command, size, and operands (if any) modulo 256, times negative 1. A packet is considered valid if the sum of all four groups add to 0.
+
+
+
