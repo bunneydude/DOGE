@@ -37,8 +37,8 @@ struct networkIndices{
 //This allows the max number of either entry type to change at runtime without wasting memory
 //neighbor table entries are in the range [0, maxNeighborEntries]
 //routing table entries are in the range [MAX_NETWORK_ENTRIES-1 - maxRoutingEntries, MAX_NETWORK_ENTRIES-1]
-union networkEntry* network;//[MAX_NETWORK_ENTRIES];
-struct networkIndices networkTable;
+extern union networkEntry* network;
+extern struct networkIndices networkTable;
 
 //TODO insert into memory map
 

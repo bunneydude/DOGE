@@ -1,13 +1,16 @@
 #include <stdio.h>
 #include "network.h"
 
+union networkEntry* network;
+struct networkIndices networkTable;
+
 void network_init(uint8_t division)
 {
-	network = ( (union networkEntry*)(&(memoryMap[MM_NETWORK_BASE].u32)));
+	network = ( (union networkEntry*)(&(memoryMap[MM_NETWORK_BASE/4].u8[MM_NETWORK_BASE%4])));
 
 	networkTable.numberEntries[NEIGHBOR_ENTRY] = 0;
 	networkTable.numberEntries[ROUTING_ENTRY] = 0;
-	networkTable.divisionIndex = 4;
+	networkTable.divisionIndex = division;
 
 
 }
@@ -34,7 +37,12 @@ uint8_t network_insert(union networkEntry* entry, enum networkEntryType type)
 		//printf("Room left for type %d\n", type);	
 	//this clear currently isn't strictly needed since both structs inside the union have no padding bits...but this might not be the case forever. Also have to make sure there aren't compiler-specific differences w/ sizing the structs
 	//*((uint32_t*)(&network[index])) = 0;		
-		network[networkTable.numberEntries[type]++] = *entry;
+		if(type == NEIGHBOR_ENTRY){
+			network[networkTable.numberEntries[NEIGHBOR_ENTRY]] = *entry;
+		}else{
+			network[MAX_NETWORK_ENTRIES - 1 - networkTable.numberEntries[ROUTING_ENTRY]] = *entry;
+		}
+		networkTable.numberEntries[type]++;
 		return 1;
 	}else{
 		//printf("No room left for type %d\n", type);	
