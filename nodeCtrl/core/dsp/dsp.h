@@ -14,7 +14,7 @@ struct dspStatus{
 	uint8_t counter;
 };
 
-struct dspStatus dspStatus;
+extern struct dspStatus dspStatus;
 
 void dsp_add_sample(uint16_t data);
 void dsp_init(uint8_t runLength, uint8_t channel);

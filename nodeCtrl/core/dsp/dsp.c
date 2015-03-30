@@ -15,6 +15,8 @@ Scott's walkthrough of the approach was useful and deserves credit.
 #include <stdint.h>
 #include "dsp.h"
 
+struct dspStatus dspStatus;
+
 void dsp_init(uint8_t runLength, uint8_t channel)
 {
 	dspStatus.runLength = runLength;
