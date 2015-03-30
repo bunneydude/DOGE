@@ -29,11 +29,12 @@ uint8_t network_room_check(enum networkEntryType type)
 	}
 }
 //returns 1 for success, 0 otherwise
-uint8_t network_has_neighbor(uint16_t id)
+uint8_t network_has_neighbor(uint16_t id, uint8_t* index)
 {
 	uint8_t i;
 	for(i=0; i<networkTable.numberEntries[NEIGHBOR_ENTRY]; i++){
 		if(id == network[i].neighbor.shNodeID){
+			*index = i;
 			return 1;
 		}
 	}
@@ -41,11 +42,12 @@ uint8_t network_has_neighbor(uint16_t id)
 }
 
 //returns 1 for success, 0 otherwise
-uint8_t network_has_route(uint16_t id)
+uint8_t network_has_route(uint16_t id, uint8_t* index)
 {
 	uint8_t i;
 	for(i=0; i<networkTable.numberEntries[ROUTING_ENTRY]; i++){
 		if(id == network[MAX_NETWORK_ENTRIES - 1 - i].routing.mhNodeID){
+			*index = MAX_NETWORK_ENTRIES - 1 - i;
 			return 1;
 		}
 	}

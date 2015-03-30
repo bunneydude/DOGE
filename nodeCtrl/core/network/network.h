@@ -46,8 +46,8 @@ extern struct networkIndices networkTable;
 //functions
 
 void network_init(uint8_t division);
-uint8_t network_has_neighbor(uint16_t id);
-uint8_t network_has_route(uint16_t id);
+uint8_t network_has_neighbor(uint16_t id, uint8_t* index);
+uint8_t network_has_route(uint16_t id, uint8_t* index);
 
 //add an entry to network array
 uint8_t network_insert(union networkEntry* entry, enum networkEntryType type);

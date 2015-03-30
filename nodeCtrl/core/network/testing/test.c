@@ -6,10 +6,11 @@
 
 void print_contents(){
 	uint8_t j = 0;
+	uint8_t x;
 printf("\n");
 	for(j=1; j<=4; j++){
-		printf("Network has neighbor %d: %d\n",j, network_has_neighbor(j));
-		printf("Network has route %d: %d\n",j, network_has_route(j));
+		printf("Network has neighbor %d: %d\n",j, network_has_neighbor(j, &x));
+		printf("Network has route %d: %d\n",j, network_has_route(j, &x));
 	}
 }
 void print_entry(union networkEntry e, enum networkEntryType type)
@@ -51,6 +52,7 @@ printf("Entry division index = %d, max network entries = %d\n", networkTable.div
 
 union networkEntry nEntries[4];
 union networkEntry rEntries[4];
+uint8_t index;
 
 for(i=0; i<4; i++){
 	nEntries[i].neighbor.shNodeID = i+1;
@@ -63,16 +65,26 @@ for(i=0; i<4; i++){
 	rEntries[i].routing.neighborIndex = 5;
 }
 
-print_contents();
 network_insert(&nEntries[0], NEIGHBOR_ENTRY);
-print_contents();
 network_insert(&rEntries[0], ROUTING_ENTRY);
-print_contents();
-network_insert(&nEntries[3], NEIGHBOR_ENTRY);
-print_contents();
-network_insert(&nEntries[1], NEIGHBOR_ENTRY);
+
+network[0].neighbor.shLQE = 1;
+print_entry(nEntries[0], NEIGHBOR_ENTRY);
+
 print_contents();
 
+printf("Orig LQE = %d\n", network[0].neighbor.shLQE);
+if(network_has_neighbor(1, &index)){
+	network[index].neighbor.shLQE = 0x5;
+}
+printf("New LQE = %d\n", network[0].neighbor.shLQE);
+
+
+printf("Orig LQE = %d\n", network[MAX_NETWORK_ENTRIES-1].routing.mhLQE);
+if(network_has_route(1, &index)){
+	network[index].routing.mhLQE = 0x6;
+}
+printf("New LQE = %d\n", network[MAX_NETWORK_ENTRIES-1].routing.mhLQE);
 /*
    network_insert(&rEntry, ROUTING_ENTRY);
 
