@@ -37,7 +37,7 @@ uint8_t gpio_mm_handler(uint8_t rw, uint8_t addr, uint8_t* data, uint8_t mask)
 			return WO_REGISTER;
 		}
 
-		switch(addr - GPIO_EMU_BAR){
+		switch(addr){
 			case GPIO_0_TOGGLE:				
 				P1OUT ^= *data & ~mask;
 				break;

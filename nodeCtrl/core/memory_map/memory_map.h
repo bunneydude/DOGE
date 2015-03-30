@@ -28,7 +28,7 @@ enum mm_base_sizes{ //number of bytes needed, for now round up to next power of 
 	MM_GPIO_SIZE = 0x10,
 	MM_ADC_SIZE = 0x10,
 	MM_UART_SIZE = 0x4,
-	MM_DSP_SIZE = 0x4
+	MM_DSP_SIZE = 0x8
 };
 
 enum mm_bases{
@@ -130,11 +130,12 @@ enum mm_uart_registers{
 
 enum mm_dsp_registers{
 	DSP_EMU_BAR    = 0x0,
-	DSP_RUN_LENGTH = 0x0, //1-255, power of 2
-	DSP_AVERAGE    = 0x1,
-	DSP_VARIANCE   = 0x2,
+	DSP_AVERAGE    = 0x0,
+	DSP_VARIANCE   = 0x1,
+	DSP_RUN_LENGTH = 0x2, //1-255, power of 2
 	DSP_CHANNEL    = 0x3,
-	DSP_EMU_MAX    = 0x4,
+	DSP_PERIOD     = 0x4,
+	DSP_EMU_MAX    = 0x8,
 };
 
 enum memoryMapErrorCodes{
@@ -143,6 +144,5 @@ enum memoryMapErrorCodes{
 	ADDR_OUT_OF_RANGE   = ERROR_MEMORY_MAP_BASE + 0x2,
 	UNSUPPORTED_FEATURE = ERROR_MEMORY_MAP_BASE + 0x3
 };
-
 
 #endif

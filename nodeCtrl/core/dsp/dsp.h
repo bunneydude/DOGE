@@ -11,6 +11,7 @@ struct dspStatus{
 	uint8_t sampleCount;
 	uint8_t channel;
 	uint8_t period; //resolution of seconds
+	uint8_t counter;
 };
 
 struct dspStatus dspStatus;

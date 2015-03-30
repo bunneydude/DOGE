@@ -22,6 +22,8 @@ void dsp_init(uint8_t runLength, uint8_t channel)
 	dspStatus.sum = 0;
 	dspStatus.variance = 0;
 	dspStatus.channel = channel;
+	dspStatus.period = 0;
+	dspStatus.counter = 0;
 }
 
 void dsp_add_sample(uint16_t data)
@@ -55,4 +57,54 @@ uint8_t dsp_get_variance()
 	}else{
 		return 0;
 	}
+}
+
+uint8_t dsp_mm_handler(uint8_t rw, uint8_t addr, uint8_t* data, uint8_t mask){
+
+	uint8_t returnData = 0;
+	if(addr < DSP_EMU_MAX){ //in EMU range
+		switch(addr){
+			case DSP_AVERAGE:
+				if(rw == 1){
+					*data = dspStatus.sum;
+				}else{
+					dspStatus.sum = *data;
+				}
+				break;
+			case DSP_VARIANCE:
+				if(rw == 1){
+					*data = dspStatus.variance;
+				}else{
+					dspStatus.variance = *data;
+				}
+				break;
+			case DSP_RUN_LENGTH:
+				if(rw == 1){
+					*data = dspStatus.runLength;
+				}else{
+					dspStatus.runLength = *data;
+				}
+				break;
+			case DSP_CHANNEL:
+				if(rw == 1){
+					*data = dspStatus.channel;
+				}else{
+					dspStatus.channel = *data;
+				}
+				break;
+			case DSP_PERIOD:
+				if(rw == 1){
+					*data = dspStatus.period;
+				}else{
+					dspStatus.period = *data;
+				}
+				break;
+			default:
+				return UNSUPPORTED_FEATURE;
+				break;
+		}
+	}else{
+		return ADDR_OUT_OF_RANGE;
+	}
+	return 0;
 }
