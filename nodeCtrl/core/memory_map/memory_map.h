@@ -1,6 +1,7 @@
 #ifndef MEMORY_MAP_H
 #define MEMORY_MAP_H
 
+#include "../nodeCtrl_errno.h"
 
 union memoryMapEntry{
 	uint32_t u32;
@@ -45,7 +46,7 @@ enum mm_bases{
 };
 
 
-extern union memoryMapEntry memoryMap[MM_PHYSICAL_SIZE/4]; 
+extern union memoryMapEntry memoryMap[MM_PHYSICAL_MAX/4]; 
 
 
 //mm region is [base, base + size -1]

@@ -3,6 +3,15 @@
 #include "network.h"
 
 #ifdef LINUX 
+
+void print_contents(){
+	uint8_t j = 0;
+printf("\n");
+	for(j=1; j<=4; j++){
+		printf("Network has neighbor %d: %d\n",j, network_has_neighbor(j));
+		printf("Network has route %d: %d\n",j, network_has_route(j));
+	}
+}
 void print_entry(union networkEntry e, enum networkEntryType type)
 {
 	printf("Number neighbor entries = %d, number routing entries = %d, division index = %d\n", networkTable.numberEntries[NEIGHBOR_ENTRY], networkTable.numberEntries[ROUTING_ENTRY], networkTable.divisionIndex);
@@ -27,6 +36,8 @@ void print_entry(union networkEntry e, enum networkEntryType type)
 
 #endif
 
+uint8_t i =0;
+
 void main(){
 //init network
 
@@ -38,43 +49,30 @@ printf("N entries = %d, R entries = %d\n", networkTable.numberEntries[NEIGHBOR_E
 printf("Entry division index = %d, max network entries = %d\n", networkTable.divisionIndex, MAX_NETWORK_ENTRIES);
 #endif
 
-union networkEntry nEntry;
-union networkEntry rEntry;
+union networkEntry nEntries[4];
+union networkEntry rEntries[4];
 
-nEntry.neighbor.shNodeID = 0xffff; //1;
-nEntry.neighbor.shLQE = 0xfff; //6;
-nEntry.neighbor.radioID = 0x3; //2;
-nEntry.neighbor.networkID = 0x3; //3;
+for(i=0; i<4; i++){
+	nEntries[i].neighbor.shNodeID = i+1;
+	nEntries[i].neighbor.shLQE = 3;
+	nEntries[i].neighbor.radioID = 2;
+	nEntries[i].neighbor.networkID = 1;
 
-rEntry.routing.mhNodeID = 5;
-rEntry.routing.mhLQE = 10;
-rEntry.routing.neighborIndex = 1;
-
-#ifdef LINUX
-print_entry(nEntry, NEIGHBOR_ENTRY);
-print_entry(rEntry, ROUTING_ENTRY);
-
-network_insert(&nEntry, NEIGHBOR_ENTRY);
-print_entry(nEntry, NEIGHBOR_ENTRY);
-
-network_insert(&nEntry, NEIGHBOR_ENTRY);
-print_entry(nEntry, NEIGHBOR_ENTRY);
-
-network_insert(&nEntry, NEIGHBOR_ENTRY);
-print_entry(nEntry, NEIGHBOR_ENTRY);
-
-network_insert(&nEntry, NEIGHBOR_ENTRY);
-print_entry(nEntry, NEIGHBOR_ENTRY);
-
-network_insert(&nEntry, NEIGHBOR_ENTRY);
-print_entry(nEntry, NEIGHBOR_ENTRY);
-
-uint8_t i = 0;
-for(i=0; i<16; i++){
-	network_insert(&rEntry, ROUTING_ENTRY);
-	print_entry(rEntry, ROUTING_ENTRY);
+	rEntries[i].routing.mhNodeID = i+1;
+	rEntries[i].routing.mhLQE = 4;
+	rEntries[i].routing.neighborIndex = 5;
 }
-#endif
+
+print_contents();
+network_insert(&nEntries[0], NEIGHBOR_ENTRY);
+print_contents();
+network_insert(&rEntries[0], ROUTING_ENTRY);
+print_contents();
+network_insert(&nEntries[3], NEIGHBOR_ENTRY);
+print_contents();
+network_insert(&nEntries[1], NEIGHBOR_ENTRY);
+print_contents();
+
 /*
    network_insert(&rEntry, ROUTING_ENTRY);
 

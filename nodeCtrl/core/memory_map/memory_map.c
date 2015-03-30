@@ -6,7 +6,7 @@
 //#define mappedVariable *((&(memoryMap[1].u32)))
 //static uint8_t* mappedArray = ((&(memoryMap[0].u8[2])));
 
-union memoryMapEntry memoryMap[MM_PHYSICAL_SIZE/4]; 
+union memoryMapEntry memoryMap[MM_PHYSICAL_MAX/4]; 
 struct mmMethods memoryMapRegionMethods;
 
 

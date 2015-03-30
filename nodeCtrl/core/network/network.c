@@ -28,6 +28,29 @@ uint8_t network_room_check(enum networkEntryType type)
 		return -1;
 	}
 }
+//returns 1 for success, 0 otherwise
+uint8_t network_has_neighbor(uint16_t id)
+{
+	uint8_t i;
+	for(i=0; i<networkTable.numberEntries[NEIGHBOR_ENTRY]; i++){
+		if(id == network[i].neighbor.shNodeID){
+			return 1;
+		}
+	}
+	return 0;
+}
+
+//returns 1 for success, 0 otherwise
+uint8_t network_has_route(uint16_t id)
+{
+	uint8_t i;
+	for(i=0; i<networkTable.numberEntries[ROUTING_ENTRY]; i++){
+		if(id == network[MAX_NETWORK_ENTRIES - 1 - i].routing.mhNodeID){
+			return 1;
+		}
+	}
+	return 0;
+}
 
 uint8_t network_insert(union networkEntry* entry, enum networkEntryType type)
 {

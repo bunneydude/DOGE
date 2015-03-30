@@ -6,7 +6,7 @@ SIZE=size
 PLATFORM=LINUX
 PACK=0
 
-CFLAGS= ../network.o
+CFLAGS= ../network.o ../../memory_map/memory_map.o
 
 ifeq ($(PLATFORM),MSP430)
 	MCU=-mmcu=msp430g2553

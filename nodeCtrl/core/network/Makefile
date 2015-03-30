@@ -6,9 +6,9 @@ ifeq ($(PLATFORM),MSP430)
 	CC=msp430-gcc
 endif
 
-DEPS = network.h ../neighbor/neighbor.h ../routing/routing.h
+DEPS = network.h ../neighbor/neighbor.h ../routing/routing.h ../memory_map/memory_map.h
 
-OBJ = network.o
+OBJ = network.o ../memory_map/memory_map.o
 
 PACK = 0
 
