@@ -8,13 +8,15 @@ Node (ABC)
 
 
 Cloud Node
-   Stream
+	Stream
+		vendor (sparkfun, intel)
    Fields in stream
+      units
 
 
 Hardware Node
    Device
-      Microcontroller
+      Microcontroller (msp430, lpc812)
          Firmware version
          Memory map
 

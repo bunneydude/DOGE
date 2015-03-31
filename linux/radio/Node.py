@@ -1,10 +1,20 @@
+import os.path
+import json
+
 class Device:
    _deviceConfig = ""
-   _memoryMapVersion = 0
+   _memoryMap = {}
 
-   def __init__(self, deviceConfig, memoryMapVersion):
+   def __init__(self, deviceConfig, memoryMapFile):
       self._deviceConfig = deviceConfig
-      self._memoryMapVersion = memoryMapVersion
+
+      if(os.path.isfile(memoryMapFile)):
+         print("Loading memory map")
+         with open(memoryMapFile, 'r') as file:
+                 self._memoryMap = json.load(file)
+      else:
+         print("Error. File {0} does not exist".format(memoryMapFile))
+
 
    def to_s(self):
       print("Device: config = {0}, version = {1}".format(self._deviceConfig, self._memoryMapVersion))
@@ -39,7 +49,7 @@ class Sensor(InputOutput):
 
 # A node consists of a device (microcontroller + firmware),
 # a set of radios, inputs, and outputs
-class Node:
+class HardwareNode:
    _device = None
    _radios = []
    _inputs = []
