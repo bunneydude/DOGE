@@ -1,0 +1,3 @@
+[submodule "linux/libs/IPCBuffer"]
+	path = linux/libs/IPCBuffer
+	url = https://github.com/bunneydude/IPCBuffer
