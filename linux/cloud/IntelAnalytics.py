@@ -89,7 +89,7 @@ class IntelAnalytics():
    g_uid = self.get_user_id()
    g_aid =  self.get_account_id(g_uid)
    if self.device_id == "":
-     self.device_id = "Edison_DOGE"
+     self.device_id = "Edison_DOGE1"
      device_name = "Device-{0}".format(self.device_id)
      print "Creating device {0}".format(self.device_id)
      self.create_device (g_aid,self.device_id,device_name)
@@ -198,6 +198,7 @@ class IntelAnalytics():
     }
     data = json.dumps(device)
     resp = requests.post(url, data=data, headers=self.get_user_headers(), proxies=self.proxies, verify=self.verify)
+    print data
     self.check(resp, 201)
     return resp
 

@@ -4,7 +4,7 @@ if cmd_subfolder not in sys.path:
 	sys.path.insert(0, cmd_subfolder)
 
 from SparkfunData import SparkfunData
-#from IntelAnalytics import IntelAnalytics #XXX: blocked due to python-requests module not in repo
+from IntelAnalytics import IntelAnalytics
 import json
 
 def connect_cloud(service):
