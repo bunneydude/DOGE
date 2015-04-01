@@ -1,0 +1,11 @@
+To use the IPCBuffer class to communicate between Python and the Arduino sketch, the sysv_ipc python library is required. 
+
+Author: Philip Semanchuk
+Website: http://semanchuk.com/philip/sysv_ipc/
+Library: http://semanchuk.com/philip/sysv_ipc/sysv_ipc-0.6.8.tar.gz
+MD5 sum: http://semanchuk.com/philip/sysv_ipc/sysv_ipc-0.6.8.md5.txt
+SHA1 sum: http://semanchuk.com/philip/sysv_ipc/sysv_ipc-0.6.8.sha1.txt
+
+Download the library onto Edison, unpack the tar.gz, and run the following command:
+
+   sudo python setup.py install
