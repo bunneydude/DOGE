@@ -1,6 +1,5 @@
 import os.path
 import json
-from mm_registers import *
 
 class Device:
    _deviceConfig = ""
@@ -16,7 +15,7 @@ class Device:
 
    def __init__(self, deviceConfig, memoryMapFile):
       self._deviceConfig = deviceConfig
-      print("test {0}".format(ADC_SPEED))
+      
       if(os.path.isfile(memoryMapFile)):
          print("Loading memory map")
          with open(memoryMapFile, 'r') as file:
