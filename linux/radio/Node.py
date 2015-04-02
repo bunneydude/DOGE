@@ -1,13 +1,22 @@
 import os.path
 import json
+from mm_registers import *
 
 class Device:
    _deviceConfig = ""
    _memoryMap = {}
+   _mmString = {
+      "device":{"size":"mm_device_size", "base":"mm_device_base"},
+      "network":{"base":"mm_network_base", "size":"mm_network_size"},
+      "gpio":{"base":"mm_gpio_base", "size":"mm_gpio_size"},
+      "adc":{"base":"mm_adc_base", "size":"mm_adc_size"},
+      "uart":{"base":"mm_uart_base", "size":"mm_uart_size"},
+      "dsp":{"base":"mm_dsp_base", "size":"mm_dsp_size"}
+   }
 
    def __init__(self, deviceConfig, memoryMapFile):
       self._deviceConfig = deviceConfig
-
+      print("test {0}".format(ADC_SPEED))
       if(os.path.isfile(memoryMapFile)):
          print("Loading memory map")
          with open(memoryMapFile, 'r') as file:
@@ -18,7 +27,14 @@ class Device:
 
    def to_s(self):
       print("Device: config = {0}, version = {1}".format(self._deviceConfig, self._memoryMapVersion))
+
      
+   def address(self, space, offset):
+      if(space in self._mmString.keys()):
+         if(offset < self._memoryMap[self._mmString[space]["size"]]):
+            return self._memoryMap[self._mmString[space]["base"]] + offset
+      return -1
+         
 
 class InputOutput:
    _interface = None
