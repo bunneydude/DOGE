@@ -15,10 +15,11 @@ SREG_TEMPERATURE = 4
 
 class RadioInterface():
 
-   def __init__(self, name):
+   def __init__(self, name, debug=False):
       self.name = name
       self.cmdBuffer = IPCBuffer.IPCBuffer(3)
       self.rxBuffer = IPCBuffer.IPCBuffer(4)
+      self.debug = debug
       
       self.txData = []
       self.rxData = []
@@ -29,18 +30,21 @@ class RadioInterface():
 
    def proxy_send(self, command, address, payload):
       self.txData = Protocol.form_packet(cmd=command, addr=address, data=payload)
-      for b in self.txData:
-         self.cmdBuffer.write(b)
-
-      #get response
-      self.rxData = []
-      self.rxData.append(ord(self.rxBuffer.read()))
-      self.rxData.append(ord(self.rxBuffer.read()))
-
-      for i in range(self.rxData[-1]):
+      if(self.debug == False):
+         for b in self.txData:
+            self.cmdBuffer.write(b)
+      
+         #get response
+         self.rxData = []
+         self.rxData.append(ord(self.rxBuffer.read()))
          self.rxData.append(ord(self.rxBuffer.read()))
 
-      self.rxData.append(ord(self.rxBuffer.read()))
+         for i in range(self.rxData[-1]):
+            self.rxData.append(ord(self.rxBuffer.read()))
+         self.rxData.append(ord(self.rxBuffer.read()))
+
+      else:
+         print("Debug: send message {0}".format(self.txData))
 
 
    def push(self, network, nodeID, data):      
@@ -53,8 +57,9 @@ class RadioInterface():
       # transmit - write to SREG_PING
       self.proxy_send(WRITE, SREG_PING, 0x2)
 
-      if(self.rxData[0] == 4):
-         print("\nError for node " + str(network) + " " + str(nodeID) + ": " + str(self.rxData[3])  + "\n")
+      if(self.debug == False):
+         if(self.rxData[0] == 4):
+            print("\nError for node " + str(network) + " " + str(nodeID) + ": " + str(self.rxData[3])  + "\n")
 
 
    def pull(self, network, nodeID, field):
@@ -66,8 +71,11 @@ class RadioInterface():
       #transmit
       self.proxy_send(WRITE, SREG_PING, fieldDecode[field.lower()] | 0x1)
 
-      if(self.rxData[0] == 4):
-         print("\nError for node " + str(network) + " " + str(nodeID) + ": " + str(self.rxData[3])  + "\n")
-         return -1
+      if(self.debug == False):
+         if(self.rxData[0] == 4):
+            print("\nError for node " + str(network) + " " + str(nodeID) + ": " + str(self.rxData[3])  + "\n")
+            return -1
+         else:
+            return self.rxData[3]
       else:
-         return self.rxData[3]
+         return 1
