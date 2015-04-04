@@ -25,7 +25,7 @@ class Device:
 
 
    def to_s(self):
-      print("Device: config = {0}, version = {1}".format(self._deviceConfig, self._memoryMapVersion))
+      print("Device: config = {0}, version = {1}".format(self._deviceConfig, self._memoryMap))
 
      
    def address(self, space, offset):
