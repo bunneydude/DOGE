@@ -1,14 +1,15 @@
-from RadioInterface import *
+import RadioInterface
 import Node
-from mm_registers import *
+import mmFields
 
-pipe = RadioInterface("edison", True)
+pipe = RadioInterface.RadioInterface("edison", True)
 
-rawTemp = 0
-node = Node.Device("msp430", "mm_msp430_v1.txt")
-nodeID = 2
+mspV1 = Node.Device("msp430g2553", "mm_msp430_v1.txt")
+mspV1.to_s()
 
-rawTemp = pipe.pull("boosterpack", nodeID, "temperature")
-print("Got raw temp: {0}".format(rawTemp))
+kitchenNode = Node.HardwareNode(mspV1, 2, pipe)
+kitchenNode.add_sensor("stoveTemp", "adc", mmFields.ADC_RESULT_3)
 
-pipe.proxy_send(WRITE, address=node.address("gpio", GPIO_0_DIR), payload=2)
+kitchenNode.to_s()
+
+kitchenNode.pull("stoveTemp")

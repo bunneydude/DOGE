@@ -14,6 +14,7 @@ PING = 1
 SREG_TEMPERATURE = 4
 
 class RadioInterface():
+   _connected = False
 
    def __init__(self, name, debug=False):
       self.name = name
@@ -25,26 +26,33 @@ class RadioInterface():
       self.rxData = []
 
    def connect_sketch(self):
-      self.cmdBuffer.open_sketch()
-      self.rxBuffer.open_sketch()
+      if(self.debug == False):
+         self.cmdBuffer.open_sketch()
+         self.rxBuffer.open_sketch()
+         self._connected = True #TODO error handling
+      else:
+         print("In debug mode the sketch is not connected")
 
    def proxy_send(self, command, address, payload):
       self.txData = Protocol.form_packet(cmd=command, addr=address, data=payload)
       if(self.debug == False):
-         for b in self.txData:
-            self.cmdBuffer.write(b)
-      
-         #get response
-         self.rxData = []
-         self.rxData.append(ord(self.rxBuffer.read()))
-         self.rxData.append(ord(self.rxBuffer.read()))
+         if(self._connected == True):
+            for b in self.txData:
+               self.cmdBuffer.write(b)
 
-         for i in range(self.rxData[-1]):
+            #get response
+            self.rxData = []
             self.rxData.append(ord(self.rxBuffer.read()))
-         self.rxData.append(ord(self.rxBuffer.read()))
+            self.rxData.append(ord(self.rxBuffer.read()))
 
+            for i in range(self.rxData[-1]):
+               self.rxData.append(ord(self.rxBuffer.read()))
+            self.rxData.append(ord(self.rxBuffer.read()))
+         else:
+            print("Error - need to call connect_sketch first")
       else:
          print("Debug: send message {0}".format(self.txData))
+         self.rxData = [1,2,3,4,5]
 
 
    def push(self, network, nodeID, data):      
