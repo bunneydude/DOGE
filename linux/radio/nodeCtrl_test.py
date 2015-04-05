@@ -2,7 +2,7 @@ import RadioInterface
 import Node
 import mmFields
 
-pipe = RadioInterface.RadioInterface("edison", True)
+pipe = RadioInterface.RadioInterface("edison", 1, True)
 
 mspV1 = Node.Device("msp430g2553", "mm_msp430_v1.txt")
 mspV1.to_s()

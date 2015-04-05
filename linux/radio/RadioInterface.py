@@ -15,9 +15,16 @@ SREG_TEMPERATURE = 4
 
 class RadioInterface():
    _connected = False
+   _name = None
+   _nodeID = 1
 
-   def __init__(self, name, debug=False):
-      self.name = name
+   def __init__(self, name, nodeID, debug=False):
+      if(not isinstance(name, str)): raise Exception("The name must be a string")
+      if(nodeID < 0 or nodeID > 255): raise Exception("The nodeID, {0}, must be in the range [0,255]".format(nodeID))
+
+      self._name = name
+      self._nodeID = nodeID
+
       self.cmdBuffer = IPCBuffer.IPCBuffer(3)
       self.rxBuffer = IPCBuffer.IPCBuffer(4)
       self.debug = debug
@@ -33,26 +40,32 @@ class RadioInterface():
       else:
          print("In debug mode the sketch is not connected")
 
-   def proxy_send(self, command, address, payload):
-      self.txData = Protocol.form_packet(cmd=command, addr=address, data=payload)
+   def proxy_send(self, destination, command, address, payload):
+      if(destination < 0 or destination > 255): raise Exception("The destination, {0}, must be in the range [0,255]".format(destination))
+
+      self.txData = [self._nodeID, destination] + Protocol.form_packet(cmd=command, addr=address, data=payload)
       if(self.debug == False):
          if(self._connected == True):
+            #write out everything in txData
             for b in self.txData:
                self.cmdBuffer.write(b)
 
             #get response
             self.rxData = []
-            self.rxData.append(ord(self.rxBuffer.read()))
-            self.rxData.append(ord(self.rxBuffer.read()))
-
-            for i in range(self.rxData[-1]):
+            for _ in range(4): #read first 4 bytes (srcID, dstID, cmd, size)
                self.rxData.append(ord(self.rxBuffer.read()))
+
+            for _ in range(self.rxData[-1]): #get rest of payload
+               self.rxData.append(ord(self.rxBuffer.read()))
+
+            # get checksun
             self.rxData.append(ord(self.rxBuffer.read()))
          else:
             print("Error - need to call connect_sketch first")
       else:
          print("Debug: send message {0}".format(self.txData))
-         self.rxData = [1,2,3,4,5]
+         self.rxData = [destination, self._nodeID, 3, 2, 5, 6]
+         self.rxData.append(-sum(self.rxData)%256)
 
 
    def push(self, network, nodeID, data):      
