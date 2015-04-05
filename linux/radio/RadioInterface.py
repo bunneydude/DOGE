@@ -8,6 +8,7 @@ import IPCBuffer
 import Protocol
 
 WRITE = 2
+READ = 1
 SREG_TARGET = 7
 SREG_PING = 11
 PING = 1
@@ -44,22 +45,27 @@ class RadioInterface():
       if(destination < 0 or destination > 255): raise Exception("The destination, {0}, must be in the range [0,255]".format(destination))
 
       self.txData = [self._nodeID, destination] + Protocol.form_packet(cmd=command, addr=address, data=payload)
+      print("About to send: {0}".format(self.txData))
       if(self.debug == False):
          if(self._connected == True):
             #write out everything in txData
             for b in self.txData:
                self.cmdBuffer.write(b)
-
+            
+            print("Waiting for response")
             #get response
             self.rxData = []
             for _ in range(4): #read first 4 bytes (srcID, dstID, cmd, size)
                self.rxData.append(ord(self.rxBuffer.read()))
+               #print("Got: {0}".format(self.rxData))
 
             for _ in range(self.rxData[-1]): #get rest of payload
                self.rxData.append(ord(self.rxBuffer.read()))
-
+               #print("Got: {0}".format(self.rxData))
+            
             # get checksun
             self.rxData.append(ord(self.rxBuffer.read()))
+            #print("Got: {0}".format(self.rxData))
          else:
             print("Error - need to call connect_sketch first")
       else:
