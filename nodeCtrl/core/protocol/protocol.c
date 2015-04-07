@@ -9,7 +9,7 @@ void Protocol_init(struct Protocol* obj){
    obj->data = 0;
    obj->checksum = 0;
    obj->executePacket = 0;
-   obj->dataRegisters = ((&(memoryMap[0].u8[0])));
+   obj->dataRegisters = ((&(memoryMap[MM_PHYSICAL_BAR/4].u8[MM_PHYSICAL_BAR%4])));
 }
 
 
