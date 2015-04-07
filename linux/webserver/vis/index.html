@@ -1,0 +1,314 @@
+<!doctype html>
+<html>
+<head>
+  <title> DOGE Network</title>
+
+  <style type="text/css">
+    body {
+      font: 10pt sans;
+    }
+    #mynetwork {
+      position:relative;
+      width: 800px;
+      height: 600px;
+      border: 1px solid lightgray;
+    }
+    table.legend_table {
+      font-size: 11px;
+      border-width:1px;
+      border-color:#d3d3d3;
+      border-style:solid;
+    }
+    table.legend_table,td {
+      border-width:1px;
+      border-color:#d3d3d3;
+      border-style:solid;
+      padding: 2px;
+    }
+    div.table_content {
+      width:80px;
+      text-align:center;
+    }
+    div.table_description {
+      width:100px;
+    }
+
+    #operation {
+      font-size:28px;
+    }
+    #button-popUp {
+      display:none;
+    }
+    #network-popUp {
+      display:none;
+      position:absolute;
+      top:350px;
+      left:170px;
+      z-index:299;
+      width:250px;
+      height:120px;
+      background-color: #f9f9f9;
+      border-style:solid;
+      border-width:3px;
+      border-color: #5394ed;
+      padding:10px;
+      text-align: center;
+    }
+  </style>
+  <script type="text/javascript" src="vis.js"></script>
+  <link type="text/css" rel="stylesheet" href="vis.css">
+
+  <script type="text/javascript">
+    var nodes = null;
+    var edges = null;
+    var network = null;
+ 
+       // convenience method to stringify a JSON object
+    function toJSON (obj) {
+      return JSON.stringify(obj, null, 4);
+    }
+
+
+ 
+    function draw() {
+     var e=document.getElementsByName("Network Filter")[0];
+  
+     var nodes = new vis.DataSet();
+      nodes.add ( [
+      {'id': '1', 'label': 'E',group:'edison'},
+      {'id': '2', 'label': '1',group:'916mhz'},
+      {'id': '3', 'label': '2',group:'433mhz'},
+      {'id': '4', 'label': '3',group:'433mhz'},
+      {'id': '5', 'label': '4',group:'433mhz'},
+      
+     ]);
+     
+     var edges = new vis.DataSet();
+     edges.add([
+     {'id': '1',from: '1', to: '2',group:'916mhz',label:'12'},
+     {'id': '2',from: '1', to: '2',group:'433mhz',label:'50'},
+     {'id': '3',from: '1', to: '3',group:'433mhz'},
+     {'id': '4',from: '3', to: '4',group:'433mhz'},  
+     {'id': '5',from: '3', to: '5',group:'433mhz'},
+      ]);
+    
+      // legend
+      var mynetwork = document.getElementById('mynetwork');
+      var x =   - mynetwork.clientWidth   /1.2  ;
+      var y =   - mynetwork.clientHeight / 2 + 50;
+      //var x = +1000; 
+      //var y = 10;
+      var step = 70;
+      //var nodes_legend = new vis.DataSet();
+
+//      nodes.add({id: 1000, x: x, y: y, label: 'Edison', group: 'edison'});
+    //  nodes.add({id: 1001, x: x, y: y+step, label: '433Mhz', group: '433mhz'});
+     // nodes.add({id: 1002, x: x, y: y+2*step , label: '916Mhz', group: '916mhz'});
+ 
+      var grpfilt =document.getElementsByName("Network Filter")[0];
+      var group_filter = grpfilt.value;
+
+      //If this is not a full network view - filter based on user request
+      if (group_filter != 'Full') {
+
+       //Filter by radio type
+       var radio_group_nodes = nodes.get({
+         filter: function (item) {
+         return (item.group == group_filter);
+         }
+       });
+      
+       var e = nodes.get({
+         filter: function (item) {
+         return (item.group == 'edison');
+         }
+       });
+
+      //radio_group_nodes  .= e;
+ 
+       var radio_group_edges = edges.get({
+         filter: function (item) {
+         return (item.group == group_filter);
+         }
+       });
+
+ 
+       var data = {
+         nodes: radio_group_nodes,
+         edges: radio_group_edges
+       };
+
+      }
+
+     //If full network - display all nodes
+
+      else {
+       var data = {
+         nodes: nodes,
+         edges: edges
+        };
+      };
+
+     
+      // create a network
+      var container = document.getElementById('mynetwork');
+
+
+      //Define shape to be used for all nodes here 
+      var doge_node_shape = "ellipse";
+ 
+      
+      var options = {
+        //hierarchicalLayout: true
+        //stabilize: false,
+        
+         dataManipulation: {
+          enabled: true,
+          initiallyVisible: true
+         },
+         dragNetwork: false, 
+         edges: {
+          width: 3,
+          widthSelectionMultiplier: 1,
+          fontFace: 'verdana',
+          fontSize: 14,
+          inheritColor: true,
+          //opacity: 0,
+          color : {
+            highlight: 'black',
+          },
+          //labelAlignment: 'line-above' 
+         },
+         groups: {
+          '433mhz': {
+            shape: doge_node_shape,
+            color: 'tomato' 
+           },
+          '916mhz': {
+            shape: doge_node_shape,
+            color: 'lightblue'
+          },
+          '1.2ghz': {
+            shape: doge_node_shape,
+            color: 'yellow'
+          },
+          'edison': {
+            shape: doge_node_shape,
+            color: 'gold'
+           },
+         },
+         locales: {
+          // create a new locale (text strings should be replaced with localized strings)
+          mylocale: {
+          edit: 'Edit',
+          del: 'Mask/Delete selected',
+          back: 'Back',
+          addNode: 'Add Node',
+          addEdge: 'Add Route',
+          editNode: 'Edit Node',
+          editEdge: 'Edit Route',
+          addDescription: 'This operation is currently not supported',
+          edgeDescription: 'Click on a node and drag the edge to another node to connect them.',
+          editEdgeDescription: 'Click on the control points and drag them to a node to connect to it. Click Back when done',
+          createEdgeError: 'Cannot link edges to a cluster.',
+          deleteClusterError: 'Clusters cannot be deleted.'
+          }
+         },
+
+         // use the new locale
+         locale: 'mylocale',
+
+         onDelete: function(data,callback) {
+         //document.getElementById('selection').innerHTML = 'Selection: ' + data;
+         var r=confirm("Are you sure you want to delete?");
+            if (r==true) {
+             callback(data);
+            }
+         },
+         
+         onConnect: function(data,callback) {
+          if (data.from == data.to) {
+            var r=confirm("Do you want to connect the node to itself?");
+            if (r==true) {
+              callback(data);
+            }
+          }
+          else {
+            callback(data);
+          }
+         },
+
+      };
+
+      network = new vis.Network(container, data, options);
+
+      // add event listeners
+      network.on('select', function(params) {
+        document.getElementById('selection').innerHTML = 'Selection: ' + params.nodes;
+      });
+
+      network.on("resize", function(params) {console.log(params.width,params.height)});
+
+      function clearPopUp() {
+        var confirmButton = document.getElementById('confirmButton');
+        var cancelButton = document.getElementById('cancelButton');
+        confirmButton.onclick = null;
+        cancelButton.onclick = null;
+        var div = document.getElementById('network-popUp');
+        div.style.display = 'none';
+
+      }
+
+      function saveData(data,callback) {
+        document.getElementById('tk_text').innerHTML = 'TK Selection: ' + data;
+	data();//try {
+        //  data.edgesData.remove();
+        // //edges.remove(data);
+         // data.edgesData.remove();
+        //}
+        //catch (err) {
+        //  alert(err);
+       // }
+        clearPopUp();
+        callback(data);
+
+      }
+    }
+   
+  </script>
+</head>
+
+<body onload="draw();">
+<p id="tk_text"></p>
+ 
+<h1> DOGE Network</h1>
+  <b>Filter:</b>
+  <select name="Network Filter" onchange="draw();">
+  <option value="Full">Full N/W</option>
+  <option value="433mhz">433 MHz</option>
+  <option value="916mhz">916 MHz</option>
+  <option value="1.2ghz">1.2 GHz</option>
+  </select>
+
+<br></br>
+
+<div id="button-popUp">
+<input type="button" value="Mask Node" id="maskNodeButton"></button>
+<input type="button" value="Mask Edge" id="maskEdgeButton"></button>
+<input type="button" value="Delete Edge" id="deleteEdgeButton"></button>
+<input type="button" value="Add Route" id="addRouteButton"></button>
+</div>
+
+
+<div id="network-popUp">
+  <span id="operation">node</span> <br>
+  <br></br>
+  <input type="button" value="Confirm" id="confirmButton"></button>
+  <input type="button" value="Cancel"  id="cancelButton"></button>
+</div>
+<p id="selection"></p>
+<div id="mynetwork"></div>
+
+</body>
+</html>
+
