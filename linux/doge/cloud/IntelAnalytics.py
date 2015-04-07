@@ -39,6 +39,11 @@ import random
 import re 
 import os
 
+def find(name, path):
+    for root, dirs, files in os.walk(path):
+        if name in files:
+            return os.path.join(root, name)
+
 class IntelAnalytics():
 
  #####################################
@@ -66,6 +71,7 @@ class IntelAnalytics():
  device_token = ""
  
  filename = "intel_credentials.txt"
+ filename = find(filename, os.getcwd())
    #Extract all user credentials from the file intel_credentials.txt
  with open(filename, 'r') as f:
     for line in f:

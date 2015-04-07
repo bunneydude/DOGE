@@ -1,10 +1,10 @@
-import os, sys, inspect
-cmd_subfolder = os.path.realpath(os.path.abspath(os.path.join(os.path.split(inspect.getfile(inspect.currentframe()))[0],"../cloud")))
-if cmd_subfolder not in sys.path:
-	sys.path.insert(0, cmd_subfolder)
+#import os, sys, inspect
+#cmd_subfolder = os.path.realpath(os.path.abspath(os.path.join(os.path.split(inspect.getfile(inspect.currentframe()))[0],"../cloud")))
+#if cmd_subfolder not in sys.path:
+#	sys.path.insert(0, cmd_subfolder)
 
-from SparkfunData import SparkfunData
-from IntelAnalytics import IntelAnalytics
+from doge.cloud.SparkfunData import SparkfunData
+from doge.cloud.IntelAnalytics import IntelAnalytics
 import json
 
 def connect_cloud(service):

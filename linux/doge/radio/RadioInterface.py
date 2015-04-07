@@ -1,11 +1,11 @@
-import os, sys, inspect
+#import os, sys, inspect
 
-cmd_subfolder = os.path.realpath(os.path.abspath(os.path.join(os.path.split(inspect.getfile( inspect.currentframe() ))[0],"../core")))
-if cmd_subfolder not in sys.path:
-	sys.path.insert(0, cmd_subfolder)
+#cmd_subfolder = os.path.realpath(os.path.abspath(os.path.join(os.path.split(inspect.getfile( inspect.currentframe() ))[0],"../core")))
+#if cmd_subfolder not in sys.path:
+#	sys.path.insert(0, cmd_subfolder)
 
-import IPCBuffer
-import Protocol
+from doge.core.IPCBuffer import IPCBuffer
+import doge.core.Protocol as Protocol
 
 WRITE = 2
 SREG_TARGET = 7
@@ -17,8 +17,8 @@ class RadioInterface():
 
    def __init__(self, name, debug=False):
       self.name = name
-      self.cmdBuffer = IPCBuffer.IPCBuffer(3)
-      self.rxBuffer = IPCBuffer.IPCBuffer(4)
+      self.cmdBuffer = IPCBuffer(3)
+      self.rxBuffer = IPCBuffer(4)
       self.debug = debug
       
       self.txData = []
