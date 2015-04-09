@@ -1,9 +1,13 @@
 import os.path
 import json
+import RadioInterface
 
+#The Device class represents a microcontroller and its firmware.
 class Device:
-   _deviceConfig = ""
+   _deviceName = ""
    _memoryMap = {}
+   _validDeviceNames = ["msp430g2553", "lpc812"]
+
    _mmString = {
       "device":{"size":"mm_device_size", "base":"mm_device_base"},
       "network":{"base":"mm_network_base", "size":"mm_network_size"},
@@ -13,72 +17,106 @@ class Device:
       "dsp":{"base":"mm_dsp_base", "size":"mm_dsp_size"}
    }
 
-   def __init__(self, deviceConfig, memoryMapFile):
-      self._deviceConfig = deviceConfig
+   """ Create the device based on the microcontroller name and memory map
+   @param deviceName : String : The name of the microcontroller. Must be one of:
+      * msp430g2553
+      * lpc812
+   @param memoryMapFile : String : File name containing a json object that describes the base and sizes of the differet memory sections
+   """
+   def __init__(self, deviceName, memoryMapFile):
+      # Validate inputs
+      if(deviceName.lower() not in self._validDeviceNames): raise Exception("deviceName {0} is invalid. Must be one of {1}".format(deviceName.lower(), self._validDeviceNames))
+      if(not os.path.isfile(memoryMapFile)): raise Exception("File {0} does not exist".format(memoryMapFile))
+
+      # assign inputs
+      self._deviceName = deviceName.lower()
       
-      if(os.path.isfile(memoryMapFile)):
-         print("Loading memory map")
-         with open(memoryMapFile, 'r') as file:
-                 self._memoryMap = json.load(file)
-      else:
-         print("Error. File {0} does not exist".format(memoryMapFile))
+      print("Loading memory map")
+      with open(memoryMapFile, 'r') as file:
+         self._memoryMap = json.load(file)
 
-
+   """ Print a string representation of the object """
    def to_s(self):
-      print("Device: config = {0}, version = {1}".format(self._deviceConfig, self._memoryMap))
+      print("Device: config = {0}, version = {1}".format(self._deviceName, self._memoryMap))
 
-     
-   def address(self, space, offset):
+   """ Return the physical address of the register in the specified memory space
+   @param space : String : The memory space to access. Must be one of:
+      * "device"
+      * "network"
+      * "gpio"
+      * "adc"
+      * "uart"
+      * "dsp:
+
+   @param register : Integer : Offset for the register you want to access. A full list is in mmFields.py.
+   
+   @returns Integer : Returns -1 if the regsister offset was outside the range of the memory space. Otherwise, returns the physical address.
+   """
+   def address(self, space, register):
       if(space in self._mmString.keys()):
-         if(offset < self._memoryMap[self._mmString[space]["size"]]):
-            return self._memoryMap[self._mmString[space]["base"]] + offset
+         if(register < self._memoryMap[self._mmString[space]["size"]]):
+            return self._memoryMap[self._mmString[space]["base"]] + register
       return -1
          
-
-class InputOutput:
-   _interface = None
-   _protocol = None
-
-   def __init__(self, interface, protocol=None):
-      self._interface = interface
-      self._protocol = protocol
-
-   def to_s(self):
-      print("Input: interface = {0}, protocol = {1}".format(self._interface, self._protocol))
-
-
-class Sensor(InputOutput):
-
-   _name = None
-   _units = None #the units of 1 LSB
-   _resolution = None
-
-   def __init__(self, name, interface, protocol):
-      super(Sensor, self).__init__(interface, protocol)
-      self._name = name      
-
-   def to_s(self):
-      print("Sensor: name = {0}, interface = {1}, protocol = {2}".format(self._name, super(Sensor, self)._interface, super(Sensor, self)._protocol))
 
 
 
 # A node consists of a device (microcontroller + firmware),
 # a set of radios, inputs, and outputs
 class HardwareNode:
+   _pipe = None
    _device = None
    _radios = []
-   _inputs = []
+   _inputs = {}
    _outputs = []
 
-   def __init__(self, device, radios=[], inputs=[], outputs=[]):
+   _validRadios = ["nrf24", "cc1101l", "rfm69"]
+   _maxRadios = 4
+
+   def __init__(self, device, nodeID, pipe):
+      if(not isinstance(device, Device)): raise Exception("The device argument must be an instance of Node.Device.")
+      if(nodeID < 0 or nodeID > 255): raise Exception("The specified nodeID, {0}, must be in the range [0, 255]".format(nodeID))
+      if(not isinstance(pipe, RadioInterface.RadioInterface)): raise Exception("The device argument must be an instance of Node.Device.")
+
       self._device = device
-      self._radios = radios
-      self._inputs = inputs
-      self._outputs = outputs
+      self._nodeID = nodeID
+      self._pipe = pipe
+
 
    def to_s(self):
-      print("Node: device = {0}, radio = {1}, inputs = {2}, outputs = {3}".format(self._device, self._radios, self._inputs, self._outputs))
+      print("Node: device = {0}, nodeID = {1}, radio = {2}, inputs = {3}, outputs = {4}".format(self._device, self._nodeID, self._radios, self._inputs, self._outputs))
 
+   def get_nodeID(self):
+      return self._nodeID
+
+   def add_radio(self, radio):
+      if(radio.lower() not in self._validRadios): raise Exception("Invalid radio specified: {0}. Must be one of {1}".format(radio.lower(), self._validRadios))
+      if(len(self._radios) == self._maxRadios): raise Exception("This node has exceeded the max number of radios: {0}".format(self._maxRadios))
+
+      self._radios.append(radio.lower())
+
+
+   def add_sensor(self, name, registerSpace, registerOffset):
+      if(name.lower() in self._inputs.keys()): raise Exception("That sensor name, {0}, is already in use. Current sensors are {1}".format(name.lower(), self._inputs.keys()))
+      if(registerSpace.lower() not in self._device._mmString.keys()): raise Exception("Invalid registerSpace specified: {0}. Must be one of: {1}".format(registerSpace.lower(), self._device._mmString.keys()))
+      
+      address = self._device.address(registerSpace, registerOffset)
+      if(address == -1): raise Exception("Offset {0} in space {1} is out of range. Please consult the memory map file".format(registerOffset, registerSpace))
+      
+      self._inputs[name.lower()] = {"space":registerSpace.lower(), "offset":registerOffset}
+
+
+   def pull(self, sensorName):
+      if(sensorName.lower() not in self._inputs.keys()): raise Exception("Unknown sensor: {0}. Current sensor list: {1}".format(sensorName.lower(), self._inputs.keys()))
+      
+      address = self._device.address(self._inputs[sensorName.lower()]["space"], self._inputs[sensorName.lower()]["offset"])
+      self._pipe.proxy_send(destination=self._nodeID, command=RadioInterface.READ, address=address, payload=0)
+      print("Pull complete. Got: {0}".format(self._pipe.rxData))
+
+
+
+
+#### The below classes are currently not used ####
    
 class NetworkTable:
    _neighborArray = []
@@ -148,4 +186,30 @@ class RoutingTableEntry:
    def to_s(self):
       print("Routing fields: mhNodeID = {0}, mhLQE = {1}, neighborIndex = {2}".format(self._fields['mhNodeID'], self._fields['mhLQE'], self._fields['neighborIndex']))
       print("Routing field resolutions: mhNodeID = {0}, mhLQE = {1}, neighborIndex = {2}".format(self._resolutions['mhNodeID'], self._resolutions['mhLQE'], self._resolutions['neighborIndex']))
-      
+     
+ 
+class InputOutput:
+   _interface = None
+   _protocol = None
+
+   def __init__(self, interface, protocol=None):
+      self._interface = interface
+      self._protocol = protocol
+
+   def to_s(self):
+      print("Input: interface = {0}, protocol = {1}".format(self._interface, self._protocol))
+
+
+class Sensor(InputOutput):
+
+   _name = None
+   _units = None #the units of 1 LSB
+   _resolution = None
+
+   def __init__(self, name, interface, protocol):
+      super(Sensor, self).__init__(interface, protocol)
+      self._name = name      
+
+   def to_s(self):
+      print("Sensor: name = {0}, interface = {1}, protocol = {2}".format(self._name, super(Sensor, self)._interface, super(Sensor, self)._protocol))
+
