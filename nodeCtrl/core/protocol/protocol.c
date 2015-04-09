@@ -1,14 +1,10 @@
 #include <stdint.h>
+#include <string.h>
+#include "packet.h"
 #include "protocol.h"
 
 void Protocol_init(struct Protocol* obj){
-
-   obj->byteNumber = 0;
-   obj->cmd = 0;
-   obj->addr = 0;
-   obj->data = 0;
-   obj->checksum = 0;
-   obj->executePacket = 0;
+   memset(obj, 0, sizeof(struct Protocol));
    obj->dataRegisters = ((&(memoryMap[MM_PHYSICAL_BAR/4].u8[MM_PHYSICAL_BAR%4])));
 }
 
