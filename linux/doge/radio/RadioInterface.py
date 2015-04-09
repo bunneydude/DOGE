@@ -26,8 +26,6 @@ class RadioInterface():
       self._name = name
       self._nodeID = nodeID
 
-   def __init__(self, name, debug=False):
-      self.name = name
       self.cmdBuffer = IPCBuffer(3)
       self.rxBuffer = IPCBuffer(4)
       self.debug = debug
