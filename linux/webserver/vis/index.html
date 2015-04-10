@@ -9,111 +9,114 @@
     }
     #mynetwork {
      position:relative;
-     width: 800px;
+     width: 1000px;
      height: 400px;
      border: 1px solid lightgray;
     }
     #mynetworklegend {
      position:absolute;
      border-width: 0;
-     width: 800px;
+     width: 1000px;
      height: 30px;
     }
     #mynetwork-control {
      position:relative;
-     width: 800px;
-     height: 22px;
+     width: 1000px;
+     height: 30px;
      border: 1px solid lightgray;
-     //display:none;
+     background: #ffffff; /* Old browsers */
+     background: -moz-linear-gradient(top,  #ffffff 0%, #fcfcfc 48%, #fafafa 50%, #fcfcfc 100%); /* FF3.6+ */
+     background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ffffff), color-stop(48%,#fcfcfc), color-stop(50%,#fafafa), color-stop(100%,#fcfcfc)); /* Chrome,Safari4+ */
+     background: -webkit-linear-gradient(top,  #ffffff 0%,#fcfcfc 48%,#fafafa 50%,#fcfcfc 100%); /* Chrome10+,Safari5.1+ */
+     background: -o-linear-gradient(top,  #ffffff 0%,#fcfcfc 48%,#fafafa 50%,#fcfcfc 100%); /* Opera 11.10+ */
+     background: -ms-linear-gradient(top,  #ffffff 0%,#fcfcfc 48%,#fafafa 50%,#fcfcfc 100%); /* IE10+ */
+     background: linear-gradient(to bottom,  #ffffff 0%,#fcfcfc 48%,#fafafa 50%,#fcfcfc 100%); /* W3C */
+     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#fcfcfc',GradientType=0 ); /* IE6-9 */
+
     }
     .mynetwork-control-button {
+      display:inline-block;
       border:none;
+      border-radius:40px;
       font-family:verdana;
       font-size:12px;
-      width:20;
-      height:80;
+      width:180px;
+      height:28px;
       background-color:transparent;
-      padding-left:42px;
-      text-align: center;
-    
+      padding: 8px 5px 5px 5px;
+   
+     }
+    .mynetwork-control-button:hover { 
+      box-shadow: 1px 1px 8px rgba(0, 0, 0, 0.20);
     }
     #user-confirm {
+     display:none;
+    }
+    #user-checkbox {
      display:none;
     }
     .pageText {
       font-family:verdana;
       font-size:24;
     }
-    table.legend_table {
-     font-size: 11px;
-     border-width:1px;
-     border-color:#d3d3d3;
-     border-style:solid;
-    }
-    table.legend_table,td {
-     border-width:1px;
-     border-color:#d3d3d3;
-     border-style:solid;
-     padding: 2px;
-    }
-    div.table_content {
-     width:80px;
-     text-align:center;
-    }
-    div.table_description {
-     width:100px;
+    #filter {
+      display: none;
     }
 
-    #operation {
-     font-size:28px;
-    }
-    #button-popUp {
-     display:none;
-    }
-    #network-popUp {
-     display:none;
-     position:absolute;
-     top:350px;
-     left:170px;
-     z-index:299;
-     width:250px;
-     height:120px;
-     background-color: #f9f9f9;
-     border-style:solid;
-     border-width:3px;
-     border-color: #5394ed;
-     padding:10px;
-     text-align: center;
-    }
+   
   
   
   </style>
   <script type="text/javascript" src="vis.js"></script>
-  <link type="text/css" rel="stylesheet" href="vis.css">
+  <script type="text/javascript" src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+ 
+ <link type="text/css" rel="stylesheet" href="vis.css">
 
   <script type="text/javascript">
-    
+
     //These should be global so that all functions can modify network properties
     var nodes = null;
     var edges = null;
     var network = null;
     var userRoute = [];
     var delRoute = [];
-    var delEdge;
+    var maskEdge = [];
+    var maskNode = "";
     var newRoute = [];
     var options;
     var mode ;
-    
+    var route_toggle = 1;
+    var legend_toggle = 1;
+ 
+    var connection;
+
+    //Websocket to communicate with node.js server
+    function startWebSocket(){
+     connection = new WebSocket('ws://192.168.1.65:8080');
+
+    }
+
+    //Websocket function to send data to node.js server
+    function sendMessage(data) {
+  
+      connection.send(toJson(data)); // Send the message to the server
+    }
+   
+
+       
     function toggleLegend () {
      
        var e = document.getElementById('mynetworklegend');
-       if(e.style.display == 'block') {
+       if(legend_toggle) {
           e.style.display = 'none'; 
+          legend_toggle=0;
        }
        else {
           e.style.display = 'block'; 
+          legend_toggle=1;
        }
 
+   
     }
     
     
@@ -123,6 +126,7 @@
       nodes_legend.add({id: 1001, x:-3400,y:0,label: '433MHz', group: '433mhz'});
       nodes_legend.add({id: 1002, x:-3300,y:0,label: '916MHz', group: '916mhz'});
       nodes_legend.add({id: 1003, x:-3200,y:0,label: '1.2GHz', group: '1.2ghz'});
+      nodes_legend.add({id: 1004, x:-3080,y:0,label: 'Masked Node', color: 'gray'});
       var data = {
        nodes: nodes_legend,
       };
@@ -139,20 +143,38 @@
     }
 
 
+    var route_edges = [
+     {'id': 9,from: 'E', to: '3',style: 'dash-line',dash : {length:5,gap:20}},
+     {'id': 10,from: 'E', to: '4',style: 'dash-line',dash : {length:5,gap:20}}
+    ];
+    
+   function toggleRouteDisplay () {
+     if (route_toggle) {
+        edges.add(route_edges);
+        route_toggle = 0;
+     }
+     else {
+        edges.remove(route_edges);
+        route_toggle = 1;
+     }
+   }
 
     
-    
     // convenience method to stringify a JSON object
-    function toJSON (obj) {
-    return JSON.stringify(obj, null, 4);
+    function toJson (obj) {
+      return JSON.stringify(obj); //, null, 4);
     }
 
 
     function addRoute() {
       mode = 'add-route';
+      
+      //Clear out states from any previous use cases
       document.getElementById('selection').innerHTML = "";
-      //Display user instructions and selections
-      document.getElementById('instructions').innerHTML = 'Select Source Node followed by intermediate nodes (if any) and then the Destination Node.Click Confirm when done or Cancel to exit';
+      network.off ('select');
+      
+     //Display user instructions and selections
+      document.getElementById('instructions').innerHTML = 'Select Source Node followed by intermediate node(s) (if any) and then the Destination Node. Click Confirm when done or Cancel to exit';
       document.getElementById('route').innerHTML = 'Route';
       
       //Make user confirmation buttons visible
@@ -160,17 +182,55 @@
       div.style.display = 'block';
       
       network.on('select',function(params) {
-        if (params.hasOwnProperty('nodes')) {  
+        if (params['nodes'] != "") {  
          document.getElementById('route').innerHTML +=  '->'+params.nodes;
-         userRoute.push(params.nodes) ;
+         userRoute.push(parseInt(params.nodes)) ;
         }
        });
      }
     
+    function reqNewRoute() {
+      mode = 'req-new-route';
+      
+      //Clear out states from any previous use cases
+      document.getElementById('selection').innerHTML = "";
+      network.off ('select');
+      
+      
+      //Display user instructions and selections
+      document.getElementById('instructions').innerHTML = 'Select Source Node followed by the Destination Node.Click Confirm when done or Cancel to exit';
+      document.getElementById('route').innerHTML = 'New Route Request';
+      
+      //Make user confirmation buttons visible
+      var div = document.getElementById('user-confirm');
+      div.style.display = 'block';
+      //Make checkbox visible
+      document.getElementById('user-checkbox').style.display = 'block';
+      
+      network.on('select',function(params) {
+        if (params['nodes'] != "") {  
+         document.getElementById('route').innerHTML +=  '->'+params.nodes;
+         newRoute.push(parseInt(params.nodes)) ;
+
+         //Dont allow more than 2 nodes to be selected in this mode
+         if ((newRoute.length > 2) && (mode == 'req-new-route')) {
+           alert('Error - You selected more than 2 nodes');
+           newRoute = [];
+           params.nodes = "";
+           document.getElementById('route').innerHTML = 'New Route Request';
+           
+         }
+        }
+       });
     
+    }
     function deleteRoute() {
       mode = 'delete-route';
+      
+      //Clear out states from any previous use cases
       document.getElementById('selection').innerHTML = "";
+      network.off ('select');
+      
       //Display user instructions and selections
       document.getElementById('instructions').innerHTML = 'Select Source Node followed by the Destination Node.Click Confirm when done or Cancel to exit';
       document.getElementById('route').innerHTML = 'Delete Route';
@@ -180,10 +240,12 @@
       div.style.display = 'block';
       
       network.on('select',function(params) {
-        if (params.hasOwnProperty('nodes')) {  
+         if (params['nodes'] != "") {  
          document.getElementById('route').innerHTML +=  '->'+params.nodes;
-         delRoute.push(params.nodes) ;
-         if (delRoute.length > 2) {
+         delRoute.push(parseInt(params.nodes)) ;
+
+         //Dont allow more than 2 nodes to be selected in this mode
+         if ((delRoute.length > 2) && (mode == 'delete-route')) {
            alert('Error - You selected more than 2 nodes');
            delRoute = [];
            params.nodes = "";
@@ -195,12 +257,16 @@
     
     }
     
-    function deleteEdge() {
-      mode = 'delete-edge';
-      document.getElementById('selection').innerHTML = "";
+    //Mask node or edge
+    function maskElement() {
+      mode = 'mask-element';
       
+      //Clear out states from any previous use cases
+      document.getElementById('selection').innerHTML = "";
+      network.off ('select');
+             
       //Display user instructions and selections
-      document.getElementById('instructions').innerHTML = 'Select Edge to be deleted.Click Confirm when done or Cancel to exit';
+      document.getElementById('instructions').innerHTML = 'Select Node/Edge to be masked.Click Confirm when done or Cancel to exit';
       
       
       //Make user confirmation buttons visible
@@ -208,72 +274,103 @@
       div.style.display = 'block';
       
       network.on('select',function(params) {
-        if (params.hasOwnProperty('edges')) {  
-          delEdge = params.edges ;
+        if (params['edges'] != "") {  
+          maskEdge = parseInt(params.edges) ;
+        }
+        if (params['nodes'] != "") {  
+          maskNode = parseInt(params.nodes) ;
         }
        });
     }
     
-    function reqNewRoute() {
-      mode = 'add-new-route';
-      document.getElementById('selection').innerHTML = "";
-     //Display user instructions and selections
-      document.getElementById('instructions').innerHTML = 'Select Source Node followed by the Destination Node.Click Confirm when done or Cancel to exit';
-      document.getElementById('route').innerHTML = 'New Route Request';
-      
-      //Make user confirmation buttons visible
-      var div = document.getElementById('user-confirm');
-      div.style.display = 'block';
-      
-      network.on('select',function(params) {
-        if (params.hasOwnProperty('nodes')) {  
-         document.getElementById('route').innerHTML +=  '->'+params.nodes;
-         newRoute.push(params.nodes) ;
-         if (newRoute.length > 2) {
-           alert('Error - You selected more than 2 nodes');
-           newRoute = [];
-           params.nodes = "";
-           document.getElementById('route').innerHTML = 'New Route Request';
-           
-         }
-        }
-       });
     
-    }
     function clearUserBox () {
       document.getElementById('instructions').innerHTML = "";
       document.getElementById('route').innerHTML = "";
       document.getElementById('user-confirm').style.display = 'none';
+      document.getElementById('user-checkbox').style.display = 'none';
       userRoute = [];
       delRoute = [];
       newRoute = [];
-      delEdge = "";
+      maskEdge = [];
+      maskNode = "";
       mode = "";
       network.off ('select');
      
     }
     
+    //Function to update edge properties if masked
+    function updateEdge (id) {
+      try {
+        edges.update({id: id, style:'dash-line',color:'gray'});
+        var message = {mask_physical_edge: id};
+        sendMessage(message);
+      }
+      catch(err) {
+        alert (err);
+      } 
+    }
+    
+    
     function saveUserData () {
       if (mode == 'add-route') {
          document.getElementById('selection').innerHTML = "User defined route requested = " +userRoute;
+          var message = {add_route: userRoute};
+          sendMessage(message);
       }
       else if (mode == 'delete-route'){
         document.getElementById('selection').innerHTML = "Route deletion requested = " +delRoute;
+        var message = {delete_route: delRoute};
+        sendMessage(message);
+
       }
-      else if (mode == 'add-new-route'){
-        document.getElementById('selection').innerHTML = "New route requested = " +newRoute;
-      }
-      else if (mode == 'delete-edge'){
-        document.getElementById('selection').innerHTML = "Delete edge requested for " + delEdge;
-        try {
-         edges.remove(delEdge);
+      else if (mode == 'req-new-route'){
+        if (document.getElementById('useMaskRouteBox').checked == true) {
+          //Add true/false string to array of nodes
+          newRoute.push("true");
+	  document.getElementById('selection').innerHTML = "New route requested = " +newRoute+" Allow masked route";
+          //Clear out user selection
+          document.getElementById('useMaskRouteBox').checked = false;
+          
+          var message = {request_new_route: newRoute};
+          sendMessage(message);
+
+         }
+        else {
+          document.getElementById('selection').innerHTML = "New route requested = " +newRoute;
+	  //Add true/false string to array of nodes
+          newRoute.push("false");
+
+	  var message = {request_new_route: newRoute};
+          sendMessage(message);
+
         }
-        catch(err) {
+      }
+      else if (mode == 'mask-element'){
+        document.getElementById('selection').innerHTML = "Mask Node/Edge edge requested for Edges:" +  maskEdge +" Nodes:"+ maskNode;
+        if (maskEdge != null) {
+          if (maskEdge.length > 1) {
+            maskEdge.forEach( function(entry) {
+              updateEdge(entry);
+            });
+          } 
+          else {
+             updateEdge(maskEdge);
+          }
+       }
+       if (maskNode != "") {
+          try {nodes.update({id: parseInt(maskNode), color: 'gray'});
+          var message = {mask_node: maskNode};
+          sendMessage(message);
+
+         }
+         catch(err) {
           alert (err);
+         }
         }
-        
-        network.redraw();
+       network.redraw();
       }
+      
       clearUserBox();
     }
     
@@ -282,21 +379,24 @@
 
     nodes = new vis.DataSet();
     nodes.add ( [
-     {'id': 'E', 'label': 'E',group:'edison'},
+     {'id': '0', 'label': 'E',group:'edison'},
      {'id': '1', 'label': '1',group:'916mhz'},
      {'id': '2', 'label': '2',group:'433mhz'},
      {'id': '3', 'label': '3',group:'433mhz'},
      {'id': '4', 'label': '4',group:'433mhz'},
-
+     {'id': '5', 'label': '5',group:'916mhz'},
+     {'id': '6', 'label': '6',group:'1.2ghz'},
     ]);
 
     edges = new vis.DataSet();
     edges.add([
-     {'id': '1',from: 'E', to: '1',group:'916mhz',label:'12'},
-     {'id': '2',from: 'E', to: '1',group:'433mhz',label:'50'},
-     {'id': '3',from: 'E', to: '2',group:'433mhz',label:'60'},
-     {'id': '4',from: '2', to: '3',group:'433mhz',label:'49'},
-     {'id': '5',from: '2', to: '4',group:'433mhz',label:'73'},
+     {'id': '1',from: '0', to: '1',label:'12'},
+     {'id': '2',from: '0', to: '1',label:'50'},
+     {'id': '3',from: '0', to: '2',label:'60'},
+     {'id': '4',from: '2', to: '3',label:'49'},
+     {'id': '5',from: '2', to: '4',label:'73'},
+     {'id': '6',from: '0', to: '5',label:'73'},
+     {'id': '7',from: '5', to: '6',label:'73'},
     ]);
 
   
@@ -355,8 +455,7 @@
 
 
     options = {
-    //hierarchicalLayout: true
-    //stabilize: false,
+   
     dragNetwork: false,
     zoomable: false,
     
@@ -366,48 +465,72 @@
     },
     
     edges: {
-     width: 3,
-     widthSelectionMultiplier: 1,
+     width: 2,
+     widthSelectionMultiplier: 2,
      fontFace: 'verdana',
      fontSize: 14,
      inheritColor: true,
-     //opacity: 0,
      color : {
-      highlight: 'black',
+      highlight: 'blue',
+      color: 'black',
      },
      //labelAlignment: 'line-above'
     },
+    //Define groups to be used for nodes
     groups: {
      '433mhz': {
       shape: doge_node_shape,
-      color: 'tomato'
+      color: {
+        background:'tomato',
+        highlight: {
+           background: 'tomato',
+         }
+      }
      },
      '916mhz': {
        shape: doge_node_shape,
-       color: 'lightblue'
+       color: {
+         background: 'lightblue',
+         highlight: {
+           background: 'lightblue',
+         }
+       }
      },
      '1.2ghz': {
       shape: doge_node_shape,
-      color: 'yellow'
-      },
+      color: {
+        background: 'lightgreen',
+        highlight: {
+           background: 'lightgreen',
+         }
+      }
+     },
      'edison': {
       shape: doge_node_shape,
-      color: 'gold'
+      color: { 
+        background: 'gold',
+        highlight: {
+           background: 'gold',
+         }
+      }
      },
+    },
+    nodes: {
+     borderWidthSelected: 3,
     },
     locales: {
      // create a new locale (text strings should be replaced with localized strings)
      mylocale: {
       edit: 'Edit',
-      del: 'Mask selected',
+      del: 'Delete Edge',
       back: 'Back',
       addNode: 'Add Node',
       addEdge: 'Add Edge',
       editNode: 'Edit Node',
       editEdge: 'Edit Edge',
-      addDescription: 'This operation is currently not supported',
+      addDescription: 'This operation is currently not supported. Click Back to exit',
       edgeDescription: 'Click on a node and drag the edge to another node to connect them.',
-      editEdgeDescription: 'Click on the control points and drag them to a node to connect to it. Click Back when done',
+      editEdgeDescription: 'This operation is currently not supported. Click Back to exit', //'Click on the control points and drag them to a node to connect to it. Click Back when done',
       createEdgeError: 'Cannot link edges to a cluster.',
       deleteClusterError: 'Clusters cannot be deleted.'
      }
@@ -415,65 +538,69 @@
 
     // use the new locale
     locale: 'mylocale',
-
+    
+    //Handle vis data manipulation functions
+    
+    //onConnect is used for adding edges
+    onConnect:function(data,callback) {
+      document.getElementById('selection').innerHTML = 'Selection id: ' + data.from + data.to ;
+      var message = {add_edge: [parseInt(data.from),parseInt(data.to)]};
+      sendMessage(message);
+      callback(data);
+    
+    },
+    onAdd: function(data,callback) {
+     //Adding node not supported right now
+      data = "";
+      callback(data);
+    },
+    onEditEdge: function(data,callback) {
+      // data = {id: edgeID,  from: nodeId1,to: nodeId2};
+      //document.getElementById('selection').innerHTML = 'This operation is currently not supported';
+      data = ""; 
+      callback(data);
+    },
     onDelete: function(data,callback) {
      // data = {nodes: [selectedNodeIds], edges: [selectedEdgeIds]};
-     document.getElementById('selection').innerHTML = 'Selection id: ' + data.edges + data.nodes;
-     var r=confirm("Are you sure you want to mask?");
-     if (r==true) {
-     callback(data);
-     }
-     else {
-     //Clear out deleted edges/nodes
-     data.nodes = "";
-     data.edges = "";
-     callback(data);
-     }
-
-
-    },
-
-    onConnect: function(data,callback) {
-     if (data.from == data.to) {
-     var r=confirm("Do you want to connect the node to itself?");
-     if (r==true) {
-      callback(data);
-     }
-     }
-     else {
-     callback(data);
+     document.getElementById('selection').innerHTML = 'Selection id: ' + data.edges ;
+     //Only allow edge deletion
+     if (data.nodes == "") {
+      var r=confirm("Are you sure you want to delete this edge?");
+      if (r==true) {
+       var message = {delete_edge: parseInt(data.edges)};
+       sendMessage(message);
+       callback(data);
+      }
+      else {
+       //Clear out deleted edges/nodes
+       data.nodes = "";
+       data.edges = "";
+       callback(data);
+      }
      }
     },
+
+   
    }; //End of options
 
     network = new vis.Network(container, data, options);
 
-  
-
+     
     network.on("resize", function(params) {console.log(params.width,params.height)});
 
-    function clearPopUp() {
-     var confirmButton = document.getElementById('confirmButton');
-     var cancelButton = document.getElementById('cancelButton');
-     confirmButton.onclick = null;
-     cancelButton.onclick = null;
-     var div = document.getElementById('network-popUp');
-     div.style.display = 'none';
-    }
-
-
+   
     } // End of draw() function
 
 </script>
 </head>
 
-<body onload="draw();drawLegend();">
-<p id="tk_text"></p>
+<body onload="draw();drawLegend();startWebSocket();">
+
  
 <h1> DOGE Network</h1>
 
- 
-    
+
+<div id ="filter">
 <b>Filter:</b>
   <select name="Network Filter" onchange="draw();">
   <option value="Full">Full Network</option>
@@ -481,19 +608,29 @@
   <option value="916mhz">916 MHz</option>
   <option value="1.2ghz">1.2 GHz</option>
 </select>
+</div>    
+  
 <p id="selection" class="pageText"></p>
 <p id="instructions" class="pageText"></p>
 <p id="route" class="pageText"></p>
-<div id="user-confirm">
+
+  <div id="user-checkbox">
+    <input  id="useMaskRouteBox" type="checkbox"  > Use masked nodes/edges for routing</input>
+    <br></br>
+  </div>
+    
+  <div id="user-confirm">
     <input type="button" value="Confirm" id="confirmButton" onclick="saveUserData()"></input>
     <input type="button" value="Cancel" id="cancelButton" onclick="clearUserBox()"></input>
   </div>
   <br></br>
+  
   <div id="mynetwork-control">
+  <input type="button" value="Toggle Routing Path Display" id="toggleRouteButton" class="mynetwork-control-button" onclick="toggleRouteDisplay()"></input>
   <input type="button" value="Add Route" id="addRouteButton" class="mynetwork-control-button" onclick="addRoute()"></input>
   <input type="button" value="Request New Route" id="reqRouteButton" class="mynetwork-control-button" onclick="reqNewRoute()"></input>
   <input type="button" value="Delete Route"  id="deleteRouteButton"  class="mynetwork-control-button" onclick="deleteRoute()"></input>
-  <input type="button" value="Delete Edge"  id="deleteEdgeButton"  class="mynetwork-control-button" onclick="deleteEdge()"></input>
+  <input type="button" value="Mask Node/Edge"  id="maskElementButton"  class="mynetwork-control-button" onclick="maskElement()"></input>
 </div> 
 <div id="mynetwork"></div>
 
