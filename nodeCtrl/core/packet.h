@@ -1,10 +1,18 @@
 #ifndef PACKET_H
 #define PACKET_H
+#include <stdint.h>
 
+#if DBG
 #define static_assert1(cond) uint8_t static_assert1[((cond) == 1) ? 1 : -1]
 #define static_assert2(cond) uint8_t static_assert2[((cond) == 1) ? 1 : -1]
 #define static_assert3(cond) uint8_t static_assert3[((cond) == 1) ? 1 : -1]
 #define static_assert4(cond) uint8_t static_assert4[((cond) == 1) ? 1 : -1]
+#else
+#define static_assert1(cond)
+#define static_assert2(cond)
+#define static_assert3(cond)
+#define static_assert4(cond)
+#endif
 
 typedef enum {
    UNDEFINED_PACKET_TYPE = 0,
@@ -103,15 +111,13 @@ typedef struct {
    uint8_t ttl;
    uint8_t crc;
 } packetHdr;
-
 static_assert2(sizeof(packetHdr) == 8);
 
 typedef struct {
    packetHdr hdr;
    uint8_t size;
-   uint8_t type[MAX_RAW_PACKET_PAYLOAD_SIZE];
+   uint8_t data[MAX_RAW_PACKET_PAYLOAD_SIZE];
 } rawPacket;
-
 static_assert3(sizeof(rawPacket) == 32);
 
 #pragma pack(2)
@@ -120,7 +126,9 @@ typedef struct {
    uint8_t errorCode;
 } packetAck;
 #pragma pack()
-
 static_assert4(sizeof(packetAck) == 10);
+
+void add_raw_packet_crc(rawPacket* packet);
+uint8_t check_raw_packet_crc(rawPacket* packet);
 
 #endif
