@@ -4,12 +4,16 @@ LD=ld
 NM=nm
 SIZE=size
 RUNENV=$(shell uname -o)
+#MSP430LDSCRIPT=c:/ti/gcc/bin/../lib/gcc/msp430-elf/4.9.1/../../../../msp430-elf/lib/msp430.ld
+#LD_INC= -Lc:/ti/gcc/lib/gcc/msp430-elf/4.9.1 -Lc:/ti/gcc/lib/gcc -Lc:/ti/gcc/lib/gcc/msp430-elf/4.9.1/../../../../msp430-elf/lib
+
 
 INC = -I. -I..
 ifeq ($(DBG), 1)
 	CFLAGS = -g3 -DDBG=1
 else
 	CFLAGS = -Os -DDBG=0
+	#LDFLAGS = --verbose --start-group -lc -lgcc -lcrt -lnosys --end-group --script $(MSP430LDSCRIPT)
 endif
 
 ifeq ($(PLATFORM),MSP430)
@@ -46,6 +50,7 @@ pgrm: $(OBJ)
 
 test: $(TEST) $(OBJ)
 	@echo "build test DBG=$(DBG)"
+	@#$(LD) -o $(TEST_OBJ) $(TEST) $(OBJ) $(LD_INC) $(LDFLAGS)
 	@$(CC) $(CFLAGS) -o $(TEST_OBJ) $(TEST) $(OBJ)
 	@$(SIZE) $(TEST_OBJ)
 	$(NM) -S --size-sort $(TEST_OBJ) | grep " T [A-Za-z]" | awk '{print strtonum("0x"$$2),$$3,$$4}'
