@@ -1,3 +1,7 @@
 [submodule "linux/libs/IPCBuffer"]
 	path = linux/libs/IPCBuffer
 	url = https://github.com/bunneydude/IPCBuffer
+[submodule "nodeCtrl/core/cobs"]
+	path = nodeCtrl/core/cobs
+	url = https://github.com/jacquesf/COBS-Consistent-Overhead-Byte-Stuffing
+   ignore = dirty

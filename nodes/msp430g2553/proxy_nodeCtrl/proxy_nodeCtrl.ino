@@ -6,6 +6,7 @@
 #include <Protocol.h>
 #include <MyRingBuffer.h>
 #include <stdint.h>
+#include <cobs.h>
 
 // -----------------------------------------------------------------------------
 /**
@@ -100,73 +101,91 @@ void setup()
 
 void loop(){
 
-  while(!serial_receive(rxData)); //wait for data
-/*
+  while(!serial_receive(rxData, DATA_LENGTH)); //wait for data
+  /*
     //echo it back
-  for(i=0; i<rxData[3] + 5; i++){ //size at [3] plus 5 non-payload bytes
-    myProtocol._uartTxBuffer.write(rxData[i]);
-  }
-  myProtocol.uartTx();
-*/
-  
-    if(rxData[1] == MY_NODE_ID){
-      //try to handle it locally
-      if(myProtocol.parse_packet(&rxData[2], &txData[2])){
-        txData[0] = MY_NODE_ID;
-        txData[1] = rxData[0];
-        for(i=0; i<txData[3] + 5; i++){ //size at [3] plus 5 non-payload bytes
-          myProtocol._uartTxBuffer.write(txData[i]);
-        }
-        myProtocol.uartTx();
-      }
-    }else{ //forward it
-      e2eSrcID = rxData[0]; //store the original source ID
-      
-      Radio.transmit(0x2, rxData, DATA_LENGTH);
-  
-      //Make sure radio is ready to receive
-      while (Radio.busy());
-  
-      // Turn on the receiver and listen for incoming data. Timeout after 1 seconds.
-      if (Radio.receiverOn(txData, sizeof(txData), 1000) > 0){
-        digitalWrite(RED_LED, hbt_output ^= 0x1);
-  
-        //update radio info
-        myProtocol.serial_registers[SREG_RSSI] = Radio.getRssi();
-        myProtocol.serial_registers[SREG_LQI] = Radio.getLqi();     
-  
-      }else{ //timeout, send error message
-          myProtocol.form_packet(&txData[2], NACK, 0, TIMEOUT);     
-          txData[0] = MY_NODE_ID;
-          txData[1] = e2eSrcID;
-      }
+   for(i=0; i<rxData[3] + 5; i++){ //size at [3] plus 5 non-payload bytes
+   myProtocol._uartTxBuffer.write(rxData[i]);
+   }
+   myProtocol.uartTx();
+   */
+
+  if(rxData[1] == MY_NODE_ID){
+    //try to handle it locally
+    if(myProtocol.parse_packet(&rxData[2], &txData[2])){
+      txData[0] = MY_NODE_ID;
+      txData[1] = rxData[0];
       for(i=0; i<txData[3] + 5; i++){ //size at [3] plus 5 non-payload bytes
         myProtocol._uartTxBuffer.write(txData[i]);
       }
-      myProtocol.uartTx();      
-    }//end forward  
+      myProtocol.uartTx();
+    }
+  }
+  else{ //forward it
+    e2eSrcID = rxData[0]; //store the original source ID
+
+    Radio.transmit(0x2, rxData, DATA_LENGTH);
+
+    //Make sure radio is ready to receive
+    while (Radio.busy());
+
+    // Turn on the receiver and listen for incoming data. Timeout after 1 seconds.
+    if (Radio.receiverOn(txData, sizeof(txData), 1000) > 0){
+      digitalWrite(RED_LED, hbt_output ^= 0x1);
+
+      //update radio info
+      myProtocol.serial_registers[SREG_RSSI] = Radio.getRssi();
+      myProtocol.serial_registers[SREG_LQI] = Radio.getLqi();     
+
+    }
+    else{ //timeout, send error message
+      myProtocol.form_packet(&txData[2], NACK, 0, TIMEOUT);     
+      txData[0] = MY_NODE_ID;
+      txData[1] = e2eSrcID;
+    }
+    for(i=0; i<txData[3] + 5; i++){ //size at [3] plus 5 non-payload bytes
+      myProtocol._uartTxBuffer.write(txData[i]);
+    }
+    myProtocol.uartTx();      
+  }//end forward  
 }//end main loop
 
-uint8_t serial_receive(uint8_t* buf){
-  if(Serial.available()){ 
-    uint8_t index = 0;
-    uint8_t i = 0;
+// Two streams of data to consider
+// This receive code should work no matter which byte is seen first
+// If we start in the middle of a frame, finish receiving the frame and discard
+//
+// When sync'd, first byte should be non-zero and the first of the frame data
+// The last byte will be 0
+//
+// 0, 1, 2, 3, 0, 1, 2, 3, 0, ...
+// 0, 1, 0, 1, 0, ...
 
-    while(Serial.available() < 4); //wait for 4 bytes (srcID, dstID, cmd, size)
-    for(i=0; i<4; i++){
-      buf[index++] = Serial.read();
+uint8_t serial_receive(uint8_t* returnBuf, uint8_t size){
+
+  uint8_t buf[size];
+  uint8_t index = 0;
+  uint8_t rxByte = 1;
+
+  if(Serial.available() >= 2){ //need at least 2 bytes to start receiving
+    buf[0] = Serial.read();
+    if(buf[0] == 0){ //caught the end of a previous frame
+      return 0;
     }
-
-    while(Serial.available() < buf[3]); //wait for rest of bytes (payload)
-    for(i=0; i<buf[3]; i++){ //get rest of bytes
-      buf[index++] = Serial.read();
-    }
-
-    while(Serial.available() == 0); //wait for checksum
-    buf[index++] = Serial.read();
-
-    return 1;
+        
+    do{ //read until next 0 or we reach max length
+      buf[++index] = Serial.read();
+    }while((buf[index] != 0) && (index < size-1));
+    
+    if(buf[index] != 0){ //ran out of space for a frame
+      do{
+        rxByte = Serial.read();
+      }while(rxByte != 0); //get rest of frame out of buffer
+      return 0;
+    }else{//got a full frame
+      index = cobs_decode(buf, index, returnBuf);
+      return index; //represents number of bytes decoded
+    }  
   }
-  return 0;
 }
+
 
