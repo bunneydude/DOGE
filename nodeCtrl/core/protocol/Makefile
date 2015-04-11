@@ -1,6 +1,6 @@
 CC=gcc
 LD=ld
-PLATFORM=LINUX
+#PLATFORM=LINUX
 NM=nm
 SIZE=size
 RUNENV=$(shell uname -o)
@@ -9,17 +9,17 @@ INC = -I. -I..
 ifeq ($(DBG), 1)
 	CFLAGS = -g3 -DDBG=1
 else
-	CFLAGS = -Os
+	CFLAGS = -Os -DDBG=0
 endif
 
 ifeq ($(PLATFORM),MSP430)
-ifeq ($(RUNENV),cygwin)
 	MCU=-mmcu=msp430g2553
+ifeq ($(RUNENV),Cygwin)
 	CC=msp430-elf-gcc
 	LD=msp430-elf-ld
+	NM=msp430-elf-nm
 	SIZE=msp430-elf-size
 else
-	MCU=-mmcu=msp430g2553
 	CC=msp430-gcc
 	LD=msp430-ld
 	SIZE=msp430-size
@@ -52,7 +52,7 @@ test: $(TEST) $(OBJ)
 
 test_size: $(TEST_SIZE) $(OBJ)
 	@echo "build test size DBG=$(DBG) PLATFORM=$(PLATFORM)"
-	$(CC) $(CFLAGS) -o $(TEST_OBJ) $(TEST_SIZE) $(OBJ)
+	$(CC) $(CFLAGS) -o  $(TEST_OBJ) $(TEST_SIZE) $(OBJ) -Wl,-Map,$(TEST_OBJ).map
 	$(SIZE) $(TEST_OBJ)
 	$(NM) -S --size-sort $(TEST_OBJ) | grep " T [A-Za-z]" | awk '{print strtonum("0x"$$2),$$3,$$4}'
 
