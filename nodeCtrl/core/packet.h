@@ -120,6 +120,9 @@ typedef struct {
 } rawPacket;
 static_assert3(sizeof(rawPacket) == 32);
 
+#define NUM_PACKET_HEADER_CRC_BYTES (sizeof(packetHdr) - sizeof(((packetHdr*)0)->crc))
+#define RAW_PACKET_DATA_OFFSET      (offsetof(rawPacket, data))
+
 #pragma pack(2)
 typedef struct {
    packetHdr hdr;

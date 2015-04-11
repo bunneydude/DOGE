@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#define SUCCESS (0)
+
 union attr16{
 	uint16_t val16;
 	struct {uint8_t b0, b1;} val8;

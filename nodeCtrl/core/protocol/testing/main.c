@@ -20,18 +20,20 @@ static void test_packet();
 int main()
 {
    uint8_t status = 0;
-   struct Protocol* obj = (struct Protocol*)malloc(sizeof(struct Protocol*));
-   uint8_t* buf = (uint8_t*)malloc(100);
-   uint8_t* response = (uint8_t*)malloc(100);
+   struct Protocol obj;
+   uint8_t buf[32];
+   uint8_t response[32];
+
    test_packet();
-	Protocol_init(obj);
+   Protocol_init(&obj);
    /*buf[0] = CMD_READ_REG; //CMD*/
    /*buf[1] = 0x2; //size*/
    /*buf[2] = 0x40; //payload*/
    /*buf[3] = 0x40; //payload*/
    /*buf[4] = 0 - (buf[0] + buf[1] + buf[2] + buf[3]);*/
    /*Protocol_parse_packet(obj, buf, response);*/
-   return status;
+   while(1);
+   /*return status;*/
 }
 
 void test_packet()

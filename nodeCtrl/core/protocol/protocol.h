@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include "../memory_map/memory_map.h"
 #include "../nodeCtrl_errno.h"
+#include <packet.h>
 
 #define MAX_PAYLOAD_SIZE 16
 
@@ -34,20 +35,21 @@ enum Protocol_errors{
 };
 
 struct Protocol{
-	uint8_t cmd;
-	uint8_t size;
-	uint8_t addr;
-	uint8_t data;
-	uint8_t checksum;
-	uint8_t byteNumber;
-	uint8_t payload[MAX_PAYLOAD_SIZE];
-	uint8_t executePacket;
 	uint8_t* dataRegisters;
 };
 
-void Protocol_init(struct Protocol* obj);
+typedef struct {
+	uint8_t cmd;
+	uint8_t size; //only used for NOP
+	uint8_t addr;
+	uint8_t data;
+	uint8_t byteNumber; //unused
+	uint8_t payload[MAX_PAYLOAD_SIZE];
+} appPacket;
 
-uint8_t Protocol_form_packet(uint8_t* buf, uint8_t cmd, uint8_t addr, uint8_t data);
-uint8_t Protocol_parse_packet(struct Protocol* obj, uint8_t* buf, uint8_t* response);
+void Protocol_init(struct Protocol* obj);
+int link_layer_parse_packet(struct Protocol* obj, rawPacket* message, rawPacket* response);
+uint8_t application_form_packet(appPacket* response, uint8_t cmd, uint8_t addr, uint8_t data);
+uint8_t application_parse_packet(struct Protocol* obj, appPacket* message, appPacket* response);
 
 #endif
