@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 
-#define SUCCESS (0)
 
 union attr16{
 	uint16_t val16;

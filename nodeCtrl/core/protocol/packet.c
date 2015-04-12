@@ -2,6 +2,7 @@
 #include <packet.h>
 #include <stddef.h>
 #include <nodeCtrl.h>
+#include <type.h>
 
 
 /** Add the raw packet checksum to the packet header crc */
@@ -13,7 +14,7 @@ void add_raw_packet_crc(rawPacket* packet)
    for (i = 0; i < NUM_PACKET_HEADER_CRC_BYTES; i++){
       sum += bytes[i];
    }
-   for (i = RAW_PACKET_DATA_OFFSET; i < (RAW_PACKET_DATA_OFFSET + packet->size); i++){
+   for (i = RAW_PACKET_DATA_CRC_BEGIN; i < RAW_PACKET_DATA_CRC_END(packet); i++){
       sum += bytes[i];
    }
    packet->hdr.crc = sum & 0xFF;
@@ -33,7 +34,7 @@ uint8_t check_raw_packet_crc(rawPacket* packet)
    for (i = 0; i < NUM_PACKET_HEADER_CRC_BYTES; i++){
       sum += bytes[i];
    }
-   for (i = RAW_PACKET_DATA_OFFSET; i < (RAW_PACKET_DATA_OFFSET + packet->size); i++){
+   for (i = RAW_PACKET_DATA_CRC_BEGIN; i < RAW_PACKET_DATA_CRC_END(packet); i++){
       sum += bytes[i];
    }
    if (packet->hdr.crc == (sum & 0xFF)){

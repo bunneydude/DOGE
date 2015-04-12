@@ -15,28 +15,53 @@
 #define TEST_PACKET_DATA 0xDA
 #define TEST_HEADER_TYPE RAW_PACKET
 
-static void test_packet();
 
+#define TEST_CMD_READ_REG_ADDR 0x2
+
+static void test_raw_packet();
+static void test_app_packet();
+
+int main(void) __attribute__((noreturn));
 int main()
 {
-   uint8_t status = 0;
-   struct Protocol obj;
-   uint8_t buf[32];
-   uint8_t response[32];
-
-   test_packet();
-   Protocol_init(&obj);
-   /*buf[0] = CMD_READ_REG; //CMD*/
-   /*buf[1] = 0x2; //size*/
-   /*buf[2] = 0x40; //payload*/
-   /*buf[3] = 0x40; //payload*/
-   /*buf[4] = 0 - (buf[0] + buf[1] + buf[2] + buf[3]);*/
-   /*Protocol_parse_packet(obj, buf, response);*/
+   test_raw_packet();
+   test_app_packet();
    while(1);
-   /*return status;*/
 }
 
-void test_packet()
+void test_app_packet()
+{
+   struct Protocol obj;
+   rawPacket messageRaw;
+   rawPacket responseRaw;
+   appPacket* messageApp;
+   appPacket* responseApp;
+   packetAttr messageAttr;
+   packetAttr responseAttr;
+   uint8_t status;
+ 
+   Protocol_init(&obj);
+   memset(&messageRaw, 0, sizeof(rawPacket));
+   memset(&responseRaw, 0, sizeof(rawPacket));
+   messageApp = (appPacket*)messageRaw.data;
+   responseApp = (appPacket*)responseRaw.data;
+   /* Test CMD READ REG packet */
+   // Form message packet
+   application_form_packet(messageApp, &messageAttr, CMD_READ_REG, TEST_CMD_READ_REG_ADDR, 0x0);
+   link_layer_form_packet(&messageRaw, &messageAttr, RAW_PACKET, TEST_SRC_NODE_ID, TEST_DST_NODE_ID);
+   assert(messageRaw.size == CMD_READ_REG_DATA_SIZE);
+   // Check response
+   status = link_layer_parse_packet(&obj, &messageRaw, &responseRaw);
+   assert(status == TRANSMIT_RESPONSE);
+   assert(responseRaw.hdr.src == TEST_DST_NODE_ID);
+   assert(responseRaw.hdr.dst == TEST_SRC_NODE_ID);
+   assert(IS_HEADER_TYPE_ACK(responseRaw.hdr.type) && HEADER_TYPE_EQUALS(responseRaw.hdr.type, RAW_PACKET));
+   assert(responseRaw.size == CMD_ACK_DATA_SIZE);
+   assert(responseApp->cmd == CMD_ACK);
+   assert(check_raw_packet_crc(&responseRaw) == 0);
+}
+
+void test_raw_packet()
 {
    uint8_t status = 0;
    uint8_t packetId;
@@ -47,15 +72,15 @@ void test_packet()
    rawPacket packet;
 
    memset(&hdr, 0, sizeof(packetHdr));
-	memset(&packet, 0, sizeof(packet));
+   memset(&packet, 0, sizeof(packet));
    SET_HEADER_TYPE_ACK(hdr.type, TEST_TYPE_ACK);
    SET_HEADER_TYPE(hdr.type, TEST_HEADER_TYPE);
    SET_TXINFO_PACKET_ID(hdr.txInfo, TEST_PACKET_ID);
    SET_TXINFO_RTA(hdr.txInfo, TEST_RTA);
-	hdr.src = TEST_SRC_NODE_ID;
-	hdr.dst = TEST_DST_NODE_ID;
-	hdr.ttl = TEST_TTL;
-	packet.hdr = hdr;
+   hdr.src = TEST_SRC_NODE_ID;
+   hdr.dst = TEST_DST_NODE_ID;
+   hdr.ttl = TEST_TTL;
+   packet.hdr = hdr;
    memset((void*)((void*)(&packet) + sizeof(packetHdr) + sizeof(packet.size)), TEST_PACKET_DATA, TEST_PACKET_SIZE);
    packet.size = TEST_PACKET_SIZE;
 
