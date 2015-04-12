@@ -1,3 +1,6 @@
 [submodule "linux/libs/IPCBuffer"]
 	path = linux/libs/IPCBuffer
 	url = https://github.com/bunneydude/IPCBuffer
+[submodule "linux/webserver/node_modules/vis"]
+	path = linux/webserver/node_modules/vis
+	url = https://github.com/almende/vis.git
