@@ -67,10 +67,10 @@
   
   
   </style>
-  <script type="text/javascript" src="vis.js"></script>
+  <script type="text/javascript" src="../node_modules/vis/dist/vis.js"></script>
   <script type="text/javascript" src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
  
- <link type="text/css" rel="stylesheet" href="vis.css">
+ <link type="text/css" rel="stylesheet" href="../node_modules/vis/dist/vis.css">
 
   <script type="text/javascript">
 
@@ -93,6 +93,8 @@
     //Websocket to communicate with node.js server
     function startWebSocket(){
      connection = new WebSocket('ws://192.168.1.65:8080');
+     
+     
 
     }
 
@@ -303,7 +305,7 @@
     function updateEdge (id) {
       try {
         edges.update({id: id, style:'dash-line',color:'gray'});
-        var message = {mask_physical_edge: id};
+        var message = {'command' : 'mask_physical_edge', 'data' : id};
         sendMessage(message);
       }
       catch(err) {
@@ -315,12 +317,12 @@
     function saveUserData () {
       if (mode == 'add-route') {
          document.getElementById('selection').innerHTML = "User defined route requested = " +userRoute;
-          var message = {add_route: userRoute};
+          var message = {'command': 'add_route', 'data': userRoute};
           sendMessage(message);
       }
       else if (mode == 'delete-route'){
         document.getElementById('selection').innerHTML = "Route deletion requested = " +delRoute;
-        var message = {delete_route: delRoute};
+        var message = {'command':'delete_route','data': delRoute};
         sendMessage(message);
 
       }
@@ -332,7 +334,7 @@
           //Clear out user selection
           document.getElementById('useMaskRouteBox').checked = false;
           
-          var message = {request_new_route: newRoute};
+          var message = {'command':'request_new_route','data': newRoute};
           sendMessage(message);
 
          }
@@ -341,7 +343,7 @@
 	  //Add true/false string to array of nodes
           newRoute.push("false");
 
-	  var message = {request_new_route: newRoute};
+	  var message = {'command':'request_new_route','data': newRoute};
           sendMessage(message);
 
         }
@@ -360,7 +362,7 @@
        }
        if (maskNode != "") {
           try {nodes.update({id: parseInt(maskNode), color: 'gray'});
-          var message = {mask_node: maskNode};
+          var message = {'command':'mask_node','data': maskNode};
           sendMessage(message);
 
          }
@@ -544,7 +546,7 @@
     //onConnect is used for adding edges
     onConnect:function(data,callback) {
       document.getElementById('selection').innerHTML = 'Selection id: ' + data.from + data.to ;
-      var message = {add_edge: [parseInt(data.from),parseInt(data.to)]};
+      var message = {'command':'add_edge', 'data' : [parseInt(data.from),parseInt(data.to)]};
       sendMessage(message);
       callback(data);
     
@@ -567,7 +569,7 @@
      if (data.nodes == "") {
       var r=confirm("Are you sure you want to delete this edge?");
       if (r==true) {
-       var message = {delete_edge: parseInt(data.edges)};
+       var message = {'command':'delete_edge', 'data' : parseInt(data.edges)};
        sendMessage(message);
        callback(data);
       }
