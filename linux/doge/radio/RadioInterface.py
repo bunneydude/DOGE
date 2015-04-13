@@ -6,6 +6,9 @@
 
 from doge.core.IPCBuffer import IPCBuffer
 import doge.core.Protocol as Protocol
+from cobs import cobs
+import struct
+
 
 WRITE = 2
 READ = 1
@@ -46,26 +49,16 @@ class RadioInterface():
 
       self.txData = [self._nodeID, destination] + Protocol.form_packet(cmd=command, addr=address, data=payload)
       print("About to send: {0}".format(self.txData))
+      encData = cobs.encode(''.join(struct.pack('<B',x) for x in self.txData))
+      print("   Encoded: {0}".format(list(encData)))
+      encData = list(ord(x) for x in encData) 
+      print("   Encoded: {0}".format(encData))
+
       if(self.debug == False):
          if(self._connected == True):
-            #write out everything in txData
-            for b in self.txData:
+            #write out everything in encData
+            for b in encData:
                self.cmdBuffer.write(b)
-            
-            print("Waiting for response")
-            #get response
-            self.rxData = []
-            for _ in range(4): #read first 4 bytes (srcID, dstID, cmd, size)
-               self.rxData.append(ord(self.rxBuffer.read()))
-               #print("Got: {0}".format(self.rxData))
-
-            for _ in range(self.rxData[-1]): #get rest of payload
-               self.rxData.append(ord(self.rxBuffer.read()))
-               #print("Got: {0}".format(self.rxData))
-            
-            # get checksun
-            self.rxData.append(ord(self.rxBuffer.read()))
-            #print("Got: {0}".format(self.rxData))
          else:
             print("Error - need to call connect_sketch first")
       else:
@@ -73,6 +66,18 @@ class RadioInterface():
          self.rxData = [destination, self._nodeID, 3, 2, 5, 6]
          self.rxData.append(-sum(self.rxData)%256)
 
+   def proxy_receive(self):
+      self.rxData = []
+      encData = []
+      encData.append(ord(self.rxBuffer.read()))
+      if(encData[0] == 0): #caught the end of a previous frame
+         return 0
+      
+      while(encData[-1] != 0):
+         encData.append(ord(self.rxBuffer.read()))
+
+      self.rxData = cobs.decode(''.join(struct.pack('<B',x) for x in encData))
+      self.rxData = list(ord(x) for x in self.rxData)
 
    def push(self, network, nodeID, data):      
       # set target - write nodeID to SREG_TARGET
