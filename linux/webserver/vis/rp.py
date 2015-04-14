@@ -7,8 +7,8 @@ def processMessage(*args):
     #Only process messages with a string "command" in it
     if 'command' in argsJson:
      #remove \\ and " from 
-     argsJson= str.replace(json_args,'\\','')
-     argsJson= str.replace(json_args,'"','')
+     argsJson= str.replace(argsJson,'\\','')
+     argsJson= str.replace(argsJson,'"','')
      #Extract command and data
      m = re.search('{command:(.+),data:(.+)}', argsJson)
      if m:
@@ -37,7 +37,7 @@ RTE_LQE = 1
 RTE_INDEX = 2
 
 #Defined radio groups to be used for node grouping
-radio_group  = {0:'433mhz',1:'916mhz',2:'1.2ghz'}
+radio_group  = {0: 'edison',1:'433mhz',2:'916mhz',3:'1.2ghz'}
 
 edge_id = 0
 route_edge_id = 0
@@ -64,13 +64,18 @@ def createNetworkVis(node_id,radio_id,nte_list,rte_list):
   
 nte_list = [ [1,23,1,0],[2,50,1,0]]
 rte_list = [ [3,72,1],[4,99,1]]
-
-createNetworkVis (0,1,nte_list,rte_list)
+createNetworkVis (0,0,nte_list,rte_list)
 
 
 nte_list = [ [2,83,1,1],[3,70,1,1]]
+createNetworkVis (1,1,nte_list,rte_list)
 
-createNetworkVis (1,2,nte_list,rte_list)
+nte_list = [ [3,81,1,1],[4,74,1,1]]
+createNetworkVis (2,2,nte_list,rte_list)
+
+nte_list = [ [1,83,1,1],[0,70,1,1]]
+createNetworkVis (3,3,nte_list,rte_list)
+
 
 nodes_json = json.dumps(nodes)
 edges_json = json.dumps(edges)
