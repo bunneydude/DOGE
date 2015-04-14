@@ -102,13 +102,7 @@ void setup()
 void loop(){
 
   while(!serial_receive(rxData, DATA_LENGTH)); //wait for data
-  /*
-    //echo it back
-   for(i=0; i<rxData[3] + 5; i++){ //size at [3] plus 5 non-payload bytes
-   myProtocol._uartTxBuffer.write(rxData[i]);
-   }
-   myProtocol.uartTx();
-   */
+
 
   if(rxData[1] == MY_NODE_ID){
     //try to handle it locally
@@ -184,7 +178,7 @@ uint8_t serial_receive(uint8_t* returnBuf, uint8_t size){
     }else{//got a full frame
       index = cobs_decode(buf, index, returnBuf);
       return index; //represents number of bytes decoded
-    }  
+    }
   }
 }
 
