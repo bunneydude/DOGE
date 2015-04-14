@@ -2,10 +2,17 @@ from doge.radio.RadioInterface import RadioInterface
 from doge.radio.Node import *
 from doge.radio import mmFields
 
-pipe = RadioInterface.RadioInterface("edison", 1, True)
+import sys
+
+if(len(sys.argv) < 2):
+   debug = True
+else:
+   debug = sys.argv[1]
+
+pipe = RadioInterface.RadioInterface("edison", 1, debug)
 pipe.connect_sketch()
 
-mspV1 = Device("msp430g2553", "mm_msp430_v1.txt")
+mspV1 = Device("msp430g2553", "../mm_msp430_v1.txt")
 mspV1.to_s()
 
 kitchenNode = HardwareNode(mspV1, 6, pipe)

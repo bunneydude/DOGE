@@ -12,6 +12,7 @@ import struct
 
 WRITE = 2
 READ = 1
+ACK = 3
 SREG_TARGET = 7
 SREG_PING = 11
 PING = 1
@@ -59,25 +60,30 @@ class RadioInterface():
             #write out everything in encData
             for b in encData:
                self.cmdBuffer.write(b)
+            self.cmdBuffer.write(0) #needed to mark end of frame
          else:
             print("Error - need to call connect_sketch first")
       else:
-         print("Debug: send message {0}".format(self.txData))
-         self.rxData = [destination, self._nodeID, 3, 2, 5, 6]
-         self.rxData.append(-sum(self.rxData)%256)
+         print("Debug: send message {0}".format(encData))
 
    def proxy_receive(self):
       self.rxData = []
       encData = []
-      encData.append(ord(self.rxBuffer.read()))
-      if(encData[0] == 0): #caught the end of a previous frame
-         return 0
-      
-      while(encData[-1] != 0):
+      if(self.debug == False):
          encData.append(ord(self.rxBuffer.read()))
+         if(encData[0] == 0): #caught the end of a previous frame
+            return 0
+      
+         while(encData[-1] != 0): #get bytes until end of frame
+            encData.append(ord(self.rxBuffer.read()))
 
-      self.rxData = cobs.decode(''.join(struct.pack('<B',x) for x in encData))
-      self.rxData = list(ord(x) for x in self.rxData)
+         encData = encData[0:-1] #remove trailing 0
+
+         self.rxData = cobs.decode(''.join(struct.pack('<B',x) for x in encData))
+         self.rxData = list(ord(x) for x in self.rxData)
+      else:
+         self.rxData = [6, 1] + Protocol.form_packet(cmd=ACK, addr=1, data=2)
+         return 1
 
    def push(self, network, nodeID, data):      
       # set target - write nodeID to SREG_TARGET
