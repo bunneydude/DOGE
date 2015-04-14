@@ -2,15 +2,15 @@ from socketIO_client import SocketIO
 import json
 import re
 
-def process_message(*args):
-    json_args = json.dumps(args)
+def processMessage(*args):
+    argsJson = json.dumps(args)
     #Only process messages with a string "command" in it
-    if 'command' in json_args:
+    if 'command' in argsJson:
      #remove \\ and " from 
-     json_args= str.replace(json_args,'\\','')
-     json_args= str.replace(json_args,'"','')
+     argsJson= str.replace(json_args,'\\','')
+     argsJson= str.replace(json_args,'"','')
      #Extract command and data
-     m = re.search('{command:(.+),data:(.+)}', json_args)
+     m = re.search('{command:(.+),data:(.+)}', argsJson)
      if m:
           command =  m.group(1)
           data  =  m.group(2)
@@ -27,8 +27,14 @@ socket = SocketIO('localhost', 8124)
 socket.emit('join',{'socketid':'rpsock'})
 
 #Define which bit positions in the array correspond to element in neighbor and routing table entry
-nte_enum = { 'nte_id': 0,'nte_lqe':1, 'nte_radio':2, 'nte_nwid': 3}
-rte_enum = { 'rte_id': 0,'rte_lqe':2, 'rte_nindex':3}
+NTE_ID = 0
+NTE_LQE = 1
+NTE_RADIO = 2
+NTE_NWID = 3
+
+RTE_ID = 0
+RTE_LQE = 1
+RTE_INDEX = 2
 
 #Defined radio groups to be used for node grouping
 radio_group  = {0:'433mhz',1:'916mhz',2:'1.2ghz'}
@@ -44,12 +50,12 @@ def createNetworkVis(node_id,radio_id,nte_list,rte_list):
   nodes.append({'id':node_id,'label':node_id,'group':radio_group[radio_id]})
   for i in nte_list:
    global edge_id
-   edges.append({'id':edge_id, 'from':node_id, 'to': i[nte_enum['nte_id']],'label':i[nte_enum['nte_lqe']]})
+   edges.append({'id':edge_id, 'from':node_id, 'to': i[NTE_ID],'label':i[NTE_LQE]})
    edge_id += 1
  
   for j in rte_list:
    global route_edge_id
-   route_edges.append({'id':route_edge_id, 'from': node_id, 'to': j[rte_enum['rte_id']],'label':j[rte_enum['rte_lqe']]})
+   route_edges.append({'id':route_edge_id, 'from': node_id, 'to': j[RTE_ID],'label':j[RTE_LQE]})
    route_edge_id += 1
  
 
@@ -73,14 +79,15 @@ route_edges_json = json.dumps(route_edges)
 #print "nodes=",nodes_json
 #print "edges=",edges_json
 #print "route_edges=",route_edges_json
+nw_json = {'nodes':nodes_json,'edges':edges_json,'routing_edges':route_edges_json}
 
 try:
- socket.emit('load_network',nodes_json)
+ socket.emit('load_network',json.dumps(nw_json))
  print "Successfuly sent network load message"
 except:
  print "Error could not send load network message"
 
 while True:
  #Wait for incoming message targetted to routing processor
- socket.on('message', process_message)
+ socket.on('message', processMessage)
  socket.wait(seconds=1)

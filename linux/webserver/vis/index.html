@@ -67,7 +67,8 @@
   
   
   </style>
-  <script type="text/javascript" src="vis.js"></script>
+   <script type="text/javascript" src="/socket.io/socket.io.js"></script> 
+   <script type="text/javascript" src="vis.js"></script>
   <script type="text/javascript" src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
  
  <link type="text/css" rel="stylesheet" href="vis.css">
@@ -75,8 +76,8 @@
   <script type="text/javascript">
 
     //These should be global so that all functions can modify network properties
-    var nodes = null;
-    var edges = null;
+    var nodes = [];
+    var edges = [];
     var network = null;
     var userRoute = [];
     var delRoute = [];
@@ -87,19 +88,70 @@
     var mode ;
     var route_toggle = 1;
     var legend_toggle = 1;
- 
+    var socket;
     var connection;
 
-    //Websocket to communicate with node.js server
-    function startWebSocket(){
-     connection = new WebSocket('ws://192.168.1.65:8080');
-
-    }
-
-    //Websocket function to send data to node.js server
-    function sendMessage(data) {
+  $(document).ready(function(){
+ 
+    socket = io.connect();
+    socket.emit('join',{'socketid':'browsersock'});
+ 
+    socket.on('connect', function() {
+      console.log('connected');
+    });
+    socket.on('disconnect', function() {
+      console.log('disconnected');
+    });
+    socket.on('error', function(err) {
+      if(err === 'handshake error') {
+        console.log('handshake error', err);
+      } else {
+        console.log('io error', err);
+      }
+    });
   
-      connection.send(toJson(data)); // Send the message to the server
+    socket.on ("load_network",function(message){
+      
+       message = JSON.parse(message);
+       var nodesJsonObj = $.parseJSON(message.nodes);
+       var edgesJsonObj = $.parseJSON(message.edges);
+       var routingEdgesJsonObj = $.parseJSON(message.routing_edges);
+       
+       var nodes = new vis.DataSet();
+       var edges = new vis.DataSet();
+       var routing_edges = new vis.DataSet();
+
+       var nodesArrayLength = nodesJsonObj.length;
+
+       for (var i=0;i < nodesArrayLength; i++){
+          node = {'group':JSON.stringify(nodesJsonObj[i].group),'id':JSON.stringify(nodesJsonObj[i].id),'label':JSON.stringify(nodesJsonObj[i].label)};
+          nodes.add(node);
+       }
+
+       var edgesArrayLength = edgesJsonObj.length;
+
+       for (var i=0;i < edgesArrayLength; i++){
+          edge = {'from':JSON.stringify(edgesJsonObj[i].from),'to':JSON.stringify(edgesJsonObj[i].to),'label':JSON.stringify(edgesJsonObj[i].label),'id':JSON.stringify(edgesJsonObj[i].id)};
+          edges.add(edge);
+       }
+
+       var routingEdgesArrayLength = routingEdgesJsonObj.length;
+
+       for (var i=0;i < routingEdgesArrayLength; i++){
+          route_edge = {'group':JSON.stringify(routingEdgesJsonObj[i].group),'id':JSON.stringify(routingEdgesJsonObj[i].id),'label':JSON.stringify(routingEdgesJsonObj[i].label)};
+          routing_edges.add(route_edge);
+       }
+
+       draw(nodes,edges);
+       drawLegend();
+     })
+
+  });
+
+    //Socket function to send data to node.js server
+    function sendMessage(data) {
+      
+      socket.send(toJson(data)); // Send the message to the server
     }
    
 
@@ -303,7 +355,7 @@
     function updateEdge (id) {
       try {
         edges.update({id: id, style:'dash-line',color:'gray'});
-        var message = {mask_physical_edge: id};
+        var message = {'command' : 'mask_physical_edge', 'data' : id};
         sendMessage(message);
       }
       catch(err) {
@@ -315,12 +367,12 @@
     function saveUserData () {
       if (mode == 'add-route') {
          document.getElementById('selection').innerHTML = "User defined route requested = " +userRoute;
-          var message = {add_route: userRoute};
+          var message = {'command': 'add_route', 'data': userRoute};
           sendMessage(message);
       }
       else if (mode == 'delete-route'){
         document.getElementById('selection').innerHTML = "Route deletion requested = " +delRoute;
-        var message = {delete_route: delRoute};
+        var message = {'command':'delete_route','data': delRoute};
         sendMessage(message);
 
       }
@@ -332,7 +384,7 @@
           //Clear out user selection
           document.getElementById('useMaskRouteBox').checked = false;
           
-          var message = {request_new_route: newRoute};
+          var message = {'command':'request_new_route','data': newRoute};
           sendMessage(message);
 
          }
@@ -341,7 +393,7 @@
 	  //Add true/false string to array of nodes
           newRoute.push("false");
 
-	  var message = {request_new_route: newRoute};
+	  var message = {'command':'request_new_route','data': newRoute};
           sendMessage(message);
 
         }
@@ -360,7 +412,7 @@
        }
        if (maskNode != "") {
           try {nodes.update({id: parseInt(maskNode), color: 'gray'});
-          var message = {mask_node: maskNode};
+          var message = {'command':'mask_node','data': maskNode};
           sendMessage(message);
 
          }
@@ -374,30 +426,30 @@
       clearUserBox();
     }
     
-    function draw() {
+    function draw(nodes,edges) {
     var e=document.getElementsByName("Network Filter")[0];
 
-    nodes = new vis.DataSet();
-    nodes.add ( [
-     {'id': '0', 'label': 'E',group:'edison'},
-     {'id': '1', 'label': '1',group:'916mhz'},
-     {'id': '2', 'label': '2',group:'433mhz'},
-     {'id': '3', 'label': '3',group:'433mhz'},
-     {'id': '4', 'label': '4',group:'433mhz'},
-     {'id': '5', 'label': '5',group:'916mhz'},
-     {'id': '6', 'label': '6',group:'1.2ghz'},
-    ]);
+    //nodes = new vis.DataSet();
+    //nodes.add ( [
+   //  {'id': '0', 'label': 'E',group:'edison'},
+    // {'id': '1', 'label': '1',group:'916mhz'},
+    // {'id': '2', 'label': '2',group:'433mhz'},
+    // {'id': '3', 'label': '3',group:'433mhz'},
+    // {'id': '4', 'label': '4',group:'433mhz'},
+    // {'id': '5', 'label': '5',group:'916mhz'},
+    // {'id': '6', 'label': '6',group:'1.2ghz'},
+   // ]);
 
-    edges = new vis.DataSet();
-    edges.add([
-     {'id': '1',from: '0', to: '1',label:'12'},
-     {'id': '2',from: '0', to: '1',label:'50'},
-     {'id': '3',from: '0', to: '2',label:'60'},
-     {'id': '4',from: '2', to: '3',label:'49'},
-     {'id': '5',from: '2', to: '4',label:'73'},
-     {'id': '6',from: '0', to: '5',label:'73'},
-     {'id': '7',from: '5', to: '6',label:'73'},
-    ]);
+   // edges = new vis.DataSet();
+    //edges.add([
+    // {'id': '1',from: '0', to: '1',label:'12'},
+    // {'id': '2',from: '0', to: '1',label:'50'},
+    // {'id': '3',from: '0', to: '2',label:'60'},
+    // {'id': '4',from: '2', to: '3',label:'49'},
+    // {'id': '5',from: '2', to: '4',label:'73'},
+    // {'id': '6',from: '0', to: '5',label:'73'},
+    // {'id': '7',from: '5', to: '6',label:'73'},
+   // ]);
 
   
 
@@ -544,7 +596,7 @@
     //onConnect is used for adding edges
     onConnect:function(data,callback) {
       document.getElementById('selection').innerHTML = 'Selection id: ' + data.from + data.to ;
-      var message = {add_edge: [parseInt(data.from),parseInt(data.to)]};
+      var message = {'command':'add_edge', 'data' : [parseInt(data.from),parseInt(data.to)]};
       sendMessage(message);
       callback(data);
     
@@ -567,7 +619,7 @@
      if (data.nodes == "") {
       var r=confirm("Are you sure you want to delete this edge?");
       if (r==true) {
-       var message = {delete_edge: parseInt(data.edges)};
+       var message = {'command':'delete_edge', 'data' : parseInt(data.edges)};
        sendMessage(message);
        callback(data);
       }
@@ -594,7 +646,6 @@
 </script>
 </head>
 
-<body onload="draw();drawLegend();startWebSocket();">
 
  
 <h1> DOGE Network</h1>

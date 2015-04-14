@@ -19,7 +19,11 @@ io.sockets.on("connection",function(socket){
         console.log(data.socketid);
         socket.join(data.socketid); 
       });
-        
+      var ack_to_client = {
+          data:"Server Received the message"
+        }
+      io.to('browsersock').emit(JSON.stringify(ack_to_client));
+  
       /*sending data to the client , this triggers a message event at the client side */
     console.log('Socket.io Connection with the client established');
     
@@ -32,9 +36,11 @@ io.sockets.on("connection",function(socket){
 
     //Handle load network message to render network on vis
     socket.on("load_network",function(data){
-        io.to('browsersock').emit(data);
-        data = JSON.parse(data);
         console.log("Received load network");
+        console.log("Sending network info to browser");
+        io.to('browsersock').emit("load_network",data);
+        //socket.send(data);
+        data = JSON.parse(data);
         console.log(data);
         var ack_to_client = {
           data:"Server Received the message"
