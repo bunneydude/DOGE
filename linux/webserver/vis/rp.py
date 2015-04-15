@@ -40,7 +40,7 @@ RTE_INDEX = 2
 radio_group  = {0: 'edison',1:'433mhz',2:'916mhz',3:'1.2ghz'}
 
 edge_id = 0
-route_edge_id = 0
+route_edge_id = 1000
 
 edges =[]
 nodes =[]
@@ -62,20 +62,29 @@ def createNetworkVis(node_id,radio_id,nte_list,rte_list):
  #return (nodes,edges)
  
   
-nte_list = [ [1,23,1,0],[2,50,1,0]]
+nte_list = [ [1,50,1,0],[2,90,1,0],[5,30,1,0]]
 rte_list = [ [3,72,1],[4,99,1]]
 createNetworkVis (0,0,nte_list,rte_list)
 
 
-nte_list = [ [2,83,1,1],[3,70,1,1]]
+nte_list = [ [0,23,1,1]]
+rte_list = []
 createNetworkVis (1,1,nte_list,rte_list)
 
-nte_list = [ [3,81,1,1],[4,74,1,1]]
+nte_list = [ [4,81,1,1],[3,74,1,1]]
 createNetworkVis (2,2,nte_list,rte_list)
 
-nte_list = [ [1,83,1,1],[0,70,1,1]]
+nte_list = [ [9,83,1,1],[8,70,1,1]]
 createNetworkVis (3,3,nte_list,rte_list)
 
+nte_list = [ [9,83,1,1]]
+createNetworkVis (4,1,nte_list,rte_list)
+
+nte_list = [ [6,83,1,1]]
+createNetworkVis (5,1,nte_list,rte_list)
+
+nte_list = [ [9,83,1,1]]
+createNetworkVis (6,1,nte_list,rte_list)
 
 nodes_json = json.dumps(nodes)
 edges_json = json.dumps(edges)

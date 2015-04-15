@@ -78,6 +78,7 @@
     //These should be global so that all functions can modify network properties
     var nodes = [];
     var edges = [];
+    var routing_edges = [];
     var network = null;
     var userRoute = [];
     var delRoute = [];
@@ -117,9 +118,9 @@
        var edgesJsonObj = $.parseJSON(message.edges);
        var routingEdgesJsonObj = $.parseJSON(message.routing_edges);
        
-       var nodes = new vis.DataSet();
-       var edges = new vis.DataSet();
-       var routing_edges = new vis.DataSet();
+       nodes = new vis.DataSet();
+       edges = new vis.DataSet();
+       routing_edges = new vis.DataSet();
 
        var nodesArrayLength = nodesJsonObj.length;
 
@@ -127,7 +128,6 @@
           node = {'group':JSON.stringify(nodesJsonObj[i].group),'id':JSON.stringify(nodesJsonObj[i].id),'label':JSON.stringify(nodesJsonObj[i].label)};
           nodes.add(node);
        }
-     // document.getElementById('selection').innerHTML = "Nodes"+no;
        
        var edgesArrayLength = edgesJsonObj.length;
 
@@ -139,10 +139,19 @@
        var routingEdgesArrayLength = routingEdgesJsonObj.length;
 
        for (var i=0;i < routingEdgesArrayLength; i++){
-          route_edge = {'group':JSON.stringify(routingEdgesJsonObj[i].group),'id':JSON.stringify(routingEdgesJsonObj[i].id),'label':JSON.stringify(routingEdgesJsonObj[i].label)};
-          routing_edges.add(route_edge);
-       }
+          route_edge = {'from':JSON.stringify(routingEdgesJsonObj[i].from),'to':JSON.stringify(routingEdgesJsonObj[i].to),'label':JSON.stringify(routingEdgesJsonObj[i].label),'id':JSON.stringify(routingEdgesJsonObj[i].id),'style':'dash-line'};
+          edges.add(route_edge);
 
+       }
+      
+       //Filter out routing edges (dash-line edges). We will add these back based on user feedback 
+       routing_edges = edges.get({
+         filter: function (item) {
+          return (item.style === 'dash-line');
+         }
+       });
+       edges.remove(routing_edges);
+       
        draw(nodes,edges);
        drawLegend();
      })
@@ -196,19 +205,15 @@
     }
 
 
-    var route_edges = [
-     {'id': 9,from: 'E', to: '3',style: 'dash-line',dash : {length:5,gap:20}},
-     {'id': 10,from: 'E', to: '4',style: 'dash-line',dash : {length:5,gap:20}}
-    ];
     
    function toggleRouteDisplay () {
      if (route_toggle) {
-        edges.add(route_edges);
-        route_toggle = 0;
+      edges.add(routing_edges);
+      route_toggle = 0;
      }
      else {
-        edges.remove(route_edges);
-        route_toggle = 1;
+      edges.remove(routing_edges);
+      route_toggle = 1;
      }
    }
 
@@ -328,7 +333,8 @@
       
       network.on('select',function(params) {
         if (params['edges'] != "") {  
-          maskEdge = parseInt(params.edges) ;
+          maskEdge = params.edges ;
+          
         }
         if (params['nodes'] != "") {  
           maskNode = parseInt(params.nodes) ;
@@ -400,7 +406,10 @@
         }
       }
       else if (mode == 'mask-element'){
+
         document.getElementById('selection').innerHTML = "Mask Node/Edge edge requested for Edges:" +  maskEdge +" Nodes:"+ maskNode;
+
+        //If selection had edges, mask it
         if (maskEdge != null) {
           if (maskEdge.length > 1) {
             maskEdge.forEach( function(entry) {
@@ -408,9 +417,10 @@
             });
           } 
           else {
-             updateEdge(maskEdge);
+             updateEdge(parseInt(maskEdge));
           }
        }
+       //If a node was selected, mask it
        if (maskNode != "") {
           try {nodes.update({id: parseInt(maskNode), color: 'gray'});
           var message = {'command':'mask_node','data': maskNode};
@@ -523,6 +533,7 @@
      fontFace: 'verdana',
      fontSize: 14,
      inheritColor: true,
+     //style: line,
      color : {
       highlight: 'blue',
       color: 'black',
@@ -596,7 +607,7 @@
     
     //onConnect is used for adding edges
     onConnect:function(data,callback) {
-      document.getElementById('selection').innerHTML = 'Selection id: ' + data.from + data.to ;
+      document.getElementById('selection').innerHTML = 'Edge Selection from: ' + data.from +' to: '+ data.to ;
       var message = {'command':'add_edge', 'data' : [parseInt(data.from),parseInt(data.to)]};
       sendMessage(message);
       callback(data);
