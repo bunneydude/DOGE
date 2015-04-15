@@ -1,3 +1,4 @@
+import time
 import os.path
 import json
 import RadioInterface
@@ -112,6 +113,7 @@ class HardwareNode:
       address = self._device.address(self._inputs[sensorName.lower()]["space"], self._inputs[sensorName.lower()]["offset"])
 
       self._pipe.proxy_send(destination=self._nodeID, command=RadioInterface.READ, address=address, payload=0)
+      time.sleep(0.5)
       self._pipe.proxy_receive()
       print("Pull complete. Got: {0}".format(self._pipe.rxData))
 

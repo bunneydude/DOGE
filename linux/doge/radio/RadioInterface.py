@@ -49,9 +49,9 @@ class RadioInterface():
       if(destination < 0 or destination > 255): raise Exception("The destination, {0}, must be in the range [0,255]".format(destination))
 
       self.txData = [self._nodeID, destination] + Protocol.form_packet(cmd=command, addr=address, data=payload)
-      print("About to send: {0}".format(self.txData))
+      print("   About to send: {0}".format(self.txData))
       encData = cobs.encode(''.join(struct.pack('<B',x) for x in self.txData))
-      print("   Encoded: {0}".format(list(encData)))
+#      print("   Encoded: {0}".format(list(encData)))
       encData = list(ord(x) for x in encData) 
       print("   Encoded: {0}".format(encData))
 
@@ -70,17 +70,19 @@ class RadioInterface():
       self.rxData = []
       encData = []
       if(self.debug == False):
-         encData.append(ord(self.rxBuffer.read()))
-         if(encData[0] == 0): #caught the end of a previous frame
-            return 0
-      
-         while(encData[-1] != 0): #get bytes until end of frame
+         print("Available bytes = {0}".format(self.rxBuffer.available())) 
+         if(self.rxBuffer.available() > 0): 
             encData.append(ord(self.rxBuffer.read()))
+            if(encData[0] == 0): #caught the end of a previous frame
+               return 0
+      
+            while(encData[-1] != 0): #get bytes until end of frame
+               encData.append(ord(self.rxBuffer.read()))
 
-         encData = encData[0:-1] #remove trailing 0
-
-         self.rxData = cobs.decode(''.join(struct.pack('<B',x) for x in encData))
-         self.rxData = list(ord(x) for x in self.rxData)
+            encData = encData[0:-1] #remove trailing 0
+            print(" Got encData: {0}".format(list(encData)))
+            self.rxData = cobs.decode(''.join(struct.pack('<B',x) for x in encData))
+            self.rxData = list(ord(x) for x in self.rxData)
       else:
          self.rxData = [6, 1] + Protocol.form_packet(cmd=ACK, addr=1, data=2)
          return 1
