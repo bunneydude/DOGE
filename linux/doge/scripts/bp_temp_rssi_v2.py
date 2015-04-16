@@ -1,20 +1,6 @@
-#import os, sys, inspect
 import sys
 import time
 from collections import defaultdict
-
-#cmd_folder = os.path.realpath(os.path.dirname(inspect.getfile(inspect.currentframe())))
-#if cmd_folder not in sys.path:
-#	sys.path.insert(0, cmd_folder)
-
-
-#cmd_subfolder = os.path.realpath(os.path.abspath(os.path.join(os.path.split(inspect.getfile(inspect.currentframe()))[0],"../radio")))
-#if cmd_subfolder not in sys.path:
-#	sys.path.insert(0, cmd_subfolder)
-#
-#cmd_subfolder = os.path.realpath(os.path.abspath(os.path.join(os.path.split(inspect.getfile(inspect.currentframe()))[0],"../libs")))
-#if cmd_subfolder not in sys.path:
-#	sys.path.insert(0, cmd_subfolder)
 
 from doge.radio.RadioInterface import RadioInterface
 from doge.libs.to_precision import to_precision
