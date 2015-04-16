@@ -96,7 +96,7 @@ void setup()
 
 void loop(){
 
-   while(!serial_receive(rxData)); //wait for data
+   while(serial_receive(rxData) == 0); //wait for data
 
    if(rxData[1] == MY_NODE_ID){
       //try to handle it locally
@@ -105,13 +105,12 @@ void loop(){
          txData[1] = rxData[0];
 
          serial_transmit(txData, txData[3]+5);
-
       }
    }
    else{ //forward it
       e2eSrcID = rxData[0]; //store the original source ID
 
-      Radio.transmit(0x2, rxData, DATA_LENGTH);
+      Radio.transmit(0x2, rxData, MAX_DATA_LENGTH);
 
       //Make sure radio is ready to receive
       while (Radio.busy());
@@ -155,12 +154,14 @@ uint8_t serial_receive(uint8_t* returnBuf){
       }
 
       do{ //read until next 0 or we reach max length
+         while(!Serial.available());
          serialBuffer[++index] = Serial.read();
       }while((serialBuffer[index] != 0) && (index < (MAX_DATA_LENGTH+2)-1)); 
       //MAX_DATA_LENGTH+2 is the size of serialBuffer; extra -1 is to account for 0-based indexing
 
       if(serialBuffer[index] != 0){ //ran out of space for a frame
          do{
+            while(!Serial.available());
             rxByte = Serial.read();
          }while(rxByte != 0); //get rest of frame out of uart buffer
          return 0; //discard received bytes
@@ -169,6 +170,8 @@ uint8_t serial_receive(uint8_t* returnBuf){
          index = cobs_decode(serialBuffer, index, returnBuf);
          return index; //represents number of bytes decoded
       }
+   }else{
+     return 0; //wait for more bytes
    }
 }
 
@@ -182,7 +185,7 @@ uint8_t serial_transmit(uint8_t* buf, uint8_t size){
    for(i=0; i<rc; i++){
       Serial.write(serialBuffer[i]);
    }
-   Serial.write(0); //indicate end of frame
+   Serial.write((uint8_t)0); //indicate end of frame
 }
 
 

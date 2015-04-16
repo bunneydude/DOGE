@@ -41,6 +41,7 @@ void loop() {
       
       bytesRead = 0;
       do{
+         while(!Serial1.available());
          serialBuffer[bytesRead++] = Serial1.read();
       }while(serialBuffer[bytesRead-1] != 0);
 
