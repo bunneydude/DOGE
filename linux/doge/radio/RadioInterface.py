@@ -1,4 +1,5 @@
 #import os, sys, inspect
+import time
 
 #cmd_subfolder = os.path.realpath(os.path.abspath(os.path.join(os.path.split(inspect.getfile( inspect.currentframe() ))[0],"../core")))
 #if cmd_subfolder not in sys.path:
@@ -69,20 +70,29 @@ class RadioInterface():
    def proxy_receive(self):
       self.rxData = []
       encData = []
+      timeout = 1000
+      duration = 0
       if(self.debug == False):
-         print("Available bytes = {0}".format(self.rxBuffer.available())) 
-         if(self.rxBuffer.available() > 0): 
-            encData.append(ord(self.rxBuffer.read()))
-            if(encData[0] == 0): #caught the end of a previous frame
-               return 0
-      
-            while(encData[-1] != 0): #get bytes until end of frame
+         while(duration < timeout):
+            print("   Available bytes = {0}".format(self.rxBuffer.available())) 
+            if(self.rxBuffer.available() > 0): 
                encData.append(ord(self.rxBuffer.read()))
+               if(encData[0] == 0): #caught the end of a previous frame
+                  return 0
+      
+               while(encData[-1] != 0): #get bytes until end of frame
+                  encData.append(ord(self.rxBuffer.read()))
 
-            encData = encData[0:-1] #remove trailing 0
-            print(" Got encData: {0}".format(list(encData)))
-            self.rxData = cobs.decode(''.join(struct.pack('<B',x) for x in encData))
-            self.rxData = list(ord(x) for x in self.rxData)
+               encData = encData[0:-1] #remove trailing 0
+               print(" Got encData: {0}".format(list(encData)))
+               self.rxData = cobs.decode(''.join(struct.pack('<B',x) for x in encData))
+               self.rxData = list(ord(x) for x in self.rxData)
+               break
+            else:
+               duration += 100
+               time.sleep(0.1)
+         if(duration >= timeout):      
+            print("Timeout")      
       else:
          self.rxData = [6, 1] + Protocol.form_packet(cmd=ACK, addr=1, data=2)
          return 1
