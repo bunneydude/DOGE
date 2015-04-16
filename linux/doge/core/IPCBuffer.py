@@ -55,6 +55,16 @@ class IPCBuffer():
          self.sem_lock.release()
          self.sem_data.release()
 
+      def available(self):
+         self.sem_lock.acquire() #block anyone else from touching buffer
+         self.head = int(self.mem.read(4,0)[::-1].encode('hex'),16) 
+         self.tail = int(self.mem.read(4,4)[::-1].encode('hex'),16) 
+         self.sem_lock.release()
+
+         if(self.head >= self.tail):
+            return self.head - self.tail
+         else:
+            return self.head + self.length - self.tail
 
 
       def printKeys(self):
