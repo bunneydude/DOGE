@@ -12,11 +12,13 @@
 //counters
 volatile uint16_t task_hbt = TASK_HBT_PERIOD;
 
-#define RX_BUFFER_LENGTH 8
+#define RX_BUFFER_LENGTH 64
 #define RX_BUFFER_WIDTH 1
 
-#define CMD_BUFFER_LENGTH 8
+#define CMD_BUFFER_LENGTH 64
 #define CMD_BUFFER_WIDTH 1
+
+#define MAX_DATA_LENGTH 32
 
 #define PRODUCERS 1
 #define CONSUMERS 1

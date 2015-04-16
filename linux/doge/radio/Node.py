@@ -110,7 +110,9 @@ class HardwareNode:
       if(sensorName.lower() not in self._inputs.keys()): raise Exception("Unknown sensor: {0}. Current sensor list: {1}".format(sensorName.lower(), self._inputs.keys()))
       
       address = self._device.address(self._inputs[sensorName.lower()]["space"], self._inputs[sensorName.lower()]["offset"])
+
       self._pipe.proxy_send(destination=self._nodeID, command=RadioInterface.READ, address=address, payload=0)
+      self._pipe.proxy_receive()
       print("Pull complete. Got: {0}".format(self._pipe.rxData))
 
 
