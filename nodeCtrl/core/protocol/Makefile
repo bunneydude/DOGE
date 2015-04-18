@@ -1,6 +1,6 @@
 CC=gcc
 LD=ld
-#PLATFORM=LINUX
+PLATFORM=LINUX
 NM=nm
 SIZE=size
 RUNENV=$(shell uname -o)

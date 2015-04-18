@@ -1,6 +1,7 @@
 #ifndef PACKET_H
 #define PACKET_H
 #include <stdint.h>
+#include <stddef.h>
 
 #if DBG
 #define static_assert1(cond) uint8_t static_assert1[((cond) == 1) ? 1 : -1]
