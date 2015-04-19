@@ -45,7 +45,14 @@ libprotocol.link_layer_form_packet(byref(rawPkt1), byref(attr1), RAW_PACKET, TES
 print("\nPost header: \n\t[{0}], size = {1}, data = {2}".format(print_structure(rawPkt1.hdr), rawPkt1.size, list(i for i in rawPkt1.data)))
 print("Post attr: \n\t{0}".format(print_structure(attr1)))
 
-print("\nmessageRaw.size = {0}, cmd read_reg data size = {1}".format(rawPkt1.size, CMD_READ_REG_DATA_SIZE))
+toSend = packetToList(rawPkt1)
+print(toSend)
+
+
+print("\nmessageRaw.size = {0}, cmd read_reg data size = {1}\n\n".format(rawPkt1.size, CMD_READ_REG_DATA_SIZE))
+
+
+
 
 status = libprotocol.link_layer_parse_packet(byref(obj), byref(rawPkt1), byref(rawPkt2))
 

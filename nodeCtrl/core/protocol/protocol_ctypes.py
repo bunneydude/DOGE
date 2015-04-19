@@ -1,5 +1,8 @@
 from ctypes import *
 
+HEADER_SIZE = 8
+
+
 MAX_PAYLOAD_SIZE = 16
 CMD_READ_REG_DATA_SIZE  = 2
 CMD_WRITE_REG_DATA_SIZE = 3
@@ -97,3 +100,9 @@ class packetAttr(Structure):
 def print_structure(struct):
    return ", ".join(f_name + " = " + str(getattr(struct, f_name)) for f_name, f_type in struct._fields_)
 
+def packetToList(struct):
+   toSend = []
+   list((toSend.append(getattr(struct.hdr, f_name))) for f_name, f_type in struct.hdr._fields_) 
+   toSend.append(struct.size)
+   list((toSend.append(x)) for x in (list(struct.data)[0:struct.size]))
+   return toSend
