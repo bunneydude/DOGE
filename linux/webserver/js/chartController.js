@@ -59,7 +59,7 @@ angular.module('DeviceManager.controllers', []).
     $scope.$on('chartCreated', function(e, chart){    
         $scope.chart=   chart;
     });
-    var socket = io.connect('http://192.168.1.115:8000');         
+    var socket = io.connect('http://127.0.0.1:8000');         
      socket.on('init', function(data) {
         var tempLineChart = angular.copy($scope.chartTemplate.line);
         $scope.lineChartData = chartService.convertLineChart(data, tempLineChart, dataDescription.timeseries, '');

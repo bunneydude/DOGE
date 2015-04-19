@@ -14,6 +14,7 @@ Scott's walkthrough of the approach was useful and deserves credit.
 
 #include <stdint.h>
 #include "dsp.h"
+#include "../memory_map/memory_map.h"
 
 struct dspStatus dspStatus;
 
@@ -24,8 +25,8 @@ void dsp_init(uint8_t runLength, uint8_t channel)
 	dspStatus.sum = 0;
 	dspStatus.variance = 0;
 	dspStatus.channel = channel;
-	dspStatus.period = 0;
-	dspStatus.counter = 0;
+	dspStatus.period = 15;
+	dspStatus.counter = 15;
 }
 
 void dsp_add_sample(uint16_t data)

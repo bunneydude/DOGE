@@ -236,11 +236,11 @@ void loop()
       digitalWrite(RED_LED, hbt_output ^= 0x1);
 
       //parse message
-       sendResponse = Protocol_parse_packet(&spiProtocol, &rxData[2], &txData[2]);
+      sendResponse = Protocol_parse_packet(&spiProtocol, &rxData[2], &txData[2]);
       //Protocol_form_packet(&txData[2], CMD_ACK, 4, i++); //as debug, always send ACK w/ increasing data value
       txData[0] = MY_NODE_ID;
       txData[1] = rxData[0];      
-    
+
       if(sendResponse == 1){
         Radio.transmit(0x1, txData, DATA_LENGTH); //to root node at address 0x1
       }
