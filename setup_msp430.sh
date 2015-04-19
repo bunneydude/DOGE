@@ -4,7 +4,15 @@
 # Energia libraries directory.
 
 #Energia libraries directory
-ENERGIA_LIB_DIR=~/sketchbook/libraries
+ENERGIA_LIB_DIR=/c/Users/Mario/Documents/ino/lib
+
+RUNENV=$(uname -o)
+
+if [[ $RUNENV == "Cygwin" ]] 
+  then
+	  echo "Please make sure this cygwin shell is run with administrator privileges."
+    export CYGWIN=winsymlinks:native
+fi
 
 mkdir -p $ENERGIA_LIB_DIR/../nodeCtrl
 mkdir -p $ENERGIA_LIB_DIR/nrf24
