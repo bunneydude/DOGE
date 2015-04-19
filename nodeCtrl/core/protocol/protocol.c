@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include <string.h>
-#include "packet.h"
+#include "../packet.h"
 #include "protocol.h"
 
 void Protocol_init(struct Protocol* obj){

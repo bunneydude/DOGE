@@ -1,5 +1,8 @@
 #ifndef PROTOCOL_H
 #define PROTOCOL_H
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
 
 #include <stdint.h>
 #include "../memory_map/memory_map.h"
@@ -49,5 +52,7 @@ void Protocol_init(struct Protocol* obj);
 
 uint8_t Protocol_form_packet(uint8_t* buf, uint8_t cmd, uint8_t addr, uint8_t data);
 uint8_t Protocol_parse_packet(struct Protocol* obj, uint8_t* buf, uint8_t* response);
-
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 #endif
