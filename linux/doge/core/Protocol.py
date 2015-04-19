@@ -1,7 +1,7 @@
 from ctypes import *
 from protocol_ctypes import *
 
-libprotocol = CDLL("./libprotocol.so")
+libprotocol = CDLL("./doge/core/libprotocol.so")
 
 def form_packet(type=RAW_PACKET, srcID=1, dstID=1, cmd=CMD_READ_REG, addr=0, data=0):
    #TODO generalize error check for type and cmd to list valid names instead of the numeric range
@@ -19,51 +19,13 @@ def form_packet(type=RAW_PACKET, srcID=1, dstID=1, cmd=CMD_READ_REG, addr=0, dat
    libprotocol.application_form_packet(byref(rawPkt.data), byref(attr), cmd, addr, data)
    libprotocol.link_layer_form_packet(byref(rawPkt), byref(attr), type, srcID, dstID)
    
-   print("\nPost header: \n\t[{0}], size = {1}, data = {2}".format(print_structure(rawPkt.hdr), rawPkt.size, list(i for i in rawPkt.data)))
-   print("Post attr: \n\t{0}".format(print_structure(attr)))
+#   print("\n\tPacket: \n\t[{0}], size = {1}, data = {2}".format(print_structure(rawPkt.hdr), rawPkt.size, list(i for i in rawPkt.data)))
+
+   toSend = packetToList(rawPkt)
+   return toSend
  
-"""
-def form_packet(cmd=0, addr=0, data=0):
-
-   if( (type(cmd) is not int) or (type(addr) is not int) or (type(data) is not int)):
-      print("Inputs must be ints\n")
-      return []
-
-   to_send = [] #ints
-   to_send.append(cmd)
-
-   if(cmd == READ_REG): # cmd 1 src_8
-      to_send.append(1)
-      to_send.append(addr) 
-
-   elif(cmd == WRITE_REG): # cmd 2 dst_8 data_8
-      to_send.append(2)
-      to_send.append(addr)
-      to_send.append(data)
-
-   elif(cmd == ACK): # cmd 0
-      to_send.append(2)
-      to_send.append(addr)
-      to_send.append(data)
-
-   elif(cmd == NACK):# cmd 0 data 
-      to_send.append(2)
-      to_send.append(addr)
-      to_send.append(data)
-
-   elif(cmd == NOP): # cmd 0
-      to_send.append(0)
-
-   else:
-      print("Unknown command: " + str(cmd) +"\n")
-
-   checksum = -sum(to_send)%256
-   to_send.append(checksum)
-
-   return to_send
-"""
-
 def receive_packet(stream, registers):
+   raise Exception("Protocol.receive_packet has been deprecated.")
    # Returns response array
    rxBuffer = 0
    byteNum = 0

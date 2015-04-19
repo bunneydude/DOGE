@@ -35,9 +35,10 @@ class RadioInterface():
          print("In debug mode the sketch is not connected")
 
    def proxy_send(self, destination, command, address, payload):
-      if(destination < 0 or destination > (2**16)-1): raise Exception("The destination, {0}, must be in the range [0,65535]".format(destination))
+      if(destination not in range(0, 2**16)): raise Exception("The destination, {0}, must be in the range [0,65535]".format(destination))
 
-      self.txData = [self._nodeID, destination] + Protocol.form_packet(cmd=command, addr=address, data=payload)
+      self.txData = Protocol.form_packet(type=1, srcID=self._nodeID, dstID=destination, cmd=command, addr=address, data=payload)
+      #TODO need to import a constants file of sorts so we can use 'RAW_PACKET' instead of '1' for type, etc
       print("About to send: {0}".format(self.txData))
       if(self.debug == False):
          if(self._connected == True):
