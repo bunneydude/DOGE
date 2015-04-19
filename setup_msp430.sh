@@ -4,17 +4,17 @@
 # Energia libraries directory.
 
 #Energia libraries directory
-ENERGIA_LIB_DIR=/c/Users/Mario/Documents/ino/lib
+ENERGIA_LIB_DIR=/c/Users/Mario/Documents/Energia/libraries
 
 RUNENV=$(uname -o)
 
 if [[ $RUNENV == "Cygwin" ]] 
   then
-	  echo "Please make sure this cygwin shell is run with administrator privileges."
+    echo "Please make sure this cygwin shell is run with administrator privileges."
     export CYGWIN=winsymlinks:native
 fi
 
-mkdir -p $ENERGIA_LIB_DIR/../nodeCtrl
+mkdir -p $ENERGIA_LIB_DIR/../src/
 mkdir -p $ENERGIA_LIB_DIR/nrf24
 mkdir -p $ENERGIA_LIB_DIR/adc
 mkdir -p $ENERGIA_LIB_DIR/neighbor
@@ -25,8 +25,10 @@ mkdir -p $ENERGIA_LIB_DIR/memory_map
 mkdir -p $ENERGIA_LIB_DIR/routing
 mkdir -p $ENERGIA_LIB_DIR/task
 mkdir -p $ENERGIA_LIB_DIR/network
+#mkdir -p $ENERGIA_LIB_DIR/AIR430BoostUSAFCC_c
 
-ln -s $PWD/nodes/msp430g2553/nodeCtrl_v1/nodeCtrl.ino        $ENERGIA_LIB_DIR/../nodeCtrl/nodeCtrl.ino
+ln -s $PWD/nodeCtrl/core/radios/AIR430BoostUSAFCC_c/testing/launchpad  $ENERGIA_LIB_DIR/../src/launchpad
+ln -s $PWD/nodeCtrl/core/radios/AIR430BoostUSAFCC_c          $ENERGIA_LIB_DIR/
 ln -s $PWD/nodeCtrl/core/adc/adc.h                           $ENERGIA_LIB_DIR/adc/adc.h
 ln -s $PWD/nodeCtrl/core/adc/adc.c                           $ENERGIA_LIB_DIR/adc/adc.c
 ln -s $PWD/nodeCtrl/core/neighbor/neighbor-config.h          $ENERGIA_LIB_DIR/neighbor/neighbor-config.h

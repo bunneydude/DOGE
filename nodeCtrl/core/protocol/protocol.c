@@ -2,6 +2,7 @@
 #include <string.h>
 #include "../packet.h"
 #include "protocol.h"
+#include <msp430.h>
 
 void Protocol_init(struct Protocol* obj){
    memset(obj, 0, sizeof(struct Protocol));
@@ -89,7 +90,8 @@ uint8_t Protocol_parse_packet(struct Protocol* obj, uint8_t* buf, uint8_t* respo
 
          case(CMD_NOP): //nop
             //Serial.println("Got nop");
-            returnCode = 0;
+            Protocol_form_packet(response, CMD_ACK, 0, 0);
+            returnCode = 1;
             break;
 
          default: //unknown command
