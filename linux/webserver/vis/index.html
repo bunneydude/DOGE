@@ -362,7 +362,8 @@
     function updateEdge (id) {
       try {
         edges.update({id: id, style:'dash-line',color:'gray'});
-        var message = {'command' : 'mask_physical_edge', 'data' : id};
+        var edgeObj = edges.get(id);
+        var message = {'command' : 'mask_physical_edge', 'data' : [parseInt(edgeObj.from),parseInt(edgeObj.to),id]};
         sendMessage(message);
       }
       catch(err) {
@@ -631,7 +632,8 @@
      if (data.nodes == "") {
       var r=confirm("Are you sure you want to delete this edge?");
       if (r==true) {
-       var message = {'command':'delete_edge', 'data' : parseInt(data.edges)};
+       var edgeArray = edges.get(data.edges);
+       var message = {'command' : 'delete_edge', 'data' : [parseInt(edgeArray[0].from),parseInt(edgeArray[0].to),parseInt(edgeArray[0].id)]};
        sendMessage(message);
        callback(data);
       }
