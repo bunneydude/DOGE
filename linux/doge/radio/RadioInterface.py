@@ -7,13 +7,6 @@
 from doge.core.IPCBuffer import IPCBuffer
 import doge.core.Protocol as Protocol
 
-WRITE = 2
-READ = 1
-SREG_TARGET = 7
-SREG_PING = 11
-PING = 1
-SREG_TEMPERATURE = 4
-
 class RadioInterface():
    _connected = False
    _name = None
@@ -42,7 +35,7 @@ class RadioInterface():
          print("In debug mode the sketch is not connected")
 
    def proxy_send(self, destination, command, address, payload):
-      if(destination < 0 or destination > 255): raise Exception("The destination, {0}, must be in the range [0,255]".format(destination))
+      if(destination < 0 or destination > (2**16)-1): raise Exception("The destination, {0}, must be in the range [0,65535]".format(destination))
 
       self.txData = [self._nodeID, destination] + Protocol.form_packet(cmd=command, addr=address, data=payload)
       print("About to send: {0}".format(self.txData))

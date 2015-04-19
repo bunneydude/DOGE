@@ -12,7 +12,7 @@
 
 
 from ctypes import *
-from protocol_structs import *
+from protocol_ctypes import *
 
 libprotocol = CDLL('./libprotocol.so')
 
@@ -27,7 +27,7 @@ TEST_PACKET_DATA = 0xDA
 TEST_HEADER_TYPE = RAW_PACKET
 TEST_CMD_READ_REG_ADDR = 0x2
 
-obj = Protocol()
+obj = protocolState()
 appPkt1 = appPacket()
 rawPkt1 = rawPacket()
 attr1 = packetAttr()

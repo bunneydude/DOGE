@@ -79,7 +79,7 @@ class packetAck(Structure):
    _fields_ = [("hdr", packetHdr),
                ("errorCode", c_ubyte)]
 
-class Protocol(Structure):
+class protocolState(Structure):
    _fields_ = [("dataRegisters",   c_ubyte)]
 
 class appPacket(Structure):
