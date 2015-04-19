@@ -28,9 +28,32 @@
 #include "A110x2500Radio.h"
 #include "Platform.h"     // 430Boost-CC110L and EXP430G2 Launchpad support
 
-extern "C" { 
+extern "C" {
   #include "A110LR09.h"   // Module driver
 }
+
+A110x2500Radio Radio = { begin,
+                         end,
+                         busy,
+                         setAddress,
+                         setChannel,
+                         setPower,
+                         getRssi,
+                         getLqi,
+                         getCrcBit,
+                         transmit,
+                         receiverOn,
+                         {0} };
+
+/**
+ *  Private interface
+ */
+//static struct sDataStream _dataStream; // Data stream used for RX/TX
+static void _wakeup(void);
+static void sleep(void);
+static void buildDataStream(uint8_t address, uint8_t *data, uint8_t length);
+static void readDataStream(void);
+static void gdo0Isr(void);
 
 // ----------------------------------------------------------------------------
 // CC110L device driver
@@ -57,14 +80,13 @@ static struct sA110LR09PhyInfo gPhyInfo;
 
 static volatile boolean gDataTransmitting = false;
 static volatile boolean gDataReceived = false;
-A110x2500Radio Radio;
 
 // ----------------------------------------------------------------------------
 /**
  *  Public interface
  */
 
-void A110x2500Radio::begin(uint8_t address, channel_t channel, power_t power)
+void begin(uint8_t address, channel_t channel, power_t power)
 {
   gDataTransmitting = false;
   gDataReceived = false;
@@ -79,7 +101,7 @@ void A110x2500Radio::begin(uint8_t address, channel_t channel, power_t power)
   sleep();
 }
 
-void A110x2500Radio::end()
+void end()
 {
   // Wait until all operations complete.
   while (busy());
@@ -88,7 +110,7 @@ void A110x2500Radio::end()
   pinMode (RF_SPI_CSN, INPUT);
 }
 
-boolean A110x2500Radio::busy()
+boolean busy(void)
 {
   if (gDataTransmitting)
   {
@@ -97,43 +119,43 @@ boolean A110x2500Radio::busy()
   return false;
 }
 
-void A110x2500Radio::setAddress(uint8_t address)
+void setAddress(uint8_t address)
 {
   struct sA110LR09PhyInfo *phyInfo = &gPhyInfo;
   A110LR09SetAddr(phyInfo, address);
 }
 
-void A110x2500Radio::setChannel(channel_t channel)
+void setChannel(channel_t channel)
 {
   struct sA110LR09PhyInfo *phyInfo = &gPhyInfo;
   A110LR09SetChannr(phyInfo, channel);
 }
 
-void A110x2500Radio::setPower(power_t power)
+void setPower(power_t power)
 {
   unsigned char paTable[A110LR09_PA_TABLE_SIZE];
   memset(paTable, power, A110LR09_PA_TABLE_SIZE);
   A110LR09SetPaTable(&gPhyInfo, paTable);
 }
 
-int8_t A110x2500Radio::getRssi()
+int8_t getRssi()
 {
   int8_t rssi = Radio._dataStream.rssi;
   Radio._dataStream.rssi = (int16_t)(A110LR09ConvertRssiToDbm(&gPhyInfo, rssi) + 1) >> 1;
   return Radio._dataStream.rssi;
 }
 
-uint8_t A110x2500Radio::getLqi()
+uint8_t getLqi()
 {
   return (Radio._dataStream.status & 0x7F);
 }
 
-uint8_t A110x2500Radio::getCrcBit()
+uint8_t getCrcBit()
 {
   return ((Radio._dataStream.status & 0x80) >> 7);
 }
 
-void A110x2500Radio::transmit(uint8_t address,
+void transmit(uint8_t address,
 															uint8_t *dataField,
 															uint8_t length)
 {
@@ -155,7 +177,7 @@ void A110x2500Radio::transmit(uint8_t address,
   }
 }
 
-unsigned char A110x2500Radio::receiverOn(uint8_t *dataField,
+unsigned char receiverOn(uint8_t *dataField,
 																				 uint8_t length,
 																				 uint16_t timeout)
 {
@@ -205,7 +227,7 @@ unsigned char A110x2500Radio::receiverOn(uint8_t *dataField,
  *  Private interface
  */
 
-void A110x2500Radio::_wakeup()
+void _wakeup()
 {
   struct sA110LR09PhyInfo *phyInfo = &gPhyInfo;
   
@@ -213,12 +235,12 @@ void A110x2500Radio::_wakeup()
   A110LR09Wakeup(phyInfo);
 }
 
-void A110x2500Radio::sleep()
+void sleep()
 {
   CC1101Sleep(&gPhyInfo.cc1101);
 }
 
-void A110x2500Radio::buildDataStream(uint8_t address, 
+void buildDataStream(uint8_t address, 
                                      uint8_t *dataField, 
                                      uint8_t length)
 {
@@ -247,7 +269,7 @@ void A110x2500Radio::buildDataStream(uint8_t address,
                     Radio._dataStream.length);
 }
 
-void A110x2500Radio::readDataStream(void)
+void readDataStream(void)
 {
   unsigned char rxBytes = CC1101ReadRxFifo(&gPhyInfo.cc1101, 
                                            &Radio._dataStream.length, 
@@ -274,7 +296,7 @@ void A110x2500Radio::readDataStream(void)
   }
 }
 
-void A110x2500Radio::gdo0Isr()
+void gdo0Isr()
 {
   // Note: It is assumed that interrupts are disabled.
   

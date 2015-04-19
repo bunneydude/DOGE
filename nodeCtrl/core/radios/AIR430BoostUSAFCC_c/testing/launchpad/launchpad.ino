@@ -35,6 +35,8 @@ uint8_t i =0;
 uint8_t rawADC = 0;
 uint8_t tempIndex;
 union networkEntry tempEntry;
+
+extern A110x2500Radio Radio;
 // -----------------------------------------------------------------------------
 // Main example
 

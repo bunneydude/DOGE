@@ -77,14 +77,13 @@ typedef enum ePower
 #define POWER_MAX  POWER_4_DBM   // Alias for maximum provided power
 #define POWER_MIN  POWER_0_DBM   // Alias for minimum provided power
 
-class A110x2500Radio
+typedef struct
 {
 // -----------------------------------------------------------------------------
 /**
  *  Public interface
  */
-public:
-  
+ 
   /**
    *  begin - setup the SPI peripheral and I/O, GDO0 interrupt I/O, and
    *  initialize the radio session.
@@ -94,19 +93,19 @@ public:
    *    @param  channel   Default frequency to receive/transmit on.
    *    @param  power     Default output power level to transmit at.
    */
-  static void begin(uint8_t address, channel_t channel, power_t power);
+  void (*begin)(uint8_t address, channel_t channel, power_t power);
   
   /**
    *  end - close a radio session.
    */
-  static void end(void);
+  void (*end)(void);
   
   /**
    *  busy - radio busy indicator (transmitting flag).
    *
    *    @return	True if the transmitter is currently in use; false otherwise.
    */
-  static boolean busy(void);
+  boolean (*busy)(void);
 
   /**
    *  setAddress - set device address. This address is used for hardware message
@@ -116,21 +115,21 @@ public:
    *
    *    @param  address   The device address of the receiving node.
    */
-  static void setAddress(uint8_t address);
+  void (*setAddress)(uint8_t address);
   
   /**
    *  setChannel - set operating frequency.
    *
    *    @param  channel   Frequency to receive/transmit on.
    */
-  static void setChannel(channel_t channel);
+  void (*setChannel)(channel_t channel);
   
   /**
    *  setPower - set operating transmit output power.
    *
    *    @param  power     Output power level to transmit at.
    */
-  static void setPower(power_t power);
+  void (*setPower)(power_t power);
   
   /**
    *  getRssi - read the receive signal strength indicator for the last received
@@ -138,7 +137,7 @@ public:
    *
    *    @return	RSSI value in absolute dBm increments.
    */
-  static int8_t getRssi(void);
+  int8_t (*getRssi)(void);
   
   /**
    *  getLqi - read the link quality indicator for the last received data 
@@ -146,7 +145,7 @@ public:
    *
    *    @return	LQI value.
    */
-  static uint8_t getLqi(void);
+  uint8_t (*getLqi)(void);
   
   /**
    *  getCrcBit - read the cyclic redundancy check bit for the last received 
@@ -154,7 +153,7 @@ public:
    *  
    *    @return	CRC bit value - valid (1) or invalid (0).
    */
-  static uint8_t getCrcBit(void);
+  uint8_t (*getCrcBit)(void);
   
   /**
    *  transmit - build a data stream from the data field provided and transmit
@@ -165,7 +164,7 @@ public:
    *    @param  dataField   Payload for the data stream.
    *    @param  length      Number of bytes in the data field buffer.
    */
-  static void transmit(uint8_t address, uint8_t *dataField, uint8_t length);
+  void (*transmit)(uint8_t address, uint8_t *dataField, uint8_t length);
 
   /**
    *  receiverOn - turn on the radio receiver and listen until a timeout occurs.
@@ -182,49 +181,62 @@ public:
    *    @return Number of bytes read from the RX FIFO that were copied into the 
 	 *						data field.
    */
-  static unsigned char receiverOn(uint8_t *dataField,
-																	uint8_t length,
-																	uint16_t timeout);
+  unsigned char (*receiverOn)(uint8_t *dataField,
+                              uint8_t length,
+                              uint16_t timeout);
 
 // -----------------------------------------------------------------------------
 /**
  *  Private interface
  */
 
-private:
-    
   struct sDataStream _dataStream; // Data stream used for RX/TX
   
   /**
    *  wakeup - put the radio into an active state.
    */
-  static void _wakeup(void);
+  //void _wakeup(void);
   
   /**
    *  sleep - put the radio into a low power state.
    */
-  static void sleep(void);
+  //void sleep(void);
   
   /**
    *  buildDataStream - build a data stream. Populate header and data field
    *  (payload). Write to the TX FIFO of the physical radio hardware.
    */
-  static void buildDataStream(uint8_t address, uint8_t *data, uint8_t length);
+  //void buildDataStream(uint8_t address, uint8_t *data, uint8_t length);
    
   /**
    *  readDataStream - strip off the physical radio header/footer information
    *  and retrieve the data field.
    */
-  static void readDataStream(void);
+  //void readDataStream(void);
   
   /**
    *  gdo0Isr - GDO0 interrupt service routine. Issued when the End-of-Packet
    *  has finished being received or transmitted.
    */
-  static void gdo0Isr(void);
+  //void gdo0Isr(void);
   
-};
+} A110x2500Radio;
+// -----------------------------------------------------------------------------
 
-extern A110x2500Radio Radio;
-
+/**
+ *  Public interface
+ */
+  void begin(uint8_t address, channel_t channel, power_t power);
+  void end(void);
+  boolean busy(void);
+  void setAddress(uint8_t address);
+  void setChannel(channel_t channel);
+  void setPower(power_t power);
+  int8_t getRssi(void);
+  uint8_t getLqi(void);
+  uint8_t getCrcBit(void);
+  void transmit(uint8_t address, uint8_t *dataField, uint8_t length);
+  unsigned char receiverOn(uint8_t *dataField,
+                           uint8_t length,
+                           uint16_t timeout);
 #endif  /* A110X2500_RADIO_H */
