@@ -1,5 +1,8 @@
 #ifndef NETWORK_H
 #define NETWORK_H
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
 
 #include <stdint.h>
 #include "../neighbor/neighbor.h"
@@ -59,4 +62,7 @@ uint8_t network_insert(union networkEntry* entry, enum networkEntryType type);
 
 //shell-sort the neighbor and routing subsection of the network array based on sh/mh ID
 void sort();
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 #endif

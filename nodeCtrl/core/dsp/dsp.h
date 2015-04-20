@@ -1,5 +1,8 @@
 #ifndef DSP_H
 #define DSP_H
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
 
 #include <stdint.h>
 #include "../memory_map/memory_map.h"
@@ -23,4 +26,7 @@ uint8_t dsp_get_variance();
 
 uint8_t dsp_mm_handler(uint8_t rw, uint8_t addr, uint8_t* data, uint8_t mask);
 
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 #endif

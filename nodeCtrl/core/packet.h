@@ -3,6 +3,10 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 #if DBG
 #define static_assert1(cond) uint8_t static_assert1[((cond) == 1) ? 1 : -1]
 #define static_assert2(cond) uint8_t static_assert2[((cond) == 1) ? 1 : -1]
@@ -151,5 +155,7 @@ while(0)
 
 void add_raw_packet_crc(rawPacket* packet);
 uint8_t check_raw_packet_crc(rawPacket* packet);
-
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 #endif
