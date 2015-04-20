@@ -1,5 +1,6 @@
 from doge.core.IPCBuffer import IPCBuffer
 import doge.core.Protocol as Protocol
+import doge.core.protocol_ctypes as ProtocolDefs
 import time
 from cobs import cobs
 import struct
@@ -80,7 +81,7 @@ class RadioInterface():
          if(duration >= timeout):      
             print("Timeout")      
       else:
-         self.rxData = [6, 1] + Protocol.form_packet(cmd=ACK, addr=1, data=2)
+         self.rxData = Protocol.form_packet(type=1, srcID=6, dstID=self._nodeID, cmd=ProtocolDefs.CMD_ACK, addr=1, data=2)
          return 1
 
    def push(self, network, nodeID, data):      
