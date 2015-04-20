@@ -69,7 +69,7 @@ class HardwareNode:
    _radios = []
    _inputs = {}
    _outputs = []
-
+   _nt = None	   
    _validRadios = ["nrf24", "cc1101l", "rfm69"]
    _maxRadios = 4
 
@@ -81,7 +81,10 @@ class HardwareNode:
       self._device = device
       self._nodeID = nodeID
       self._pipe = pipe
+      narray = []
+      rarray = []
 
+      self._nt = NetworkTable (narray,rarray)
 
    def to_s(self):
       print("Node: device = {0}, nodeID = {1}, radio = {2}, inputs = {3}, outputs = {4}".format(self._device, self._nodeID, self._radios, self._inputs, self._outputs))
@@ -115,8 +118,22 @@ class HardwareNode:
       self._pipe.proxy_receive()
       print("Pull complete. Got: {0}".format(self._pipe.rxData))
 
+   def get_neighbor_table(self,node_id):
+      network_table =  self._nt 
+      return (network_table.get_neighbors(node_id))
+  
+   def get_neighbors (self,node_id):
+      node_array =[]
+      network_table =  self._nt 
+      neighbor_table_array = network_table.get_neighbors(node_id)
+      for x in  neighbor_table_array:
+         node_array.append(x[0])
+      return (node_array)
 
-
+   def get_routing_table(self,node_id):
+      network_table =  self._nt 
+      return (network_table.get_routes(node_id))
+  
 
 #### The below classes are currently not used ####
    
@@ -132,11 +149,26 @@ class NetworkTable:
    def __init__(self, neighborArray = [], routingArray = []):
       print("Network table created")
 
-   def get_neighbors(self):
-      return self._neighborArray.copy()
+   def get_neighbors(self,node_id):
+      #return self._neighborArray.copy()
+      if (node_id ==0 ):
+        narray =  [[1,44,1,1],[2,66,1,1]]
+      if (node_id ==1 ):
+        narray =  [[2,74,1,1],[3,96,1,1]]
+      if (node_id ==2 ):
+        narray =  [[4,84,1,1],[5,56,1,1]]
+      return (narray)
 
-   def get_routes(self):
-      return self._routingArray.copy()
+   def get_routes(self,node_id):
+      #return self._routingArray.copy()
+      if (node_id ==0 ):
+        rarray =  [[1,94,1]]
+      if (node_id ==1 ):
+        rarray =  [[2,88,1]]
+      if (node_id ==2 ):
+        rarray =  [[3,55,1]]
+      return (rarray)
+        
 
    def set_max_neighbors(self, num):
       if(num < len(self._neighborArray)):

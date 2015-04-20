@@ -6,11 +6,13 @@ var io = require('socket.io');
 var app = express();
 app.use(express.static('./public'));
 //Specifying the public folder of the server to make the html accesible using the static middleware
- 
-var server =http.createServer(app).listen(8124);
+
+var port = 8124
+
+var server =http.createServer(app).listen(port);
 //Server listens on the port 8124
 io = io.listen(server); 
-
+console.log ('Started Server on port:'+port);
 var nw_data; 
 /*initializing the websockets communication , server instance has to be sent as the argument */
 io.sockets.on("connection",function(socket){
