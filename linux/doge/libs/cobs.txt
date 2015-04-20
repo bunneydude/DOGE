@@ -1,0 +1,6 @@
+
+   wget --no-check-certificate
+https://pypi.python.org/packages/source/c/cobs/cobs-1.0.0.tar.gz
+   tar -zxvf cobs-1.0.0.tar.gz
+   cd cobs-1.0.0
+   python setup.py install

@@ -8,4 +8,7 @@ SHA1 sum: http://semanchuk.com/philip/sysv_ipc/sysv_ipc-0.6.8.sha1.txt
 
 Download the library onto Edison, unpack the tar.gz, and run the following command:
 
+   wget http://semanchuk.com/philip/sysv_ipc/sysv_ipc-0.6.8.tar.gz
+   tar -zxvf sysv_ipc-0.6.8.tar.gz
+   cd sysv_ipc-0.6.8
    sudo python setup.py install
