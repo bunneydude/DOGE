@@ -69,7 +69,7 @@
   </style>
    <script type="text/javascript" src="/socket.io/socket.io.js"></script> 
    <script type="text/javascript" src="../node_modules/vis/dist/vis.js"></script>
-   <script type="text/javascript" src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+  <script type="text/javascript" src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
  
  <link type="text/css" rel="stylesheet" href="../node_modules/vis/dist/vis.css">
 
@@ -158,6 +158,8 @@
 
   });
 
+
+
     //Socket function to send data to node.js server
     function sendMessage(data) {
       
@@ -229,7 +231,7 @@
       
       //Clear out states from any previous use cases
       document.getElementById('selection').innerHTML = "";
-      network.off ('select');
+      //network.off ('select');
       
      //Display user instructions and selections
       document.getElementById('instructions').innerHTML = 'Select Source Node followed by intermediate node(s) (if any) and then the Destination Node. Click Confirm when done or Cancel to exit';
@@ -252,7 +254,7 @@
       
       //Clear out states from any previous use cases
       document.getElementById('selection').innerHTML = "";
-      network.off ('select');
+      //network.off ('select');
       
       
       //Display user instructions and selections
@@ -287,7 +289,7 @@
       
       //Clear out states from any previous use cases
       document.getElementById('selection').innerHTML = "";
-      network.off ('select');
+      //network.off ('select');
       
       //Display user instructions and selections
       document.getElementById('instructions').innerHTML = 'Select Source Node followed by the Destination Node.Click Confirm when done or Cancel to exit';
@@ -321,7 +323,7 @@
       
       //Clear out states from any previous use cases
       document.getElementById('selection').innerHTML = "";
-      network.off ('select');
+      //network.off ('select');
              
       //Display user instructions and selections
       document.getElementById('instructions').innerHTML = 'Select Node/Edge to be masked.Click Confirm when done or Cancel to exit';
@@ -354,6 +356,7 @@
       maskEdge = [];
       maskNode = "";
       mode = "";
+      properties = [];
       network.off ('select');
      
     }
@@ -627,22 +630,27 @@
     },
     onDelete: function(data,callback) {
      // data = {nodes: [selectedNodeIds], edges: [selectedEdgeIds]};
-     document.getElementById('selection').innerHTML = 'Selection id: ' + data.edges ;
      //Only allow edge deletion
      if (data.nodes == "") {
-      var r=confirm("Are you sure you want to delete this edge?");
-      if (r==true) {
-       var edgeArray = edges.get(data.edges);
-       var message = {'command' : 'delete_edge', 'data' : [parseInt(edgeArray[0].from),parseInt(edgeArray[0].to),parseInt(edgeArray[0].id)]};
-       sendMessage(message);
-       callback(data);
-      }
-      else {
-       //Clear out deleted edges/nodes
+       var r=confirm("Are you sure you want to delete this edge?");
+       if (r==true) {
+         var edgeArray = edges.get(data.edges);
+         var message = {'command' : 'delete_edge', 'data' : [parseInt(edgeArray[0].from),parseInt(edgeArray[0].to),parseInt(edgeArray[0].id)]};
+         sendMessage(message);
+         callback(data);
+       }
+       else {
+         //Clear out deleted edges/nodes
+         data.nodes = "";
+         data.edges = "";
+         callback(data);
+       }
+     }
+     else {
+       alert('ERROR: You selected a node while trying to mask an edge - Please retry by just selecting edges ');
        data.nodes = "";
        data.edges = "";
        callback(data);
-      }
      }
     },
 
@@ -651,7 +659,7 @@
 
     network = new vis.Network(container, data, options);
 
-     
+   
     network.on("resize", function(params) {console.log(params.width,params.height)});
 
    
@@ -704,5 +712,4 @@
   
 </body>
 </html>
-
 
