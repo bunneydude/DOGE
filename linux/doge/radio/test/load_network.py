@@ -6,7 +6,7 @@ import sys
 
 debug = True
 
-pipe = RadioInterface.RadioInterface("edison", 1, debug)
+pipe = RadioInterface("edison", 1, debug)
 pipe.connect_sketch()
 
 mspV1 = Device("msp430g2553", "./doge/radio/mm_msp430_v1.txt")

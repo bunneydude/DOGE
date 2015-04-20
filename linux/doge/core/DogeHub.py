@@ -2,6 +2,10 @@ from doge.cloud.SparkfunData import SparkfunData
 from doge.cloud.IntelAnalytics import IntelAnalytics
 import json
 
+from doge.radio.RadioInterface import RadioInterface
+
+# TODO: Create inner class definition for operation on RP calls via private methods post-sketch connection
+
 def connect_cloud(service):
     stream = None
     if service.lower() == 'sparkfun':
@@ -29,8 +33,8 @@ def getLatestNodeData(stream, dataFilter):
 #    return _rawData
     return {}
 
-
-"""Connect to a data stream from a specified cloud server
+'''
+Connect to a data stream from a specified cloud server
    
 Args:
       service (str): Name of the cloud service::
@@ -53,46 +57,53 @@ Args:
 
       localNodeData = #something in the form of that json structure
       streamDave.push(localNodeDatanewData)
-   """
+'''
 
 
 def connect_webserver(screen, info):
-   """Connect to the webserver on Edison
+    '''
+    Connect to the webserver on Edison
 
-   Args:
-      screen (str?): Which page to render::
-         "rssi" -- Plot signal strength of nodes over time
-         "heatmap?" -- Nodes are represented as a circle whose color changes based on its temperature
-
-      info (dictionary/array?): Depends on screen. Might contain a list of nodes that Edison plans to push data for. That way the page can render w/ the right number of data series.
-
-   Returns:
-      socket? Similar to socket in connect_cloud. Will just be used to push data
-
-   Raises:
-      See connect_cloud method
-
-   Example:
-      #Start a rssi plot for BP nodes 1 & 2, and Leaf nodes 5 & 7
-      nodeList = ["BP1", "BP2", "L5", "L7"]
-      rssiPage = connect_webserver("rssi", nodeList)
+    Args:
+       screen (str?): Which page to render::
+          "rssi" -- Plot signal strength of nodes over time
+          "heatmap?" -- Nodes are represented as a circle whose color changes based on its temperature
+ 
+       info (dictionary/array?): Depends on screen. Might contain a list of nodes that Edison plans to push data for. That way the page can render w/ the right number of data series.
+ 
+    Returns:
+       socket? Similar to socket in connect_cloud. Will just be used to push data
+ 
+    Raises:
+       See connect_cloud method
+ 
+    Example:
+       #Start a rssi plot for BP nodes 1 & 2, and Leaf nodes 5 & 7
+       nodeList = ["BP1", "BP2", "L5", "L7"]
+       rssiPage = connect_webserver("rssi", nodeList)
    
-      # loop as needed
-      localData = get_temp_from_someone(nodeList)
-      rssiPage.push(localData)
-   """
-   pass
+       # loop as needed
+       localData = get_temp_from_someone(nodeList)
+       rssiPage.push(localData)
+    '''
+    pass
 
 def connect_tui(screen, info):
-   """Connect to the text user interface on Edison
-
-   Almost the same as connect_webserver.
-   """
-   pass
+    '''
+    Connect to the text user interface on Edison
+    Almost the same as connect_webserver.
+    '''
+    pass
 
 def connect_sketch():
-   """Connect to the IPC objects from sketch
-   """
-   pass
+    '''
+    Connect to the IPC objects from sketch
+    '''
+    debug = True #TODO: debug flag to be read in from some global config, later
+    node = 5 #TODO: where to read this in from?
+    pipe = RadioInterface("edison", node, debug)
+    pipe.connect_sketch()
+    
+    return True
 
 
