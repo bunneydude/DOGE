@@ -14,12 +14,18 @@
 /**
  *  Global data
  */
-#define DATA_LENGTH 7
+#define DATA_LENGTH 32
 // Data to write to radio TX FIFO (60 bytes MAX.)
-unsigned char txData[DATA_LENGTH];    
+//unsigned char txData[DATA_LENGTH];    
+rawPacket txRawPacket;
+appPacket* txAppPacket;
+packetAttr txAttr;
 
 // Data to read from radio RX FIFO (60 bytes MAX.)
-unsigned char rxData[DATA_LENGTH] = {10,11,12,13,14,15,16};
+//unsigned char rxData[DATA_LENGTH];
+rawPacket rxRawPacket;
+appPacket* rxAppPacket;
+packetAttr rxAttr;
 
 #define MY_NODE_ID 0x6
 #define NODECTRL_VERSION 1
@@ -68,13 +74,14 @@ void setup()
   pinMode(RED_LED, OUTPUT);
   digitalWrite(RED_LED, hbt_output);   // set the LED on
   Serial.print("DOGE node online. ID: "); Serial.print(MY_NODE_ID); Serial.print(", Version: "); Serial.print(NODECTRL_VERSION); Serial.println(".");  
+  /*
   Serial.print("Device byte base = "); Serial.print(MM_DEVICE_BASE); Serial.print(", size = "); Serial.println(MM_DEVICE_SIZE);
   Serial.print("Network byte base = "); Serial.print(MM_NETWORK_BASE); Serial.print(", size = "); Serial.println(MM_NETWORK_SIZE);
   Serial.print("GPIO byte base = "); Serial.print(MM_GPIO_BASE); Serial.print(", size = "); Serial.println(MM_GPIO_SIZE);
   Serial.print("ADC byte base = "); Serial.print(MM_ADC_BASE); Serial.print(", size = "); Serial.println(MM_ADC_SIZE);
   Serial.print("UART byte base = "); Serial.print(MM_UART_BASE); Serial.print(", size = "); Serial.println(MM_UART_SIZE);
   Serial.print("DSP byte base = "); Serial.print(MM_DSP_BASE); Serial.print(", size = "); Serial.println(MM_DSP_SIZE);
-  
+  */
   /*
   Serial.println("");
 
@@ -209,6 +216,20 @@ i = 0xff;
   Serial.print("Set p1.6 output: ("); Serial.print(returnData); Serial.print(", "); Serial.print(i); Serial.println(")");    
 */
 
+  memset(&txRawPacket, 0, sizeof(rawPacket));
+  memset(&rxRawPacket, 0, sizeof(rawPacket));  
+  txAppPacket = (appPacket*)txRawPacket.data;
+  rxAppPacket = (appPacket*)rxRawPacket.data;
+  
+  application_form_packet(txAppPacket, &txAttr, CMD_READ_REG, 1, 2);
+  link_layer_form_packet(&txRawPacket, &txAttr, RAW_PACKET, 6, 1);
+
+Serial.print("Tx packet: "); Serial.write(8+1+txRawPacket.size);
+uint8_t* bytes = (uint8_t*)(&txRawPacket);
+for(i=0; i<sizeof(rawPacket); i++){
+  Serial.write(bytes[i]);
+}
+
 i=0;
 sendResponse = 1;
 }
@@ -227,6 +248,12 @@ void loop()
   */    
   //i=0xff;
 //  returnData = (*memoryMapRegionMethods.gpio_handler)(0, GPIO_0_TOGGLE, &i, ~(1<<0)); //toggles P1.0
+
+digitalWrite(RED_LED, hbt_output ^= 0x1);
+delay(1000);
+
+
+/*
   //Make sure radio is ready
   while (Radio.busy());
   
@@ -236,7 +263,8 @@ void loop()
       digitalWrite(RED_LED, hbt_output ^= 0x1);
 
       //parse message
-      sendResponse = Protocol_parse_packet(&spiProtocol, &rxData[2], &txData[2]);
+      sendResponse = Protocol_parse_packet(&spiProtocol, &rxData[2], &txData[2]); //old
+      
       //Protocol_form_packet(&txData[2], CMD_ACK, 4, i++); //as debug, always send ACK w/ increasing data value
       txData[0] = MY_NODE_ID;
       txData[1] = rxData[0];      
@@ -247,7 +275,7 @@ void loop()
       
     }
     
-    //check if this is a new neighbor
+    cd//check if this is a new neighbor
     if(network_has_neighbor(rxData[0], &tempIndex)){
       network[tempIndex].neighbor.shLQE = 0xFF & Radio.getRssi();
       Serial.print("Neighbor "); Serial.print(rxData[0]); Serial.print(", RSSI 0x"); Serial.println(network[tempIndex].neighbor.shLQE, HEX);
@@ -273,5 +301,5 @@ void loop()
     dspStatus.counter = dspStatus.period;
     dsp_add_sample( analogRead(A3) );    
   }
-  
+  */
 }//end main

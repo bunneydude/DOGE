@@ -1,6 +1,7 @@
 #ifndef PACKET_H
 #define PACKET_H
 #include <stdint.h>
+#include <stddef.h>
 
 #if DBG
 #define static_assert1(cond) uint8_t static_assert1[((cond) == 1) ? 1 : -1]
@@ -13,6 +14,8 @@
 #define static_assert3(cond)
 #define static_assert4(cond)
 #endif
+
+#define MAX_RAW_PACKET_PAYLOAD_SIZE 23
 
 typedef enum {
    UNDEFINED_PACKET_TYPE = 0,
@@ -27,7 +30,40 @@ typedef enum {
    MAX_PACKET_TYPE = 9
 } packetType;
 
+typedef enum {
+  NO_TRANSMIT = 0,
+  TRANSMIT_RESPONSE = 1
+} responseStatus;
+
 static_assert1(BULK_DATA_RW_ABORT < MAX_PACKET_TYPE);
+
+typedef struct {
+   uint8_t type;
+   uint8_t txInfo;
+   uint16_t src;
+   uint16_t dst;
+   uint8_t ttl;
+   uint8_t crc;
+} packetHdr;
+
+static_assert2(sizeof(packetHdr) == 8);
+
+typedef struct {
+   packetHdr hdr;
+   uint8_t size;
+   uint8_t data[MAX_RAW_PACKET_PAYLOAD_SIZE];
+} rawPacket;
+
+static_assert3(sizeof(rawPacket) == 32);
+
+#pragma pack(2)
+typedef struct {
+   packetHdr hdr;
+   uint8_t errorCode;
+} packetAck;
+#pragma pack()
+
+static_assert4(sizeof(packetAck) == 10);
 
 #define HEADER_TYPE_ACK_MASK       0x80
 #define HEADER_TYPE_ACK_SHIFT      7
@@ -76,7 +112,7 @@ while(0)
 /** Macro for getting type in header type */
 #define GET_HEADER_TYPE(HEADER_TYPE, TYPE) \
    do { \
-      (TYPE) = ((HEADER_TYPE) & HEADER_TYPE_MASK) >> HEADER_TYPE_SHIFT; \
+      (TYPE) = (packetType)(((HEADER_TYPE) & HEADER_TYPE_MASK) >> HEADER_TYPE_SHIFT); \
    } \
 while(0)
 
@@ -101,32 +137,17 @@ while(0)
    } \
 while(0)
 
-#define MAX_RAW_PACKET_PAYLOAD_SIZE 23
+/** Macro for testing header ACK type */
+#define IS_HEADER_TYPE_ACK(TYPE) (((TYPE) & HEADER_TYPE_ACK_MASK) == HEADER_TYPE_ACK_MASK)
 
-typedef struct {
-   uint8_t type;
-   uint8_t txInfo;
-   uint16_t src;
-   uint16_t dst;
-   uint8_t ttl;
-   uint8_t crc;
-} packetHdr;
-static_assert2(sizeof(packetHdr) == 8);
+/** Macro for testing header type */
+#define HEADER_TYPE_EQUALS(HEADER_TYPE, TYPE) ((((HEADER_TYPE) & HEADER_TYPE_MASK) >> HEADER_TYPE_SHIFT) == (TYPE))
 
-typedef struct {
-   packetHdr hdr;
-   uint8_t size;
-   uint8_t data[MAX_RAW_PACKET_PAYLOAD_SIZE];
-} rawPacket;
-static_assert3(sizeof(rawPacket) == 32);
-
-#pragma pack(2)
-typedef struct {
-   packetHdr hdr;
-   uint8_t errorCode;
-} packetAck;
-#pragma pack()
-static_assert4(sizeof(packetAck) == 10);
+#define NUM_PACKET_HEADER_CRC_BYTES (sizeof(packetHdr) - sizeof(((packetHdr*)0)->crc))
+#define RAW_PACKET_DATA_OFFSET      (offsetof(rawPacket, data))
+#define RAW_PACKET_DATA_CRC_BEGIN        (RAW_PACKET_DATA_OFFSET - sizeof(((rawPacket*)0)->size))
+#define RAW_PACKET_DATA_CRC_END(packet)  (RAW_PACKET_DATA_CRC_BEGIN + sizeof(((rawPacket*)0)->size) + (packet)->size)
+#define DEFAULT_PACKET_TTL (255)
 
 void add_raw_packet_crc(rawPacket* packet);
 uint8_t check_raw_packet_crc(rawPacket* packet);

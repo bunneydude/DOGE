@@ -1,6 +1,7 @@
 import os.path
 import json
 import RadioInterface
+import doge.core.protocol_ctypes as ProtocolDefs
 
 #The Device class represents a microcontroller and its firmware.
 class Device:
@@ -111,7 +112,7 @@ class HardwareNode:
       
       address = self._device.address(self._inputs[sensorName.lower()]["space"], self._inputs[sensorName.lower()]["offset"])
 
-      self._pipe.proxy_send(destination=self._nodeID, command=RadioInterface.READ, address=address, payload=0)
+      self._pipe.proxy_send(destination=self._nodeID, command=ProtocolDefs.CMD_READ_REG, address=address, payload=0)
       self._pipe.proxy_receive()
       print("Pull complete. Got: {0}".format(self._pipe.rxData))
 
