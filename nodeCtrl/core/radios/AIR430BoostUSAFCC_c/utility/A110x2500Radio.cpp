@@ -32,18 +32,7 @@ extern "C" {
   #include "A110LR09.h"   // Module driver
 }
 
-A110x2500Radio Radio = { begin,
-                         end,
-                         busy,
-                         setAddress,
-                         setChannel,
-                         setPower,
-                         getRssi,
-                         getLqi,
-                         getCrcBit,
-                         transmit,
-                         receiverOn,
-                         {0} };
+A110x2500Radio Radio = { {0} };
 
 /**
  *  Private interface
@@ -86,31 +75,31 @@ static volatile boolean gDataReceived = false;
  *  Public interface
  */
 
-void begin(uint8_t address, channel_t channel, power_t power)
+void A110x2500_begin(uint8_t address, channel_t channel, power_t power)
 {
   gDataTransmitting = false;
   gDataReceived = false;
   
   // Configure the radio and set the default address, channel, and TX power.
   A110LR09Init(&gPhyInfo, &gSpi, gGdo);
-  setAddress(address);
-  setChannel(channel);
-  setPower(power);
+  A110x2500_setAddress(address);
+  A110x2500_setChannel(channel);
+  A110x2500_setPower(power);
 
   attachInterrupt(RF_GDO0, gdo0Isr, FALLING);
   sleep();
 }
 
-void end()
+void A110x2500_end()
 {
   // Wait until all operations complete.
-  while (busy());
+  while (A110x2500_busy());
 
   detachInterrupt(RF_GDO0);
   pinMode (RF_SPI_CSN, INPUT);
 }
 
-boolean busy(void)
+boolean A110x2500_busy(void)
 {
   if (gDataTransmitting)
   {
@@ -119,47 +108,47 @@ boolean busy(void)
   return false;
 }
 
-void setAddress(uint8_t address)
+void A110x2500_setAddress(uint8_t address)
 {
   struct sA110LR09PhyInfo *phyInfo = &gPhyInfo;
   A110LR09SetAddr(phyInfo, address);
 }
 
-void setChannel(channel_t channel)
+void A110x2500_setChannel(channel_t channel)
 {
   struct sA110LR09PhyInfo *phyInfo = &gPhyInfo;
   A110LR09SetChannr(phyInfo, channel);
 }
 
-void setPower(power_t power)
+void A110x2500_setPower(power_t power)
 {
   unsigned char paTable[A110LR09_PA_TABLE_SIZE];
   memset(paTable, power, A110LR09_PA_TABLE_SIZE);
   A110LR09SetPaTable(&gPhyInfo, paTable);
 }
 
-int8_t getRssi()
+int8_t A110x2500_getRssi()
 {
   int8_t rssi = Radio._dataStream.rssi;
   Radio._dataStream.rssi = (int16_t)(A110LR09ConvertRssiToDbm(&gPhyInfo, rssi) + 1) >> 1;
   return Radio._dataStream.rssi;
 }
 
-uint8_t getLqi()
+uint8_t A110x2500_getLqi()
 {
   return (Radio._dataStream.status & 0x7F);
 }
 
-uint8_t getCrcBit()
+uint8_t A110x2500_getCrcBit()
 {
   return ((Radio._dataStream.status & 0x80) >> 7);
 }
 
-void transmit(uint8_t address,
+void A110x2500_transmit(uint8_t address,
 															uint8_t *dataField,
 															uint8_t length)
 {
-  if (!busy())
+  if (!A110x2500_busy())
   {
     // Bring the radio out of a low power state.
     _wakeup();
@@ -177,11 +166,11 @@ void transmit(uint8_t address,
   }
 }
 
-unsigned char receiverOn(uint8_t *dataField,
+unsigned char A110x2500_receiverOn(uint8_t *dataField,
 																				 uint8_t length,
 																				 uint16_t timeout)
 {
-  if (!busy())
+  if (!A110x2500_busy())
   {
     // Bring the radio out of a low power state.
     _wakeup();

@@ -36,7 +36,6 @@ uint8_t rawADC = 0;
 uint8_t tempIndex;
 union networkEntry tempEntry;
 
-extern A110x2500Radio Radio;
 // -----------------------------------------------------------------------------
 // Main example
 
@@ -67,7 +66,7 @@ void setup()
   
   // The radio library uses the SPI library internally, this call initializes
   // SPI/CSn and GDO0 lines. Also setup initial address, channel, and TX power.
-  Radio.begin(0x01, CHANNEL_1, POWER_MAX); 
+  A110x2500_begin(0x01, CHANNEL_1, POWER_MAX); 
 
   pinMode(RED_LED, OUTPUT);
   digitalWrite(RED_LED, hbt_output);   // set the LED on
@@ -232,11 +231,11 @@ void loop()
   //i=0xff;
 //  returnData = (*memoryMapRegionMethods.gpio_handler)(0, GPIO_0_TOGGLE, &i, ~(1<<0)); //toggles P1.0
   //Make sure radio is ready
-  while (Radio.busy());
+  while (A110x2500_busy());
   
   // Turn on the receiver and listen for incoming data. Timeout after 1 seconds.
   Serial.println("Checking for packets");
-  if (Radio.receiverOn(rxData, sizeof(rxData), 1000) > 0){
+  if (A110x2500_receiverOn(rxData, sizeof(rxData), 1000) > 0){
     Serial.println("Received a packet");
     if(rxData[1] == MY_NODE_ID){
       digitalWrite(RED_LED, hbt_output ^= 0x1);
@@ -249,11 +248,11 @@ void loop()
     }
     //check if this is a new neighbor
     if(network_has_neighbor(rxData[0], &tempIndex)){
-      network[tempIndex].neighbor.shLQE = 0xFF & Radio.getRssi();
+      network[tempIndex].neighbor.shLQE = 0xFF & A110x2500_getRssi();
       Serial.print("Neighbor "); Serial.print(rxData[0]); Serial.print(", RSSI 0x"); Serial.println(network[tempIndex].neighbor.shLQE, HEX);
     }else{ //make a new entry
       tempEntry.neighbor.shNodeID = rxData[0];
-      tempEntry.neighbor.shLQE = 0xFF & Radio.getRssi();
+      tempEntry.neighbor.shLQE = 0xFF & A110x2500_getRssi();
       tempEntry.neighbor.radioID = 0x1;
       tempEntry.neighbor.networkID = 0x0;
       
@@ -266,14 +265,14 @@ void loop()
     }
     if(sendResponse == 1){
       delay(10);
-      Radio.transmit(0x1, txData, DATA_LENGTH); //to root node at address 0x1
+      A110x2500_transmit(0x1, txData, DATA_LENGTH); //to root node at address 0x1
     }
   }else{//end if got packet
      if (MY_NODE_ID == NODE_1_ID){
         txData[0] = MY_NODE_ID;
         txData[1] = NODE_2_ID;
         Protocol_form_packet(&txData[2], CMD_NOP, 0x0, 0x0);
-        Radio.transmit(0x1, txData, DATA_LENGTH); //to root node at address 0x1
+        A110x2500_transmit(0x1, txData, DATA_LENGTH); //to root node at address 0x1
         Serial.println("Sending NOP to NODE_2_ID");
      }
   //we timed out, decrement counter...this is lame I know

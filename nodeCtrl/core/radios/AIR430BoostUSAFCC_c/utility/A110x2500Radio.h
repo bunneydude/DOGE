@@ -93,19 +93,19 @@ typedef struct
    *    @param  channel   Default frequency to receive/transmit on.
    *    @param  power     Default output power level to transmit at.
    */
-  void (*begin)(uint8_t address, channel_t channel, power_t power);
+  //void (*begin)(uint8_t address, channel_t channel, power_t power);
   
   /**
    *  end - close a radio session.
    */
-  void (*end)(void);
+  //void (*end)(void);
   
   /**
    *  busy - radio busy indicator (transmitting flag).
    *
    *    @return	True if the transmitter is currently in use; false otherwise.
    */
-  boolean (*busy)(void);
+  //boolean (*busy)(void);
 
   /**
    *  setAddress - set device address. This address is used for hardware message
@@ -115,21 +115,21 @@ typedef struct
    *
    *    @param  address   The device address of the receiving node.
    */
-  void (*setAddress)(uint8_t address);
+  //void (*setAddress)(uint8_t address);
   
   /**
    *  setChannel - set operating frequency.
    *
    *    @param  channel   Frequency to receive/transmit on.
    */
-  void (*setChannel)(channel_t channel);
+  //void (*setChannel)(channel_t channel);
   
   /**
    *  setPower - set operating transmit output power.
    *
    *    @param  power     Output power level to transmit at.
    */
-  void (*setPower)(power_t power);
+  //void (*setPower)(power_t power);
   
   /**
    *  getRssi - read the receive signal strength indicator for the last received
@@ -137,7 +137,7 @@ typedef struct
    *
    *    @return	RSSI value in absolute dBm increments.
    */
-  int8_t (*getRssi)(void);
+  //int8_t (*getRssi)(void);
   
   /**
    *  getLqi - read the link quality indicator for the last received data 
@@ -145,7 +145,7 @@ typedef struct
    *
    *    @return	LQI value.
    */
-  uint8_t (*getLqi)(void);
+  //uint8_t (*getLqi)(void);
   
   /**
    *  getCrcBit - read the cyclic redundancy check bit for the last received 
@@ -153,7 +153,7 @@ typedef struct
    *  
    *    @return	CRC bit value - valid (1) or invalid (0).
    */
-  uint8_t (*getCrcBit)(void);
+  //uint8_t (*getCrcBit)(void);
   
   /**
    *  transmit - build a data stream from the data field provided and transmit
@@ -164,7 +164,7 @@ typedef struct
    *    @param  dataField   Payload for the data stream.
    *    @param  length      Number of bytes in the data field buffer.
    */
-  void (*transmit)(uint8_t address, uint8_t *dataField, uint8_t length);
+  //void (*transmit)(uint8_t address, uint8_t *dataField, uint8_t length);
 
   /**
    *  receiverOn - turn on the radio receiver and listen until a timeout occurs.
@@ -181,9 +181,9 @@ typedef struct
    *    @return Number of bytes read from the RX FIFO that were copied into the 
 	 *						data field.
    */
-  unsigned char (*receiverOn)(uint8_t *dataField,
-                              uint8_t length,
-                              uint16_t timeout);
+  //unsigned char (*receiverOn)(uint8_t *dataField,
+                              //uint8_t length,
+                              //uint16_t timeout);
 
 // -----------------------------------------------------------------------------
 /**
@@ -226,17 +226,17 @@ typedef struct
 /**
  *  Public interface
  */
-  void begin(uint8_t address, channel_t channel, power_t power);
-  void end(void);
-  boolean busy(void);
-  void setAddress(uint8_t address);
-  void setChannel(channel_t channel);
-  void setPower(power_t power);
-  int8_t getRssi(void);
-  uint8_t getLqi(void);
-  uint8_t getCrcBit(void);
-  void transmit(uint8_t address, uint8_t *dataField, uint8_t length);
-  unsigned char receiverOn(uint8_t *dataField,
+  void A110x2500_begin(uint8_t address, channel_t channel, power_t power);
+  void A110x2500_end(void);
+  boolean A110x2500_busy(void);
+  void A110x2500_setAddress(uint8_t address);
+  void A110x2500_setChannel(channel_t channel);
+  void A110x2500_setPower(power_t power);
+  int8_t A110x2500_getRssi(void);
+  uint8_t A110x2500_getLqi(void);
+  uint8_t A110x2500_getCrcBit(void);
+  void A110x2500_transmit(uint8_t address, uint8_t *dataField, uint8_t length);
+  unsigned char A110x2500_receiverOn(uint8_t *dataField,
                            uint8_t length,
                            uint16_t timeout);
 #endif  /* A110X2500_RADIO_H */
