@@ -1,7 +1,7 @@
 /**@file Contains definitions for packet functions */
-#include <packet.h>
+#include "../packet.h"
 #include <stddef.h>
-#include <nodeCtrl.h>
+#include "../nodeCtrl.h"
 #include <type.h>
 
 

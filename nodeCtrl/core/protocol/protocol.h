@@ -4,8 +4,12 @@
 #include <stdint.h>
 #include "../memory_map/memory_map.h"
 #include "../nodeCtrl_errno.h"
-#include <packet.h>
+#include "../packet.h"
 #include <type.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
 
 #if DBG
 #define static_assert5(cond) uint8_t static_assert5[((cond) == 1) ? 1 : -1]
@@ -81,4 +85,7 @@ uint8_t link_layer_form_packet(rawPacket* packet, packetAttr* attr, uint8_t type
 uint8_t application_parse_packet(struct Protocol* obj, appPacket* message, appPacket* response, packetAttr* messageAttr, packetAttr* responseAttr);
 uint8_t application_form_packet(appPacket* packet, packetAttr* attr, uint8_t cmd, uint8_t addr, uint8_t data);
 
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 #endif
