@@ -11,7 +11,7 @@ void Protocol_init(struct Protocol* obj){
 uint8_t link_layer_parse_packet(struct Protocol* obj, rawPacket* message, rawPacket* response)
 {
    uint8_t typeAck         = 0;
-   packetType type         = 0;
+   packetType type         = (packetType)0;
    uint8_t packetId        = 0;
    uint8_t rta             = 0;
    packetAttr messageAttr  = {0};

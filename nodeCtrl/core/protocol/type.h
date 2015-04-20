@@ -4,7 +4,7 @@
 typedef enum {
    FALSE = 0,
    TRUE = 1
-} bool;
+} myBool;
 
 typedef enum {
    ERROR = -1,

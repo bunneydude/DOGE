@@ -112,7 +112,7 @@ while(0)
 /** Macro for getting type in header type */
 #define GET_HEADER_TYPE(HEADER_TYPE, TYPE) \
    do { \
-      (TYPE) = ((HEADER_TYPE) & HEADER_TYPE_MASK) >> HEADER_TYPE_SHIFT; \
+      (TYPE) = (packetType)(((HEADER_TYPE) & HEADER_TYPE_MASK) >> HEADER_TYPE_SHIFT); \
    } \
 while(0)
 
