@@ -21,7 +21,7 @@ def form_packet(type=RAW_PACKET, srcID=1, dstID=1, cmd=CMD_READ_REG, addr=0, dat
    
 #   print("\n\tPacket: \n\t[{0}], size = {1}, data = {2}".format(print_structure(rawPkt.hdr), rawPkt.size, list(i for i in rawPkt.data)))
 
-   toSend = packetToList(rawPkt)
+   toSend = packetToBytes(rawPkt)
    return toSend
  
 def receive_packet(stream, registers):

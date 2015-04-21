@@ -106,3 +106,8 @@ def packetToList(struct):
    toSend.append(struct.size)
    list((toSend.append(x)) for x in (list(struct.data)[0:struct.size]))
    return toSend
+
+
+def packetToBytes(struct):
+   toSend = buffer(struct)[0:HEADER_SIZE + 1 + struct.size]
+   return list(toSend)
