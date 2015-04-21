@@ -35,10 +35,10 @@ class RadioInterface():
    def proxy_send(self, destination, command, address, payload):
       if(destination not in range(0, 2**16)): raise Exception("The destination, {0}, must be in the range [0,65535]".format(destination))
 
-      self.txData = Protocol.form_packet(type=1, srcID=self._nodeID, dstID=destination, cmd=command, addr=address, data=payload)
+      self.txData = Protocol.form_packet(type=1, srcID=self._nodeID, dstID=destination, cmd=command, addr=address, data=payload, enc='bytes')
       #TODO need to import a constants file of sorts so we can use 'RAW_PACKET' instead of '1' for type, etc
-      print("   About to send: {0}".format(self.txData))
-      encData = cobs.encode(''.join(struct.pack('<B',x) for x in self.txData))
+      print("   About to send: {0}".format(list(ord(x) for x in self.txData)))
+      encData = cobs.encode(''.join(self.txData))
 #      print("   Encoded: {0}".format(list(encData)))
       encData = list(ord(x) for x in encData) 
       print("   Encoded: {0}".format(encData))
@@ -52,7 +52,7 @@ class RadioInterface():
          else:
             print("Error - need to call connect_sketch first")
       else:
-         print("Debug: send message {0}".format(encData))
+         print("   Debug: sent message {0}".format(encData))
 
    def proxy_receive(self):
       self.rxData = []
@@ -81,7 +81,7 @@ class RadioInterface():
          if(duration >= timeout):      
             print("Timeout")      
       else:
-         self.rxData = Protocol.form_packet(type=1, srcID=6, dstID=self._nodeID, cmd=ProtocolDefs.CMD_ACK, addr=1, data=2)
+         self.rxData = Protocol.form_packet(type=1, srcID=6, dstID=self._nodeID, cmd=ProtocolDefs.CMD_ACK, addr=1, data=2, enc='fields')
          return 1
 
    def push(self, network, nodeID, data):      
