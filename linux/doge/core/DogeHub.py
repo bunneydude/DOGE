@@ -1,8 +1,10 @@
 from doge.cloud.SparkfunData import SparkfunData
 from doge.cloud.IntelAnalytics import IntelAnalytics
 import json
-
+from collections import defaultdict
 from doge.radio.RadioInterface import RadioInterface
+from doge.radio.Node import HardwareNode, VirtualNode
+from doge.core.RoutingProcessor import RoutingProcessor
 
 # TODO: Create inner class definition for operation on RP calls via private methods post-sketch connection
 
@@ -104,6 +106,27 @@ def connect_sketch():
     pipe = RadioInterface("edison", node, debug)
     pipe.connect_sketch()
     
-    return True
+    root = VirtualNode(0)
+    return root
 
+def find_neighbors(nids):
+    pass
 
+def rp_run():
+    root = connect_sketch() #if not already not connected 
+    
+    #List of network edges,nodes,routing edges. Sent to webserver/browser for vis.js n/w visiualization
+    edges = []
+    nodes = []
+    route_edges = []
+    
+    #Dicts for neighbor table entry and routing table entry. Node id is key and value is list of all nte/rte for that node
+    nte = {}
+    rte = {}
+    
+    root.get_neighbor_table(0) #get edison neighbors
+    
+    edisonRP = RoutingProcessor()
+    
+    
+    

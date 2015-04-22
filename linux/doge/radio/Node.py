@@ -1,6 +1,7 @@
 import os.path
 import json
 import RadioInterface
+from __builtin__ import file
 
 #The Device class represents a microcontroller and its firmware.
 class Device:
@@ -75,7 +76,7 @@ class HardwareNode:
 
    def __init__(self, device, nodeID, pipe):
       if(not isinstance(device, Device)): raise Exception("The device argument must be an instance of Node.Device.")
-      if(nodeID < 0 or nodeID > 255): raise Exception("The specified nodeID, {0}, must be in the range [0, 255]".format(nodeID))
+      if(nodeID < 1 or nodeID > 255): raise Exception("The specified nodeID, {0}, must be in the range [1, 255]".format(nodeID))
       if(not isinstance(pipe, RadioInterface.RadioInterface)): raise Exception("The device argument must be an instance of Node.Device.")
 
       self._device = device
@@ -134,6 +135,36 @@ class HardwareNode:
       network_table =  self._nt 
       return (network_table.get_routes(node_id))
   
+
+class VirtualNode:
+    _pipe = None
+    _deviceName = ""
+
+    def __init__(self, nodeID, name="Edison"):
+        if(nodeID < 0 or nodeID > 255): raise Exception("The specified nodeID, {0}, must be in the range [0, 255]".format(nodeID))
+ 
+        self._name = name + '-' + str(nodeID)
+        self._nodeID = nodeID
+        narray = []
+        rarray = [] 
+        self._nt = NetworkTable(narray,rarray)
+
+    def get_neighbors(self,node_id=0):
+        node_array = []
+        network_table = self._nt
+        neighbor_table_array = ? #TODO: Finish this
+        for x in VirtualNodeConfig Entries in VirtualNodeConfigFile
+            node_array.append(VirtualNodeConfigEntry)
+        return node_array
+        
+    def get_neighbor_table(self,node_id):
+        network_table =  self._nt 
+        return (network_table.get_neighbors(node_id))
+
+    def get_routing_table(self,node_id):
+        network_table =  self._nt 
+        return (network_table.get_routes(node_id))
+
 
 #### The below classes are currently not used ####
    
