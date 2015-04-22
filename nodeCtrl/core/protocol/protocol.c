@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <string.h>
+#include "packet.h"
 #include "protocol.h"
 
 void Protocol_init(struct Protocol* obj){
@@ -15,36 +16,40 @@ uint8_t link_layer_parse_packet(struct Protocol* obj, rawPacket* message, rawPac
    uint8_t rta             = 0;
    packetAttr messageAttr  = {0};
    packetAttr responseAttr = {0};
-   uint8_t status          = NO_TRANSMIT;
+   uint8_t status          = 0;
+   uint8_t sendResponse    = NO_TRANSMIT;
+
    // Decode header info
    GET_HEADER_TYPE_ACK(message->hdr.type, typeAck);
    GET_HEADER_TYPE(message->hdr.type, type);
+//   type = (packetType) ((message->hdr.type & HEADER_TYPE_MASK) >> HEADER_TYPE_SHIFT);
    GET_TXINFO_PACKET_ID(message->hdr.txInfo, packetId);
    GET_TXINFO_RTA(message->hdr.txInfo, rta);
+
    // Clear response data
    memset(response, 0, sizeof(rawPacket));
    // Check message CRC before parsing the data payload
    // TODO: Replace this CRC check later on with a generic packet CRC check
+
    status = check_raw_packet_crc(message);
    if (status == ERR_CHECKSUM){
-      //TODO: log error?
-      return status;
-   }
-   if (message->hdr.type == RAW_PACKET){
+      //TODO: log error and/or send error message back?
+      sendResponse = NO_TRANSMIT;
+
+   }else if (message->hdr.type == RAW_PACKET){
       messageAttr.ack = typeAck;
       messageAttr.size = message->size;
       status = application_parse_packet(obj,
                                         (appPacket*)((void*)message + RAW_PACKET_DATA_OFFSET),
                                         (appPacket*)((void*)response + RAW_PACKET_DATA_OFFSET),
                                         &messageAttr,
-                                        &responseAttr);
-      // Application layer requests a response packet
-      if (responseAttr.ack == TRUE){
+                                        &responseAttr);      
+      if (responseAttr.ack == TRUE){ // Application layer requests a response packet
          link_layer_form_packet(response, &responseAttr, RAW_PACKET, message->hdr.dst, message->hdr.src);
-         status = TRANSMIT_RESPONSE;
+         sendResponse = TRANSMIT_RESPONSE;
       }
    }
-   return status;
+   return sendResponse;
 }
 
 /**

@@ -33,9 +33,9 @@ uint8_t nrfRXAttempts = 0;
 struct Protocol myProtocol;
 uint8_t sent = 0;
 uint8_t i = 1;
-uint8_t hbt_output = 0x0;
+uint8_t hbt_output = 0x1;
 uint8_t sendResponse = 0;
-uint8_t e2eSrcID = 0;
+uint16_t e2eSrcID = 0;
 // -----------------------------------------------------------------------------
 //functions for nRF
 void nrf24_ce_digitalWrite(uint8_t state){
@@ -91,62 +91,36 @@ void setup()
   memset(&rxRawPacket, 0, sizeof(rawPacket));  
   txAppPacket = (appPacket*)txRawPacket.data;
   rxAppPacket = (appPacket*)rxRawPacket.data;
-
-  application_form_packet(txAppPacket, &txAttr, CMD_READ_REG, 55, 0);
-  link_layer_form_packet(&txRawPacket, &txAttr, RAW_PACKET, 1, 6);  
-
-Serial.println("D:");
-serial_transmit((uint8_t*)(&txRawPacket), 8+1+txRawPacket.size,0);   
-Serial.println("E:");  
-serial_transmit((uint8_t*)(&txRawPacket), 8+1+txRawPacket.size,1);  
- 
 }
-
-
 
 void loop(){
 
-  //  while(serial_receive((uint8_t*)(&rxRawPacket)) == 0); //wait for data
-  //  digitalWrite(RED_LED, hbt_output ^= 0x1);
+  while(serial_receive((uint8_t*)(&rxRawPacket)) == 0); //wait for data
 
+  if(rxRawPacket.hdr.dst == MY_NODE_ID){ //ACK back same address and data
+    application_form_packet(txAppPacket, &txAttr, CMD_ACK, rxAppPacket->addr, rxAppPacket->data);
+    link_layer_form_packet(&txRawPacket, &txAttr, RAW_PACKET, MY_NODE_ID, rxRawPacket.hdr.src);  
+  }
+  else{ //forward it
+    e2eSrcID = rxRawPacket.hdr.src; //store the original source ID
 
+    Radio.transmit(0x1, (uint8_t*)(&rxRawPacket), sizeof(packetHdr) + 1 + rxRawPacket.size);
 
-  /*
-   if(rxData[1] == MY_NODE_ID){
-   //try to handle it locally
-   if(myProtocol.parse_packet(&rxData[2], &txData[2])){
-   txData[0] = MY_NODE_ID;
-   txData[1] = rxData[0];
-   
-   serial_transmit(txData, txData[3]+5);
-   }
-   }
-   else{ //forward it
-   e2eSrcID = rxData[0]; //store the original source ID
-   
-   Radio.transmit(0x2, rxData, MAX_DATA_LENGTH);
-   
-   //Make sure radio is ready to receive
-   while (Radio.busy());
-   
-   // Turn on the receiver and listen for incoming data. Timeout after 1 seconds.
-   if (Radio.receiverOn(txData, sizeof(txData), 1000) > 0){
-   digitalWrite(RED_LED, hbt_output ^= 0x1);
-   
-   //update radio info
-   myProtocol.serial_registers[SREG_RSSI] = Radio.getRssi();
-   myProtocol.serial_registers[SREG_LQI] = Radio.getLqi();     
-   
-   }
-   else{ //timeout, send error message
-   myProtocol.form_packet(&txData[2], NACK, 0, TIMEOUT);     
-   txData[0] = MY_NODE_ID;
-   txData[1] = e2eSrcID;
-   }
-   serial_transmit(txData, txData[3]+5);
-   }//end forward  
-   */
+    //Make sure radio is ready to receive
+    while (Radio.busy());
 
+    // Turn on the receiver and listen for incoming data. Timeout after 1 seconds.
+    if (Radio.receiverOn((uint8_t*)(&txRawPacket), MAX_DATA_LENGTH, 1000) > 0){
+      digitalWrite(RED_LED, hbt_output ^= 0x1);   
+
+    }
+    else{ //timeout, send error message
+      application_form_packet(txAppPacket, &txAttr, CMD_NACK, rxAppPacket->addr, ERR_TIMEOUT);
+      link_layer_form_packet(&txRawPacket, &txAttr, RAW_PACKET, MY_NODE_ID, e2eSrcID); 
+    }    
+  }//end forward  
+  
+  serial_transmit((uint8_t*)(&txRawPacket), sizeof(packetHdr) + 1 + txRawPacket.size, 1);
 
 }//end main loop
 
@@ -213,9 +187,14 @@ uint8_t serial_transmit(uint8_t* buf, uint8_t size, uint8_t encode){
     }
   }
 
-
   Serial.write((uint8_t)0); //indicate end of frame
 }
+
+
+
+
+
+
 
 
 

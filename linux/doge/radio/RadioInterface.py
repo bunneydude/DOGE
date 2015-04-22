@@ -57,7 +57,7 @@ class RadioInterface():
    def proxy_receive(self):
       self.rxData = []
       encData = []
-      timeout = 1000
+      timeout = 2000
       duration = 0
       if(self.debug == False):
          while(duration < timeout):
