@@ -19,7 +19,7 @@ extern "C" {
 #define static_assert4(cond)
 #endif
 
-#define MAX_RAW_PACKET_PAYLOAD_SIZE 23
+#define MAX_RAW_PACKET_PAYLOAD_SIZE 19
 
 typedef enum {
    UNDEFINED_PACKET_TYPE = 0,
@@ -46,11 +46,13 @@ typedef struct {
    uint8_t txInfo;
    uint16_t src;
    uint16_t dst;
+   uint16_t shSrc;
+   uint16_t shDst;
    uint8_t ttl;
    uint8_t crc;
 } packetHdr;
 
-static_assert2(sizeof(packetHdr) == 8);
+static_assert2(sizeof(packetHdr) == 12);
 
 typedef struct {
    packetHdr hdr;
@@ -67,7 +69,7 @@ typedef struct {
 } packetAck;
 #pragma pack()
 
-static_assert4(sizeof(packetAck) == 10);
+static_assert4(sizeof(packetAck) == 14);
 
 #define HEADER_TYPE_ACK_MASK       0x80
 #define HEADER_TYPE_ACK_SHIFT      7

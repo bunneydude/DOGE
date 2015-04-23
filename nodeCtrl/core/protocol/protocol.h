@@ -19,7 +19,7 @@ extern "C" {
 #define static_assert6(cond)
 #endif
 
-#define MAX_PAYLOAD_SIZE 16
+#define MAX_PAYLOAD_SIZE 14
 
 #define CMD_READ_REG_DATA_SIZE  (2)
 #define CMD_WRITE_REG_DATA_SIZE (3)
@@ -64,7 +64,6 @@ typedef struct {
    uint8_t data;
    uint8_t byteNumber; //unused
    uint8_t payload[MAX_PAYLOAD_SIZE];
-   uint8_t reserved[2];
 } appPacket;
 #pragma pack()
 
@@ -74,7 +73,7 @@ typedef struct {
    //could also shove source and destination node ids in here
 } packetAttr;
 
-static_assert5(sizeof(appPacket) == 22);
+static_assert5(sizeof(appPacket) == 18);
 static_assert6((sizeof(((rawPacket*)0)->hdr) +
                 sizeof(((rawPacket*)0)->size) +
                 sizeof(appPacket)) <= sizeof(rawPacket));
