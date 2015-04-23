@@ -4,7 +4,7 @@ var io = require('socket.io');
  
  
 var app = express();
-app.use(express.static('./public'));
+app.use(express.static('.'));
 //Specifying the public folder of the server to make the html accesible using the static middleware
  
 var server =http.createServer(app).listen(8124);
