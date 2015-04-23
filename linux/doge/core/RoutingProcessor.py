@@ -21,11 +21,11 @@ class RoutingProcessor():
  edge_id = 0
  route_edge_id = 1000
 
- nte={}
- rte={}
  
  def __init__(self,port):
    self.socket = self.createSocket(port);
+   self.nte = {}
+   self.rte = {}
 
  def createNetworkVis(self,nodes,edges,route_edges,node_id,nte_list,rte_list):
    self.nte[node_id] = nte_list
@@ -102,23 +102,22 @@ class RoutingProcessor():
 
  def processMessage(self,*args):
 
-   argsJson = json.dumps(args)
-   #Only process messages with a string "command" in it
-   if 'command' in argsJson:
-     #remove \\ and " from 
-     argsJson= str.replace(argsJson,'\\','')
-     argsJson= str.replace(argsJson,'"','')
-     #Extract command and data
-     m = re.search('{command:(.+),data:(.+)}', argsJson)
-     if m:
-       command =  m.group(1)
-       data  =  m.group(2)
-       print "command:{0} data:{1}".format(command,data)
-     if (command == 'mask_node'):  
-        self.mask_node(command,data)     
-     if (command == 'mask_physical_edge'):  
-        self.mask_edge(command,data)   	
-     return (command,data)
+     argsJson = json.dumps(args)
+     #Only process messages with a string "command" in it
+     if 'command' in argsJson:
+         #remove \\ and " from 
+         argsJson= str.replace(argsJson,'\\','')
+         argsJson= str.replace(argsJson,'"','')
+         #Extract command and data
+         m = re.search('{command:(.+),data:(.+)}', argsJson)
+         if m:
+             command =  m.group(1)
+             data  =  m.group(2)
+             print "command:{0} data:{1}".format(command,data)
+         if (command == 'mask_node'):  
+             self.mask_node(command,data)     
+         if (command == 'mask_physical_edge'):  
+             self.mask_edge(command,data)   	
 
 
   
