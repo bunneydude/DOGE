@@ -1,0 +1,11 @@
+
+    <img src="{{currentPin.subpinsImage}}">
+    <p/> 
+    <div class="list">
+        <a class="item item-thumbnail-left" href="#/pin" ng-click="setCurrentPin(pin.id)" ng-animate="'item'" ng-repeat='pin in currentPin.subpins' style="background-color: {{pin.currentColor}}">
+          <img src="{{pin.image}}">
+          <h2>{{pin.name}}</h2>
+          <p><span class="status-{{pin.activemode}}">   </span>Running in : {{pin.activemode}} <br/> {{pin.otherDetailedinfomation}}</p>
+        </a>
+    </div>
+ 

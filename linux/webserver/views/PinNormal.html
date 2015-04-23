@@ -1,0 +1,21 @@
+        <span ng-repeat='mode in pinModes'>
+            <div class="item item-divider" >
+                {{mode.name}}
+            </div>
+              <span ng-repeat= 'state in mode.possibleStates' ng-click=" changePinState(state);">
+                <label class="item item-radio" ng-if ="state.name === currentPin.activemode"  >
+                   <input type="radio" value={{state.name}} name="group" checked=true>
+                      <div class="item-content">
+                          {{state.name}}
+                    </div>
+                     <i class="radio-icon ion-checkmark"></i>
+                </label>
+                <label class="item item-radio" ng-if ="state.name !== currentPin.activemode">
+                    <input type="radio" name="group" value={{state.name}}>
+                    <div class="item-content">
+                        {{state.name}}
+                    </div>
+                    <i class="radio-icon ion-checkmark"></i>
+                 </label>
+              </span>
+        </span>
