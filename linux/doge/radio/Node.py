@@ -2,6 +2,7 @@ import os.path
 import json
 import RadioInterface
 from __builtin__ import file
+import random
 
 #The Device class represents a microcontroller and its firmware.
 class Device:
@@ -111,30 +112,35 @@ class HardwareNode:
 
 
    def pull(self, sensorName):
-      if(sensorName.lower() not in self._inputs.keys()): raise Exception("Unknown sensor: {0}. Current sensor list: {1}".format(sensorName.lower(), self._inputs.keys()))
+       if(sensorName.lower() not in self._inputs.keys()): raise Exception("Unknown sensor: {0}. Current sensor list: {1}".format(sensorName.lower(), self._inputs.keys()))
       
-      address = self._device.address(self._inputs[sensorName.lower()]["space"], self._inputs[sensorName.lower()]["offset"])
+       address = self._device.address(self._inputs[sensorName.lower()]["space"], self._inputs[sensorName.lower()]["offset"])
 
-      self._pipe.proxy_send(destination=self._nodeID, command=RadioInterface.READ, address=address, payload=0)
-      self._pipe.proxy_receive()
-      print("Pull complete. Got: {0}".format(self._pipe.rxData))
+       self._pipe.proxy_send(destination=self._nodeID, command=RadioInterface.READ, address=address, payload=0)
+       self._pipe.proxy_receive()
+       print("Pull complete. Got: {0}".format(self._pipe.rxData))
 
    def get_neighbor_table(self,node_id):
-      network_table =  self._nt 
-      return (network_table.get_neighbors(node_id))
+       network_table =  self._nt 
+       return (network_table.get_neighbors(node_id))
   
    def get_neighbors (self,node_id):
-      node_array =[]
-      network_table =  self._nt 
-      neighbor_table_array = network_table.get_neighbors(node_id)
-      for x in  neighbor_table_array:
-         node_array.append(x[0])
-      return (node_array)
+       node_array =[]
+       network_table =  self._nt 
+       neighbor_table_array = network_table.get_neighbors(node_id)
+       for x in  neighbor_table_array:
+           node_array.append(x[0])
+       return (node_array)
 
    def get_routing_table(self,node_id):
-      network_table =  self._nt 
-      return (network_table.get_routes(node_id))
+       network_table =  self._nt 
+       return (network_table.get_routes(node_id))
   
+
+   def get_rssi(self,node_id):
+       rssi = random.randint(20,30)
+       return(rssi)
+
 
 class VirtualNode:
     _pipe = None
@@ -152,8 +158,8 @@ class VirtualNode:
     def get_neighbors(self,node_id=0):
         node_array = []
         network_table = self._nt
-        neighbor_table_array = ? #TODO: Finish this
-        for x in VirtualNodeConfig Entries in VirtualNodeConfigFile
+        #neighbor_table_array = ? #TODO: Finish this
+        for x in VirtualNodeConfigEntry in VirtualNodeConfigFile:
             node_array.append(VirtualNodeConfigEntry)
         return node_array
         
