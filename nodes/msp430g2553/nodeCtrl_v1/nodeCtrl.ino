@@ -10,6 +10,7 @@
 #include <SPI.h>
 #include <AIR430BoostFCC.h>
 #include <dsp.h>
+#define UINT16_MAX 65535
 // -----------------------------------------------------------------------------
 /**
  *  Global data
@@ -42,6 +43,39 @@ union networkEntry tempEntry;
 // -----------------------------------------------------------------------------
 // Main example
 
+void print_bytes(uint8_t* buf){
+  uint8_t i = 0;
+  Serial.print("["); 
+  for(i=0; i < sizeof(uint16_t); i++){ 
+    Serial.print(buf[i]); 
+    Serial.print(" ");
+  }
+  Serial.println("]");
+}
+
+dogeBool timer_expired(dogeTimer* timer)
+{
+   timerType currTime = current_time();
+   dogeBool expired = TRUE;
+   if ((currTime < TIMER_END(timer)) && (currTime >= TIMER_BEGIN(timer))) {
+      expired = FALSE;
+   }
+   // Overflow
+   else if (TIMER_OVERFLOW(TIMER_BEGIN(timer), timer->duration)) {
+      if ((currTime >= TIMER_BEGIN(timer) && currTime > TIMER_END(timer)) ||
+          (currTime < TIMER_BEGIN(timer)  && currTime < TIMER_END(timer))) {
+         expired = FALSE;
+      }
+   }
+   Serial.print("Timer Current: ");
+   print_bytes((uint8_t*)&currTime);
+   Serial.print("Timer End: ");
+   print_bytes((uint8_t*)&timer->end);
+
+   //printf("Timer Current: %d, Timer end: %d Timer->end - Timer->duration %x, Expired: %d \n", currTime, timer->end, (timer->end - timer->duration), expired);
+   return expired;
+}
+
 void print_packet(uint8_t* buf){
   uint8_t i = 0;
   Serial.println("Packet");
@@ -56,6 +90,13 @@ void print_packet(uint8_t* buf){
   Serial.println("]");
 }
 
+/*uint16_t analog_reference = DEFAULT, analog_period = F_CPU/490, analog_div = ID_0, analog_res=255; // devide clock with 0, 2, 4, 8*/
+#define ANALOG_DIV (ID_0)
+#define ANALOG_RES (255)
+#define PWM_PERIOD (F_CPU)/490 // F_CPU/490
+#define PWM_DUTY(x) ( (unsigned long)x*PWM_PERIOD / (unsigned long)ANALOG_RES )
+
+  dogeTimer neighborDisc;
 void setup()
 { 
   Protocol_init(&spiProtocol);
@@ -64,6 +105,14 @@ void setup()
   memoryMapRegionMethods.gpio_handler = gpio_mm_handler;
   memoryMapRegionMethods.adc_handler = adc_mm_handler; 
 
+  //Almost identical to Analog write code, but with ACLK selected instead of SMCLK
+  TA0CCR0 = MAX_TIMER_VAL;           // PWM Period
+  TA0CCTL1 = OUTMOD_7;            // reset/set
+  TA0CCR1 = PWM_DUTY(100);       // PWM duty cycle
+  TA0CTL = TASSEL_1 + MC_2 + ANALOG_DIV;       // ACLK, up mode
+  
+  timer_init(&neighborDisc, 5000);
+  /*print_bytes((uint8_t*)&neighborDisc.end);*/
 
   //  spiProtocol.dataRegisters = &(memoryMap[0].u8[0]);
 
@@ -206,8 +255,6 @@ void setup()
    */
 
 
-
-
   /*
 i = 0xff;
    returnData = (*memoryMapRegionMethods.gpio_handler)(0, 0x2, &i, ~(1<<6));
@@ -265,6 +312,17 @@ i = 0xff;
 }
 void loop()
 {  
+  /*Serial.println("beep");*/
+  /*uint16_t timerA0Reg = current_time();*/
+
+  /*print_bytes((uint8_t*)&timerA0Reg);*/
+
+  if (timer_expired(&neighborDisc))
+  {
+    Serial.println("Timer just expired, rearming");
+    timer_init(&neighborDisc, 5000);
+  }
+
   /*
   rawADC = (uint8_t)((analogRead(A5) >> 2)&0xFF);
    Serial.print("A5 native: "); Serial.println(rawADC);
@@ -280,8 +338,7 @@ void loop()
   //  returnData = (*memoryMapRegionMethods.gpio_handler)(0, GPIO_0_TOGGLE, &i, ~(1<<0)); //toggles P1.0
 
   digitalWrite(RED_LED, hbt_output ^= 0x1);
-  Serial.println("beep");
-  delay(1000);
+  delay(10);
 
 
   /*

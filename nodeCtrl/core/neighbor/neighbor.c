@@ -1,24 +1,14 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "neighbor.h"
-#include "../protocol/type.h"
-#ifndef MSP430
-#define boolean int
+#ifdef LINUX
 #include <time.h>
+#endif
+#ifdef MSP430
+#include <msp430g2553.h>
 #endif
 
 #define LENGTH 1
-
-typedef uint16_t timerType;
-#define MAX_TIMER_VAL (UINT16_MAX) 
-
-#define TIMER_OVERFLOW(a,b) ((MAX_TIMER_VAL - (a)) < (b))
-
-typedef struct
-{
-   timerType duration;
-   timerType end;
-}dogeTimer;
 
 timerType current_time()
 {
@@ -29,6 +19,25 @@ timerType current_time()
    timerType value = (timerType)(((long long int)ms) % MAX_TIMER_VAL);
    return value;
 #endif
+#ifdef MSP430
+   // based on timer_a.c TIMER_A_getCounterValue function 
+   timerType sample1 = 0;
+   timerType sample2 = 0;
+   while(1)
+   {
+      sample2 = sample1;
+      sample1 = TA0R;
+      if ((sample1 > sample2) && (sample1 - sample2 < 50))
+      {
+         break;
+      }
+      else if ((sample2 > sample1) && (sample2-sample1 < 50))
+      {
+         break;
+      }
+   }
+   return sample2;
+#endif
 }
 
 void timer_init(dogeTimer* timer, timerType duration)
@@ -37,22 +46,6 @@ void timer_init(dogeTimer* timer, timerType duration)
    timer->duration = duration;
 }
 
-dogeBool timer_expired(dogeTimer* timer)
-{
-   timerType currTime = current_time();
-   dogeBool expired = TRUE;
-   if ((currTime < timer->end) && (currTime >= (timer->end - timer->duration)))
-   {
-      expired = FALSE;
-   }
-   // Overflow
-   else if ((currTime > timer->end))
-   {
-      expired = FALSE;
-   }
-    printf("Timer Current: %d, Timer end: %d Timer->end - Timer->duration %x, Expired: %d \n", currTime, timer->end, (timer->end - timer->duration), expired);
-   return expired;
-}
 
 void timer_reset(dogeTimer* timer)
 {
@@ -62,6 +55,7 @@ void timer_reset(dogeTimer* timer)
 
 struct neighborEntry alpha[LENGTH];
 
+#if DBG
 void main()
 {
    dogeTimer neighborDiscovery;
@@ -84,3 +78,4 @@ void main()
 	printf("Test size = %d\n", sizeof(i));
 	#endif
 }
+#endif

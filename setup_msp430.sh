@@ -14,6 +14,25 @@ if [[ $RUNENV == "Cygwin" ]]
     export CYGWIN=winsymlinks:native
 fi
 
+if [[ "$1" == "clean" ]]
+	then
+		rm -rf $ENERGIA_LIB_DIR/*
+		rm -rf $ENERGIA_LIB_DIR/../nodeCtrl
+		git checkout $PWD/nodes/msp430g2553/nodeCtrl_v1/nodeCtrl.ino
+		if [[ -e $PWD/nodes/msp430g2553/nodeCtrl_v1/nodeCtrl/nodeCtrl.ino ]]
+			then
+				NODE_CTRL_DIFF=$(diff $PWD/nodes/msp430g2553/nodeCtrl_v1/nodeCtrl.ino $PWD/nodes/msp430g2553/nodeCtrl_v1/nodeCtrl/nodeCtrl.ino)
+				if [[ "$NODE_CTRL_DIFF" != "" ]]
+					then
+						echo "Could not erase $PWD/nodes/msp430g2553/nodeCtrl_v1/nodeCtrl/nodeCtrl.ino"
+						echo "$NODE_CTRL_DIFF"
+				else
+						rm -rf $PWD/nodes/msp430g2553/nodeCtrl_v1/nodeCtrl
+				fi
+		fi
+		exit 0
+fi
+
 mkdir -p $ENERGIA_LIB_DIR/../nodeCtrl
 mkdir -p $ENERGIA_LIB_DIR/nrf24
 mkdir -p $ENERGIA_LIB_DIR/adc
@@ -31,6 +50,7 @@ ln -s $PWD/nodeCtrl/core/adc/adc.h                           $ENERGIA_LIB_DIR/ad
 ln -s $PWD/nodeCtrl/core/adc/adc.c                           $ENERGIA_LIB_DIR/adc/adc.c
 ln -s $PWD/nodeCtrl/core/neighbor/neighbor-config.h          $ENERGIA_LIB_DIR/neighbor/neighbor-config.h
 ln -s $PWD/nodeCtrl/core/neighbor/neighbor.h                 $ENERGIA_LIB_DIR/neighbor/neighbor.h
+ln -s $PWD/nodeCtrl/core/neighbor/neighbor.c                 $ENERGIA_LIB_DIR/neighbor/neighbor.c
 ln -s $PWD/nodeCtrl/core/nodeCtrl_errno.h                    $ENERGIA_LIB_DIR/nodeCtrl_errno.h
 ln -s $PWD/nodeCtrl/core/protocol/protocol.h                 $ENERGIA_LIB_DIR/protocol/protocol.h
 ln -s $PWD/nodeCtrl/core/protocol/protocol.c                 $ENERGIA_LIB_DIR/protocol/protocol.c

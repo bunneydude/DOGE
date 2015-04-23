@@ -3,6 +3,24 @@
 
 #include <stdint.h>
 #include "neighbor-config.h"
+#include "../protocol/type.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+typedef uint16_t timerType;
+#define MAX_TIMER_VAL (UINT16_MAX)
+
+#define TIMER_OVERFLOW(a,b) ((MAX_TIMER_VAL - (a)) < (b))
+#define TIMER_BEGIN(timer) (((timer)->end)-((timer)->duration))
+#define TIMER_END(timer)   ((timer)->end)
+
+typedef struct
+{
+   timerType duration;
+   timerType end;
+}dogeTimer;
 
 //neighborEntry holds information needed to communicate w/ adjacent nodes
 //#if PACK_STRUCT == 1
@@ -22,4 +40,11 @@ struct neighborEntry{
 };
 #endif
 */
+timerType current_time();
+void timer_init(dogeTimer* timer, timerType duration);
+dogeBool timer_expired(dogeTimer* timer);
+void timer_reset(dogeTimer* timer);
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 #endif
