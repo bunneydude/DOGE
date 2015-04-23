@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include <string.h>
-#include "packet.h"
+#include "../packet.h"
 #include "protocol.h"
 
 void Protocol_init(struct Protocol* obj){
@@ -8,6 +8,9 @@ void Protocol_init(struct Protocol* obj){
    obj->dataRegisters = ((&(memoryMap[MM_PHYSICAL_BAR/4].u8[MM_PHYSICAL_BAR%4])));
 }
 
+/**
+ * @brief Parses link layer packets and passes the data payload to application layer.
+ */
 uint8_t link_layer_parse_packet(struct Protocol* obj, rawPacket* message, rawPacket* response)
 {
    uint8_t typeAck         = 0;
@@ -22,7 +25,6 @@ uint8_t link_layer_parse_packet(struct Protocol* obj, rawPacket* message, rawPac
    // Decode header info
    GET_HEADER_TYPE_ACK(message->hdr.type, typeAck);
    GET_HEADER_TYPE(message->hdr.type, type);
-//   type = (packetType) ((message->hdr.type & HEADER_TYPE_MASK) >> HEADER_TYPE_SHIFT);
    GET_TXINFO_PACKET_ID(message->hdr.txInfo, packetId);
    GET_TXINFO_RTA(message->hdr.txInfo, rta);
 
@@ -35,7 +37,6 @@ uint8_t link_layer_parse_packet(struct Protocol* obj, rawPacket* message, rawPac
    if (status == ERR_CHECKSUM){
       //TODO: log error and/or send error message back?
       sendResponse = NO_TRANSMIT;
-
    }else if (message->hdr.type == RAW_PACKET){
       messageAttr.ack = typeAck;
       messageAttr.size = message->size;
@@ -43,9 +44,9 @@ uint8_t link_layer_parse_packet(struct Protocol* obj, rawPacket* message, rawPac
                                         (appPacket*)((void*)message + RAW_PACKET_DATA_OFFSET),
                                         (appPacket*)((void*)response + RAW_PACKET_DATA_OFFSET),
                                         &messageAttr,
-                                        &responseAttr);      
+                                        &responseAttr);
       if (responseAttr.ack == TRUE){ // Application layer requests a response packet
-         link_layer_form_packet(response, &responseAttr, RAW_PACKET, message->hdr.dst, message->hdr.src);
+         link_layer_form_packet(response, &responseAttr, RAW_PACKET, message->hdr.dst, message->hdr.src, message->hdr.shDst, message->hdr.shSrc);
          sendResponse = TRANSMIT_RESPONSE;
       }
    }
@@ -55,13 +56,15 @@ uint8_t link_layer_parse_packet(struct Protocol* obj, rawPacket* message, rawPac
 /**
  *message = source/destination.
  */
-uint8_t link_layer_form_packet(rawPacket* packet, packetAttr* attr, uint8_t type, uint16_t src, uint16_t dst)
+uint8_t link_layer_form_packet(rawPacket* packet, packetAttr* attr, uint8_t type, uint16_t src, uint16_t dst, uint16_t shSrc, uint16_t shDst)
 {
    memset(packet, 0, sizeof(packet->hdr));
    SET_HEADER_TYPE(packet->hdr.type, type);
    SET_HEADER_TYPE_ACK(packet->hdr.type, attr->ack);
    packet->hdr.src = src;
    packet->hdr.dst = dst;
+   packet->hdr.shSrc = shSrc;
+   packet->hdr.shDst = shDst;
    //TODO: Packet ID/RTA/CRC are supposed to be set by MAC protocol
    /*SET_TXINFO_PACKET_ID(response->hdr.txInfo, 0);*/
    /*SET_TXINFO_RTA(response->hdr.txInfo, 0);*/

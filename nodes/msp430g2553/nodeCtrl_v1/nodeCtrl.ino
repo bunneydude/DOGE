@@ -26,6 +26,8 @@ packetAttr txAttr;
 rawPacket rxRawPacket;
 appPacket* rxAppPacket;
 packetAttr rxAttr;
+uint8_t typeAck;
+packetType type;
 
 #define MY_NODE_ID 0x6
 #define NODECTRL_VERSION 1
@@ -35,7 +37,7 @@ uint8_t sendResponse = 0;
 uint8_t hbt_output = 0x1;
 
 uint8_t returnData = 0;
-uint8_t i =0;
+uint8_t i = 0;
 uint8_t rawADC = 0;
 uint8_t tempIndex;
 union networkEntry tempEntry;
@@ -55,7 +57,7 @@ void print_packet(rawPacket* packet){
 }
 
 void setup()
-{ 
+{
   Protocol_init(&spiProtocol);
   network_init(NETWORK_DIVISION_DEFAULT);
   dsp_init(5,0);
@@ -77,7 +79,7 @@ void setup()
   rxAppPacket = (appPacket*)rxRawPacket.data;
 
   application_form_packet(txAppPacket, &txAttr, CMD_READ_REG, 55, 0);
-  link_layer_form_packet(&txRawPacket, &txAttr, RAW_PACKET, 1, 6);
+  link_layer_form_packet(&txRawPacket, &txAttr, RAW_PACKET, 1, 6, 1, 6); //TODO Mark please take a look
 
   sendResponse = link_layer_parse_packet(&spiProtocol, &txRawPacket, &rxRawPacket);
 
@@ -100,6 +102,17 @@ void loop()
       if(sendResponse == 1){
         Radio.transmit(0x1, (uint8_t*)(&txRawPacket), sizeof(packetHdr) + 1 + txRawPacket.size); //to root node at address 0x1
       }
+    }
+    else if (MY_NODE_ID == rxRawPacket.hdr.shDst &&
+             network_has_neighbor(rxRawPacket.hdr.shDst, &tempIndex)){ //forward message
+             //TODO NEED TO CHECK ROUTING TABLE AS WELL
+      GET_HEADER_TYPE_ACK(rxRawPacket.hdr.type, typeAck);
+      GET_HEADER_TYPE(rxRawPacket.hdr.type, type);
+      txAttr.ack = typeAck;
+      txAttr.size = rxRawPacket.size;
+      link_layer_form_packet(&txRawPacket, &txAttr, type, rxRawPacket.hdr.src, rxRawPacket.hdr.dst,
+                             MY_NODE_ID, network[tempIndex].neighbor.shNodeID);
+      Radio.transmit(0x1, (uint8_t*)(&txRawPacket), sizeof(packetHdr) + 1 + txRawPacket.size); //to root node at address 0x1
     }
     //Received packet was not meant for us
     //check if this is a new neighbor

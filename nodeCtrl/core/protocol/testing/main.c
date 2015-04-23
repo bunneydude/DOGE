@@ -5,14 +5,16 @@
 #include <string.h>
 #include <assert.h>
 
-#define TEST_PACKET_ID   0x3
-#define TEST_RTA         0xC
-#define TEST_TYPE_ACK    0x1
-#define TEST_SRC_NODE_ID 0x9
-#define TEST_DST_NODE_ID 0x10
-#define TEST_TTL         0x5
-#define TEST_PACKET_SIZE 16
-#define TEST_PACKET_DATA 0xDA
+#define TEST_PACKET_ID      0x3
+#define TEST_RTA            0xC
+#define TEST_TYPE_ACK       0x1
+#define TEST_SRC_NODE_ID    0x6
+#define TEST_DST_NODE_ID    0x8
+#define TEST_SH_SRC_NODE_ID 0x7
+#define TEST_SH_DST_NODE_ID 0x8
+#define TEST_TTL            0x5
+#define TEST_PACKET_SIZE    16
+#define TEST_PACKET_DATA    0xDA
 #define TEST_HEADER_TYPE RAW_PACKET
 
 
@@ -47,14 +49,19 @@ void test_app_packet()
    responseApp = (appPacket*)responseRaw.data;
    /* Test CMD READ REG packet */
    // Form message packet
+   // If the application layer is processing this packet, then the Single Hop
+   // Destination Node ID must equal the Destination Node ID
+   assert(TEST_SH_DST_NODE_ID == TEST_DST_NODE_ID);
    application_form_packet(messageApp, &messageAttr, CMD_READ_REG, TEST_CMD_READ_REG_ADDR, 0x0);
-   link_layer_form_packet(&messageRaw, &messageAttr, RAW_PACKET, TEST_SRC_NODE_ID, TEST_DST_NODE_ID);
+   link_layer_form_packet(&messageRaw, &messageAttr, RAW_PACKET, TEST_SRC_NODE_ID, TEST_DST_NODE_ID, TEST_SH_SRC_NODE_ID, TEST_SH_DST_NODE_ID);
    assert(messageRaw.size == CMD_READ_REG_DATA_SIZE);
    // Check response
    status = link_layer_parse_packet(&obj, &messageRaw, &responseRaw);
    assert(status == TRANSMIT_RESPONSE);
    assert(responseRaw.hdr.src == TEST_DST_NODE_ID);
    assert(responseRaw.hdr.dst == TEST_SRC_NODE_ID);
+   assert(responseRaw.hdr.shSrc == TEST_SH_DST_NODE_ID);
+   assert(responseRaw.hdr.shDst == TEST_SH_SRC_NODE_ID);
    assert(IS_HEADER_TYPE_ACK(responseRaw.hdr.type) && HEADER_TYPE_EQUALS(responseRaw.hdr.type, RAW_PACKET));
    assert(responseRaw.size == CMD_ACK_DATA_SIZE);
    assert(responseApp->cmd == CMD_ACK);
