@@ -4,16 +4,17 @@ var io = require('socket.io');
  
  
 var app = express();
-app.use(express.static('./'));
+app.use(express.static('./public'));
 //Specifying the public folder of the server to make the html accesible using the static middleware
-
-var port = 8124
-
-var server =http.createServer(app).listen(port);
+ 
+var server =http.createServer(app).listen(8124);
 //Server listens on the port 8124
 io = io.listen(server); 
-console.log ('Started Server on port:'+port);
+
 var nw_data; 
+var recvd=0;
+var loop = 1;
+
 /*initializing the websockets communication , server instance has to be sent as the argument */
 io.sockets.on("connection",function(socket){
       
@@ -39,10 +40,10 @@ io.sockets.on("connection",function(socket){
     console.log('Socket.io Connection with the client established');
     
     //Handle incoming messages from the browser
-    socket.on("message",function(data){
-        /*This event is triggered at the server side when client sends the data using socket.send() method */
-        io.to('rpsock').emit (data) 
+    socket.on("message",function(data,callback){
+        console.log('Received request from browser:');
         console.log(data);
+        io.to('rpsock').emit(data);
     }); 
 
     //Routing Processor will send the network info as a 'load network message'
@@ -51,12 +52,20 @@ io.sockets.on("connection",function(socket){
         console.log("Received load network");
         nw_data = data;
         //Debug
-         //data = JSON.parse(data);
+        // data = JSON.parse(data);
          //console.log(data);
         var ack_to_client = {
           data:"Server Received the message"
         }
         io.to('rpsock').emit('ack',JSON.stringify(ack_to_client));
+    });
+
+    socket.on("confirm",function(data){
+        io.to('browsersock').emit("confirm",data);
+        console.log("Received confirmation from RP:");
+       // Debug
+         data = JSON.parse(data);
+         console.log(data);
     });
  
 });

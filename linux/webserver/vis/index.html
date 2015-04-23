@@ -67,11 +67,11 @@
   
   
   </style>
-  <script type="text/javascript" src="/socket.io/socket.io.js"></script> 
-  <script type="text/javascript" src="vis.js"></script>
+   <script type="text/javascript" src="/socket.io/socket.io.js"></script> 
+   <script type="text/javascript" src="vis.js"></script>
   <script type="text/javascript" src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
  
-  <link type="text/css" rel="stylesheet" href="vis.css">
+ <link type="text/css" rel="stylesheet" href="vis.css">
 
   <script type="text/javascript">
 
@@ -162,8 +162,20 @@
 
     //Socket function to send data to node.js server
     function sendMessage(data) {
-      
-      socket.send(toJson(data)); // Send the message to the server
+      socket.send(toJson(data));
+    }
+   
+    //Socket function to send data to node.js server
+    function sendMessageWait(data) {
+      var resp;
+      socket.send(toJson(data),function(response){
+        resp = response;
+        console.log(response);
+      document.getElementById('selection').innerHTML = "Response:"+resp;
+         
+     }); 
+
+      return resp;
     }
    
 
@@ -365,17 +377,14 @@
     function updateEdge (id) {
       try {
         edges.update({id: id, style:'dash-line',color:'gray'});
-        var edgeObj = edges.get(id);
-        var message = {'command' : 'mask_physical_edge', 'data' : [parseInt(edgeObj.from),parseInt(edgeObj.to),id]};
-        sendMessage(message);
       }
       catch(err) {
         alert (err);
       } 
     }
     
-    
     function saveUserData () {
+
       if (mode == 'add-route') {
          document.getElementById('selection').innerHTML = "User defined route requested = " +userRoute;
           var message = {'command': 'add_route', 'data': userRoute};
@@ -411,32 +420,62 @@
       }
       else if (mode == 'mask-element'){
 
+        
         document.getElementById('selection').innerHTML = "Mask Node/Edge edge requested for Edges:" +  maskEdge +" Nodes:"+ maskNode;
 
-        //If selection had edges, mask it
-        if (maskEdge != null) {
+        //If a node was selected, mask it
+        if (maskNode != "") {
+            var message = {'command':'mask_node','data': maskNode};
+            sendMessageWait(message);
+        }
+
+        //If selection had only edges, mask it
+        if (maskEdge != null && maskNode == "") {
           if (maskEdge.length > 1) {
-            maskEdge.forEach( function(entry) {
-              updateEdge(entry);
+            maskEdge.forEach( function(id) {
+              id = parseInt(id);
+              var edgeObj = edges.get(id);
+              var message = {'command' : 'mask_physical_edge', 'data' : [parseInt(edgeObj.from),parseInt(edgeObj.to),id]};
+              sendMessage(message);
             });
           } 
           else {
-             updateEdge(parseInt(maskEdge));
+              id = parseInt(maskEdge);
+              var edgeObj = edges.get(id);
+              var message = {'command' : 'mask_physical_edge', 'data' : [parseInt(edgeObj.from),parseInt(edgeObj.to),id]};
+              sendMessage(message);
           }
        }
-       //If a node was selected, mask it
-       if (maskNode != "") {
-          try {nodes.update({id: parseInt(maskNode), color: 'gray'});
-          var message = {'command':'mask_node','data': maskNode};
-          sendMessage(message);
+              
+       socket.on ("confirm", function(message){
+       
+         message = JSON.parse(message); 
+         document.getElementById('instructions').innerHTML = 'Confirmation Message from Routing Processor Recvd: Command='+message.command+' Data='+message.data;
+         
+         if (message.command == 'mask_node') {
+           try {
+            nodes.update({id: parseInt(message.data), color: 'gray'});
+           }
+           catch(err) {
+            alert (err);
+           }
+         }
+   
+         else if (message.command == 'mask_physical_edge') {
+           var edge_array = /\[(\d+),(\d+),(\d+)\]/.exec(message.data);
+           updateEdge(edge_array[3]);
+         }
 
+         else if (message.command == 'alert') {
+           document.getElementById('instructions').innerHTML = 'Message from Routing Processor Recvd: ERROR - Cannot mask this node because it has routing tables';
+           //alert(message.data);
          }
-         catch(err) {
-          alert (err);
-         }
-        }
-       network.redraw();
+     
+       });
+
       }
+
+      
       
       clearUserBox();
     }
