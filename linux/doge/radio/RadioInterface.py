@@ -35,7 +35,7 @@ class RadioInterface():
    def proxy_send(self, destination, command, address, payload):
       if(destination not in range(0, 2**16)): raise Exception("The destination, {0}, must be in the range [0,65535]".format(destination))
 
-      self.txData = Protocol.form_packet(type=1, srcID=self._nodeID, dstID=destination, cmd=command, addr=address, data=payload, enc='bytes')
+      self.txData = Protocol.form_packet(type=1, srcID=self._nodeID, dstID=destination, shSrcID=self._nodeID, shDstID=destination, cmd=command, addr=address, data=payload, enc='bytes')
       #TODO need to import a constants file of sorts so we can use 'RAW_PACKET' instead of '1' for type, etc
       print("   About to send: {0}".format(list(ord(x) for x in self.txData)))
       encData = cobs.encode(''.join(self.txData))
@@ -81,38 +81,5 @@ class RadioInterface():
          if(duration >= timeout):      
             print("Timeout")      
       else:
-         self.rxData = Protocol.form_packet(type=1, srcID=6, dstID=self._nodeID, cmd=ProtocolDefs.CMD_ACK, addr=1, data=2, enc='fields')
-         return 1
-
-   def push(self, network, nodeID, data):      
-      # set target - write nodeID to SREG_TARGET
-      self.proxy_send(WRITE, SREG_TARGET, nodeID)
-
-      # set data - write data to address
-      self.proxy_send(WRITE, SREG_TEMPERATURE, data)
-      
-      # transmit - write to SREG_PING
-      self.proxy_send(WRITE, SREG_PING, 0x2)
-
-      if(self.debug == False):
-         if(self.rxData[0] == 4):
-            print("\nError for node " + str(network) + " " + str(nodeID) + ": " + str(self.rxData[3])  + "\n")
-
-
-   def pull(self, network, nodeID, field):
-      fieldDecode = {"rssi":0x0, "temperature":0x4}
-      
-      # set target
-      self.proxy_send(WRITE, SREG_TARGET, nodeID)
-
-      #transmit
-      self.proxy_send(WRITE, SREG_PING, fieldDecode[field.lower()] | 0x1)
-
-      if(self.debug == False):
-         if(self.rxData[0] == 4):
-            print("\nError for node " + str(network) + " " + str(nodeID) + ": " + str(self.rxData[3])  + "\n")
-            return -1
-         else:
-            return self.rxData[3]
-      else:
+         self.rxData = Protocol.form_packet(type=1, srcID=6, dstID=self._nodeID, shSrcID=6, shDstID=self._nodeID, cmd=ProtocolDefs.CMD_ACK, addr=1, data=2, enc='fields')
          return 1
