@@ -116,32 +116,16 @@ while(0)
 while(0)
 
 /** Macro for getting type in header type */
-#define GET_HEADER_TYPE(HEADER_TYPE, TYPE) \
-   do { \
-      (TYPE) = (packetType)(((HEADER_TYPE) & HEADER_TYPE_MASK) >> HEADER_TYPE_SHIFT); \
-   } \
-while(0)
+#define GET_HEADER_TYPE(HEADER_TYPE) ((((HEADER_TYPE) & HEADER_TYPE_MASK) >> HEADER_TYPE_SHIFT))
 
 /** Macro for getting ack in header type */
-#define GET_HEADER_TYPE_ACK(TYPE, ACK) \
-   do { \
-      (ACK) = ((TYPE) & HEADER_TYPE_ACK_MASK) >> HEADER_TYPE_ACK_SHIFT; \
-   } \
-while(0)
+#define GET_HEADER_TYPE_ACK(TYPE) (((TYPE) & HEADER_TYPE_ACK_MASK) >> HEADER_TYPE_ACK_SHIFT)
 
 /** Macro for getting packet ID in header txinfo */
-#define GET_TXINFO_PACKET_ID(TXINFO, PACKET_ID) \
-   do { \
-      (PACKET_ID) = ((TXINFO) & TXINFO_PACKET_ID_MASK) >> (TXINFO_PACKET_ID_SHIFT); \
-   } \
-while(0)
+#define GET_TXINFO_PACKET_ID(TXINFO) (((TXINFO) & TXINFO_PACKET_ID_MASK) >> (TXINFO_PACKET_ID_SHIFT))
 
 /** Macro for getting RTA in header txinfo */
-#define GET_TXINFO_RTA(TXINFO, RTA) \
-   do { \
-      (RTA) = ((TXINFO) & TXINFO_RTA_MASK) >> (TXINFO_RTA_SHIFT); \
-   } \
-while(0)
+#define GET_TXINFO_RTA(TXINFO) (((TXINFO) & TXINFO_RTA_MASK) >> (TXINFO_RTA_SHIFT))
 
 /** Macro for testing header ACK type */
 #define IS_HEADER_TYPE_ACK(TYPE) (((TYPE) & HEADER_TYPE_ACK_MASK) == HEADER_TYPE_ACK_MASK)

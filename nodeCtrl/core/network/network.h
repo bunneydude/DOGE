@@ -1,13 +1,15 @@
 #ifndef NETWORK_H
 #define NETWORK_H
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
 
 #include <stdint.h>
 #include "../neighbor/neighbor.h"
 #include "../routing/routing.h"
 #include "../memory_map/memory_map.h"
+#include "../platform/serial_c.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
 
 #define MAX_NETWORK_ENTRIES 8 //for now, can't be higher than 255, 0-based indexing
 #define NETWORK_DIVISION_DEFAULT 4
@@ -54,6 +56,7 @@ uint8_t network_has_route(uint16_t id, uint8_t* index);
 
 //add an entry to network array
 uint8_t network_insert(union networkEntry* entry, enum networkEntryType type);
+uint8_t network_update(uint16_t id, uint8_t LQE, uint8_t radioId, uint8_t networkId, enum networkEntryType type);
 
 //remove entry
 //TODO might not be used. Allow master node to remove specific entries.

@@ -10,11 +10,17 @@
 #include <SPI.h>
 #include <AIR430BoostFCC.h>
 #include <dsp.h>
+#include <platform.h>
 // -----------------------------------------------------------------------------
 /**
  *  Global data
  */
 #define MAX_DATA_LENGTH 32
+#define MY_NODE_ID 0x6
+#define NODECTRL_VERSION 1
+//Defines for network/radio IDs
+#define RADIO_ID_915 (0x1)
+#define NETWORK_ID_0 (0x0)
 // Data to write to radio TX FIFO (60 bytes MAX.)
 //unsigned char txData[DATA_LENGTH];    
 rawPacket txRawPacket;
@@ -26,11 +32,6 @@ packetAttr txAttr;
 rawPacket rxRawPacket;
 appPacket* rxAppPacket;
 packetAttr rxAttr;
-uint8_t typeAck;
-packetType type;
-
-#define MY_NODE_ID 0x6
-#define NODECTRL_VERSION 1
 
 struct Protocol spiProtocol;
 uint8_t sendResponse = 0;
@@ -41,20 +42,6 @@ uint8_t i = 0;
 uint8_t rawADC = 0;
 uint8_t tempIndex;
 union networkEntry tempEntry;
-// -----------------------------------------------------------------------------
-// Main example
-
-void print_packet(rawPacket* packet){
-  uint8_t i = 0;
-  uint8_t* bytes = (uint8_t*)(packet);
-
-  Serial.println("Packet");
-  Serial.print("   ["); 
-  for(i=0; i < (sizeof(packetHdr) + 1 + packet->size); i++){
-    Serial.print(bytes[i]);
-  }  
-  Serial.println("]");
-}
 
 void setup()
 {
@@ -68,7 +55,7 @@ void setup()
 
   // The radio library uses the SPI library internally, this call initializes
   // SPI/CSn and GDO0 lines. Also setup initial address, channel, and TX power.
-  Radio.begin(0x01, CHANNEL_1, POWER_MAX); 
+  Radio.begin(ADDRESS_BROADCAST, CHANNEL_1, POWER_MAX); 
 
   pinMode(RED_LED, OUTPUT);
   digitalWrite(RED_LED, hbt_output);   // set the LED on
@@ -86,6 +73,7 @@ void setup()
   i=0;
   sendResponse = 1;
 }
+
 void loop()
 {  
   //Make sure radio is ready to receive
@@ -95,45 +83,32 @@ void loop()
   if (Radio.receiverOn((uint8_t*)(&rxRawPacket), MAX_DATA_LENGTH, 1000) > 0){
     if(MY_NODE_ID == rxRawPacket.hdr.dst){ //parse message
       digitalWrite(RED_LED, hbt_output ^= 0x1);
-
       //parse message
       sendResponse = link_layer_parse_packet(&spiProtocol, &rxRawPacket, &txRawPacket);
-
-      if(sendResponse == 1){
-        Radio.transmit(0x1, (uint8_t*)(&txRawPacket), sizeof(packetHdr) + 1 + txRawPacket.size); //to root node at address 0x1
+      //update neighbor table
+      network_update(rxRawPacket.hdr.shSrc, Radio.getRssi(), RADIO_ID_915, NETWORK_ID_0, NEIGHBOR_ENTRY);
+      if (sendResponse == TRANSMIT_RESPONSE){
+        Radio.transmit(ADDRESS_BROADCAST, (uint8_t*)(&txRawPacket), sizeof(packetHdr) + 1 + txRawPacket.size); //to root node at address 0x1
       }
     }
-    else if (MY_NODE_ID == rxRawPacket.hdr.shDst &&
-             network_has_neighbor(rxRawPacket.hdr.shDst, &tempIndex)){ //forward message
-             //TODO NEED TO CHECK ROUTING TABLE AS WELL
-      GET_HEADER_TYPE_ACK(rxRawPacket.hdr.type, typeAck);
-      GET_HEADER_TYPE(rxRawPacket.hdr.type, type);
-      txAttr.ack = typeAck;
-      txAttr.size = rxRawPacket.size;
-      link_layer_form_packet(&txRawPacket, &txAttr, type, rxRawPacket.hdr.src, rxRawPacket.hdr.dst,
-                             MY_NODE_ID, network[tempIndex].neighbor.shNodeID);
-      Radio.transmit(0x1, (uint8_t*)(&txRawPacket), sizeof(packetHdr) + 1 + txRawPacket.size); //to root node at address 0x1
-    }
-    //Received packet was not meant for us
-    //check if this is a new neighbor
-    if(network_has_neighbor(rxRawPacket.hdr.src, &tempIndex)){
-      network[tempIndex].neighbor.shLQE = 0xFF & Radio.getRssi();
-      Serial.print("Neighbor "); Serial.print(rxRawPacket.hdr.src); 
-      Serial.print(", RSSI 0x"); Serial.println(network[tempIndex].neighbor.shLQE, HEX);
-    }else{ //make a new entry
-      tempEntry.neighbor.shNodeID = rxRawPacket.hdr.src;
-      tempEntry.neighbor.shLQE = 0xFF & Radio.getRssi();
-      tempEntry.neighbor.radioID = 0x1;
-      tempEntry.neighbor.networkID = 0x0;
-
-      returnData = network_insert(&tempEntry, NEIGHBOR_ENTRY); 
-      if(returnData == 1){
-        Serial.print("Added neighbor: "); 
-        Serial.println(rxRawPacket.hdr.src);
+    else if (MY_NODE_ID == rxRawPacket.hdr.shDst){ //forward message
+      if(network_has_neighbor(rxRawPacket.hdr.shDst, &tempIndex)){
+         txAttr.ack = GET_HEADER_TYPE_ACK(rxRawPacket.hdr.type);
+         txAttr.size = rxRawPacket.size;
+         link_layer_form_packet(&txRawPacket, &txAttr, GET_HEADER_TYPE(rxRawPacket.hdr.type), rxRawPacket.hdr.src, rxRawPacket.hdr.dst,
+                                MY_NODE_ID, network[tempIndex].neighbor.shNodeID);
+         Radio.transmit(ADDRESS_BROADCAST, (uint8_t*)(&txRawPacket), sizeof(packetHdr) + 1 + txRawPacket.size); //to root node at address 0x1
       }
-      else{
-        Serial.print("No room for neighbor: "); 
-        Serial.println(rxRawPacket.hdr.src);
+      else if (network_has_route(rxRawPacket.hdr.shDst, &tempIndex)){
+         txAttr.ack = GET_HEADER_TYPE_ACK(rxRawPacket.hdr.type);
+         txAttr.size = rxRawPacket.size;
+         link_layer_form_packet(&txRawPacket, &txAttr, GET_HEADER_TYPE(rxRawPacket.hdr.type), rxRawPacket.hdr.src, rxRawPacket.hdr.dst,
+                                MY_NODE_ID, network[tempIndex].neighbor.shNodeID);
+         Radio.transmit(ADDRESS_BROADCAST, (uint8_t*)(&txRawPacket), sizeof(packetHdr) + 1 + txRawPacket.size); //to root node at address 0x1
+      }
+      else
+      {
+         Serial.println("ERROR: Attempt to forward packet that does not exist in neighbor or routing tables");
       }
     }
   }
@@ -149,5 +124,4 @@ void loop()
     dspStatus.counter = dspStatus.period;
     dsp_add_sample( analogRead(A3) );    
   }
-
-}//end main
+}

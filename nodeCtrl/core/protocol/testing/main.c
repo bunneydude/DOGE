@@ -91,12 +91,12 @@ void test_raw_packet()
    memset((void*)((void*)(&packet) + sizeof(packetHdr) + sizeof(packet.size)), TEST_PACKET_DATA, TEST_PACKET_SIZE);
    packet.size = TEST_PACKET_SIZE;
 
-   GET_HEADER_TYPE_ACK(hdr.type, typeAck);
-   GET_HEADER_TYPE(hdr.type, type);
-   GET_TXINFO_PACKET_ID(hdr.txInfo, packetId);
-   GET_TXINFO_RTA(hdr.txInfo, rta);
+   typeAck  = GET_HEADER_TYPE_ACK(hdr.type);
+   type     = GET_HEADER_TYPE(hdr.type);
+   packetId = GET_TXINFO_PACKET_ID(hdr.txInfo);
+   rta      = GET_TXINFO_RTA(hdr.txInfo);
    add_raw_packet_crc(&packet);
-   
+
    assert(typeAck == TEST_TYPE_ACK);
    assert(type == TEST_HEADER_TYPE);
    assert(packetId == TEST_PACKET_ID);

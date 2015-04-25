@@ -23,10 +23,10 @@ uint8_t link_layer_parse_packet(struct Protocol* obj, rawPacket* message, rawPac
    uint8_t sendResponse    = NO_TRANSMIT;
 
    // Decode header info
-   GET_HEADER_TYPE_ACK(message->hdr.type, typeAck);
-   GET_HEADER_TYPE(message->hdr.type, type);
-   GET_TXINFO_PACKET_ID(message->hdr.txInfo, packetId);
-   GET_TXINFO_RTA(message->hdr.txInfo, rta);
+   typeAck  = GET_HEADER_TYPE_ACK(message->hdr.type);
+   type     = GET_HEADER_TYPE(message->hdr.type);
+   packetId = GET_TXINFO_PACKET_ID(message->hdr.txInfo);
+   rta      = GET_TXINFO_RTA(message->hdr.txInfo);
 
    // Clear response data
    memset(response, 0, sizeof(rawPacket));
@@ -37,7 +37,7 @@ uint8_t link_layer_parse_packet(struct Protocol* obj, rawPacket* message, rawPac
    if (status == ERR_CHECKSUM){
       //TODO: log error and/or send error message back?
       sendResponse = NO_TRANSMIT;
-   }else if (message->hdr.type == RAW_PACKET){
+   }else if (type == RAW_PACKET){
       messageAttr.ack = typeAck;
       messageAttr.size = message->size;
       status = application_parse_packet(obj,
