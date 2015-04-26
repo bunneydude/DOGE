@@ -3,6 +3,7 @@ import json
 import RadioInterface
 from __builtin__ import file
 import random
+from doge.conf.globals import config
 
 #The Device class represents a microcontroller and its firmware.
 class Device:
@@ -154,13 +155,25 @@ class VirtualNode:
         narray = []
         rarray = [] 
         self._nt = NetworkTable(narray,rarray)
+    
+    def load_preset_nte_config(self):
+        nte_nodes = []
+        for nte_entry in config:
+            nte_nodes.append(
+                HardwareNode(
+                    device=Device(
+                        deviceName=nte_entry['mcu_name'], 
+                        memoryMapFile=config['config_file_paths']['mm_map_default_profile']
+                    ), 
+                    nodeID=nte_entry['node_id'], 
+                    pipe=self._pipe
+                )
+            )
+        return nte_nodes
 
     def get_neighbors(self,node_id=0):
-        node_array = []
-        network_table = self._nt
-        #neighbor_table_array = ? #TODO: Finish this
-        for x in VirtualNodeConfigEntry in VirtualNodeConfigFile:
-            node_array.append(VirtualNodeConfigEntry)
+        node_array = self.load_preset_nte_config()
+        network_table = self._nt = NetworkTable(neighborArray=node_array,routingArray=[])
         return node_array
         
     def get_neighbor_table(self,node_id):

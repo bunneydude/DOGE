@@ -1,4 +1,4 @@
-from RoutingProcessor import RoutingProcessor
+from doge.core.RoutingProcessor import RoutingProcessor
 import json
 
 

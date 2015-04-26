@@ -5,6 +5,7 @@ from collections import defaultdict
 from doge.radio.RadioInterface import RadioInterface
 from doge.radio.Node import HardwareNode, VirtualNode
 from doge.core.RoutingProcessor import RoutingProcessor
+from doge.conf.globals import config
 
 # TODO: Create inner class definition for operation on RP calls via private methods post-sketch connection
 
@@ -101,9 +102,8 @@ def connect_sketch():
     '''
     Connect to the IPC objects from sketch
     '''
-    debug = True #TODO: debug flag to be read in from some global config, later
-    node = 5 #TODO: where to read this in from?
-    pipe = RadioInterface("edison", node, debug)
+    node = 0 #TODO: where to read this in from?
+    pipe = RadioInterface("edison", node, config['debug'])
     pipe.connect_sketch()
     
     root = VirtualNode(0)
@@ -124,7 +124,8 @@ def rp_run():
     nte = {}
     rte = {}
     
-    root.get_neighbor_table(0) #get edison neighbors
+    root.get_neighbors()
+    root.get_neighbor_table() #get edison neighbors
     
     edisonRP = RoutingProcessor()
     
