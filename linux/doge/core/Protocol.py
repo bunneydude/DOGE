@@ -1,5 +1,6 @@
 from ctypes import *
 from protocol_ctypes import *
+import warnings
 
 libprotocol = CDLL("./doge/core/libprotocol.so")
 
@@ -34,9 +35,27 @@ def form_packet(type=RAW_PACKET, srcID=1, dstID=1, cmd=CMD_READ_REG, addr=0, dat
    return toSend
  
 
-def parse_packet(data)
+# Expects a list of ints or strings
+def parse_packet(data):
+   if(type(data) is not list): raise Exception("Input must be a list. It was instead a {0}".format(type(data)))
+   if(len(data) == 0): raise Exception("Input list cannot be empty")
+   if( (type(data[0]) is not str) and (type(data[0]) is not int)): raise Exception("The input list must consist of only ints or strings")
 
+   # convert to a list of strings
+   if(type(data[0]) is int):
+      data = list(chr(x) for x in data)
 
+   # concat
+   data = ''.join(data)
+
+   newPacket = rawPacket()
+   length = min(len(data), sizeof(newPacket))
+   if(len(data) > sizeof(newPacket)): warnings.warn("Input data larger than raw packet object")
+
+   # move data into packet
+   memmove(addressof(newPacket), data, length)
+   
+   return newPacket
 
 def receive_packet(stream, registers):
    raise Exception("Protocol.receive_packet has been deprecated.")
