@@ -139,7 +139,7 @@
        var routingEdgesArrayLength = routingEdgesJsonObj.length;
 
        for (var i=0;i < routingEdgesArrayLength; i++){
-          route_edge = {'from':JSON.stringify(routingEdgesJsonObj[i].from),'to':JSON.stringify(routingEdgesJsonObj[i].to),'label':JSON.stringify(routingEdgesJsonObj[i].label),'id':JSON.stringify(routingEdgesJsonObj[i].id),'style':'dash-line'};
+          route_edge = {'from':JSON.stringify(routingEdgesJsonObj[i].from),'to':JSON.stringify(routingEdgesJsonObj[i].to),'label':JSON.stringify(routingEdgesJsonObj[i].label),'id':JSON.stringify(routingEdgesJsonObj[i].id),'style':'arrow','arrowScaleFactor': .5,'color':'green'};
           edges.add(route_edge);
 
        }
@@ -147,7 +147,7 @@
        //Filter out routing edges (dash-line edges). We will add these back based on user feedback 
        routing_edges = edges.get({
          filter: function (item) {
-          return (item.style === 'dash-line');
+          return (item.style === 'arrow');
          }
        });
        edges.remove(routing_edges);
@@ -223,6 +223,7 @@
    function toggleRouteDisplay () {
      if (route_toggle) {
       edges.add(routing_edges);
+  
       route_toggle = 0;
      }
      else {
@@ -243,7 +244,7 @@
       
       //Clear out states from any previous use cases
       document.getElementById('selection').innerHTML = "";
-      //network.off ('select');
+      network.off ('select');
       
      //Display user instructions and selections
       document.getElementById('instructions').innerHTML = 'Select Source Node followed by intermediate node(s) (if any) and then the Destination Node. Click Confirm when done or Cancel to exit';
@@ -266,7 +267,7 @@
       
       //Clear out states from any previous use cases
       document.getElementById('selection').innerHTML = "";
-      //network.off ('select');
+      network.off ('select');
       
       
       //Display user instructions and selections
@@ -301,7 +302,7 @@
       
       //Clear out states from any previous use cases
       document.getElementById('selection').innerHTML = "";
-      //network.off ('select');
+      network.off ('select');
       
       //Display user instructions and selections
       document.getElementById('instructions').innerHTML = 'Select Source Node followed by the Destination Node.Click Confirm when done or Cancel to exit';
@@ -335,7 +336,7 @@
       
       //Clear out states from any previous use cases
       document.getElementById('selection').innerHTML = "";
-      //network.off ('select');
+      network.off ('select');
              
       //Display user instructions and selections
       document.getElementById('instructions').innerHTML = 'Select Node/Edge to be masked.Click Confirm when done or Cancel to exit';
@@ -344,7 +345,8 @@
       //Make user confirmation buttons visible
       var div = document.getElementById('user-confirm');
       div.style.display = 'block';
-      
+      params = [];
+ 
       network.on('select',function(params) {
         if (params['edges'] != "") {  
           maskEdge = params.edges ;
@@ -376,7 +378,7 @@
     //Function to update edge properties if masked
     function updateEdge (id) {
       try {
-        edges.update({id: id, style:'dash-line',color:'gray'});
+        edges.update({id: id, style:'dash-line',color:'gray',label:''});
       }
       catch(err) {
         alert (err);
