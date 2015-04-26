@@ -131,7 +131,7 @@ def rp_run():
     nodeId=1 
     for nbr in edison_neighbors:
         nte_array = nbr.get_neighbor_table(nodeId)
-        rte_array = []
+        rte_array = nbr.get_routing_table(nodeId)
         edisonRP.createNetworkVis (nodes,edges,route_edges,nodeId,nte_array,rte_array)
         nodeId +=1
 
@@ -139,7 +139,10 @@ def rp_run():
     edges.append({'id':5000, 'from':0, 'to': 1,'label':88,'radio':1})
     edges.append({'id':5001, 'from':0, 'to': 2,'label':88,'radio':3})
     edges.append({'id':5002, 'from':0, 'to': 3,'label':88,'radio':1})
-    
+    route_edges.append({'id':6001, 'from':0, 'to': 1,'label':98,'radio':1})
+    route_edges.append({'id':6002, 'from':0, 'to': 2,'label':91,'radio':1})
+    route_edges.append({'id':6003, 'from':0, 'to': 3,'label':88,'radio':1})
+
     nodes_json = json.dumps(nodes)
     edges_json = json.dumps(edges)
     route_edges_json = json.dumps(route_edges)
@@ -155,4 +158,9 @@ def rp_run():
         print "Error could not send load network message"
 
     
+    
+    while True:
+        #Wait for incoming message targetted to routing processor
+        sock.on('message', edisonRP.processMessage)
+        sock.wait(seconds=1)
     

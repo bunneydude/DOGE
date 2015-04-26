@@ -222,12 +222,24 @@ class NetworkTable:
 
    def get_routes(self,node_id):
       #return self._routingArray.copy()
-      if (node_id ==0 ):
-        rarray =  [[1,94,1]]
       if (node_id ==1 ):
-        rarray =  [[2,88,1]]
+        rarray =  [[4,94,1]]
       if (node_id ==2 ):
-        rarray =  [[3,55,1]]
+        rarray =  [[6,34,1]]
+      if (node_id ==3 ):
+        rarray =  [[9,55,1]]
+      if (node_id ==4 ):
+        rarray =  [[5,84,1],[7,93,1]]
+      if (node_id ==5 ):
+        rarray =  []
+      if (node_id ==6 ):
+        rarray =  []
+      if (node_id ==7 ):
+        rarray =  [[8,75,1]]
+      if (node_id ==8 ):
+        rarray =  [[9,88,1]]
+      if (node_id ==9 ):
+        rarray =  []
       return (rarray)
         
 
