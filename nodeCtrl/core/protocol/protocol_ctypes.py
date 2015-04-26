@@ -1,6 +1,6 @@
 from ctypes import *
 
-HEADER_SIZE = 8
+HEADER_SIZE = 12
 
 
 MAX_PAYLOAD_SIZE = 14
