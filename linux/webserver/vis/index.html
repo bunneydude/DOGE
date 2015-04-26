@@ -125,8 +125,9 @@
        var nodesArrayLength = nodesJsonObj.length;
 
        for (var i=0;i < nodesArrayLength; i++){
-          node = {'group':JSON.stringify(nodesJsonObj[i].group),'id':JSON.stringify(nodesJsonObj[i].id),'label':JSON.stringify(nodesJsonObj[i].label)};
+          node = {'group':nodesJsonObj[i].group,'id':JSON.stringify(nodesJsonObj[i].id),'label':JSON.stringify(nodesJsonObj[i].label)};
           nodes.add(node);
+          console.log(node);
        }
        
        var edgesArrayLength = edgesJsonObj.length;
@@ -564,8 +565,8 @@
 
     options = {
    
-    dragNetwork: false,
-    zoomable: false,
+    dragNetwork: true,
+    zoomable: true,
     
     dataManipulation: {
     enabled: true,
