@@ -12,14 +12,17 @@ extern "C" {
 #define static_assert2(cond) uint8_t static_assert2[((cond) == 1) ? 1 : -1]
 #define static_assert3(cond) uint8_t static_assert3[((cond) == 1) ? 1 : -1]
 #define static_assert4(cond) uint8_t static_assert4[((cond) == 1) ? 1 : -1]
+#define static_assert5(cond) uint8_t static_assert5[((cond) == 1) ? 1 : -1]
 #else
 #define static_assert1(cond)
 #define static_assert2(cond)
 #define static_assert3(cond)
 #define static_assert4(cond)
+#define static_assert5(cond)
 #endif
 
 #define MAX_RAW_PACKET_PAYLOAD_SIZE 19
+#define MAX_PACKET_PAYLOAD_SIZE     20
 
 typedef enum {
    UNDEFINED_PACKET_TYPE = 0,
@@ -70,6 +73,13 @@ typedef struct {
 #pragma pack()
 
 static_assert4(sizeof(packetAck) == 14);
+
+typedef struct {
+   packetHdr hdr;
+   uint8_t payload[MAX_PACKET_PAYLOAD_SIZE];
+} dogePacket;
+
+static_assert5(sizeof(dogePacket) == sizeof(rawPacket));
 
 #define HEADER_TYPE_ACK_MASK       0x80
 #define HEADER_TYPE_ACK_SHIFT      7
@@ -133,14 +143,18 @@ while(0)
 /** Macro for testing header type */
 #define HEADER_TYPE_EQUALS(HEADER_TYPE, TYPE) ((((HEADER_TYPE) & HEADER_TYPE_MASK) >> HEADER_TYPE_SHIFT) == (TYPE))
 
-#define NUM_PACKET_HEADER_CRC_BYTES (sizeof(packetHdr) - sizeof(((packetHdr*)0)->crc))
-#define RAW_PACKET_DATA_OFFSET      (offsetof(rawPacket, data))
-#define RAW_PACKET_DATA_CRC_BEGIN        (RAW_PACKET_DATA_OFFSET - sizeof(((rawPacket*)0)->size))
-#define RAW_PACKET_DATA_CRC_END(packet)  (RAW_PACKET_DATA_CRC_BEGIN + sizeof(((rawPacket*)0)->size) + (packet)->size)
+#define NUM_PACKET_HEADER_CRC_BYTES        (sizeof(packetHdr) - sizeof(((packetHdr*)0)->crc))
+#define RAW_PACKET_DATA_OFFSET             (offsetof(rawPacket, data))
+#define RAW_PACKET_DATA_CRC_BEGIN          (RAW_PACKET_DATA_OFFSET - sizeof(((rawPacket*)0)->size))
+#define RAW_PACKET_DATA_CRC_END(_packet_)  (RAW_PACKET_DATA_CRC_BEGIN + sizeof(((rawPacket*)0)->size) + (_packet_)->size)
+#define RAW_PACKET_TOTAL_SIZE(_packet_)    (sizeof(packetHdr) + sizeof(((rawPacket*)0)->size) + ((rawPacket*)(_packet_))->size)
+#define RAW_PACKET_DATA_SIZE(_packet_)     (((rawPacket*)(_packet_))->size)
+#define PACKET_PAYLOAD_OFFSET              (offsetof(dogePacket, payload))
 #define DEFAULT_PACKET_TTL (255)
 
-void add_raw_packet_crc(rawPacket* packet);
-uint8_t check_raw_packet_crc(rawPacket* packet);
+uint8_t packet_payload_end(dogePacket* packet);
+void add_packet_crc(dogePacket* packet);
+uint8_t check_packet_crc(dogePacket* packet);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

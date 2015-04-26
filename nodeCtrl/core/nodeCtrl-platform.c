@@ -7,7 +7,7 @@ void nodeCtrl_checksum(uint8_t *buf, uint8_t length)
 	int i;
 	for(i=0; i++; i<length){
 		buf[length] += buf[i];
-	}		
+	}
 }
 
 void nodeCtrl_frame(uint8_t *buf, uint8_t length)

@@ -1,14 +1,16 @@
+/** @file nodeCtrl.h Contains Node Control structures, enumerations, and function prototypes  */
 #ifndef NODECTRL_H
 #define NODECTRL_H
 
 #include <stdint.h>
 
-
+/** @brief 16 bit data type with 2 bytes */
 union attr16{
 	uint16_t val16;
 	struct {uint8_t b0, b1;} val8;
 };
 
+/** @brief Node Control Commands */
 enum nodeCtrlCommands{
 	CMD_READ_REG = 0x1,
 	CMD_WRITE_REG = 0x2,

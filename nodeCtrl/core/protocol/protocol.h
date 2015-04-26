@@ -79,8 +79,8 @@ static_assert6((sizeof(((rawPacket*)0)->hdr) +
                 sizeof(appPacket)) <= sizeof(rawPacket));
 
 void Protocol_init(struct Protocol* obj);
-uint8_t link_layer_parse_packet(struct Protocol* obj, rawPacket* message, rawPacket* response);
-uint8_t link_layer_form_packet(rawPacket* packet, packetAttr* attr, uint8_t type, uint16_t src, uint16_t dst, uint16_t shSrc, uint16_t shDst);
+uint8_t link_layer_parse_packet(struct Protocol* obj, dogePacket* message, dogePacket* response);
+uint8_t link_layer_form_packet(dogePacket* packet, packetAttr* attr, uint8_t type, uint16_t src, uint16_t dst, uint16_t shSrc, uint16_t shDst);
 uint8_t application_parse_packet(struct Protocol* obj, appPacket* message, appPacket* response, packetAttr* messageAttr, packetAttr* responseAttr);
 uint8_t application_form_packet(appPacket* packet, packetAttr* attr, uint8_t cmd, uint8_t addr, uint8_t data);
 
