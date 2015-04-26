@@ -77,6 +77,7 @@ class HardwareNode:
    _maxRadios = 4
 
    def __init__(self, device, nodeID, pipe):
+      print "Device={0}, pipe={1}".format(device,pipe)
       if(not isinstance(device, Device)): raise Exception("The device argument must be an instance of Node.Device.")
       if(nodeID < 1 or nodeID > 255): raise Exception("The specified nodeID, {0}, must be in the range [1, 255]".format(nodeID))
       if(not isinstance(pipe, RadioInterface.RadioInterface)): raise Exception("The device argument must be an instance of Node.Device.")
@@ -156,17 +157,15 @@ class VirtualNode:
         rarray = [] 
         self._nt = NetworkTable(narray,rarray)
     
-    def load_preset_nte_config(self):
+    def load_preset_nte_config(self,pipe):
         nte_nodes = []
-        for nte_entry in config:
+        for nte_entry in config['preset_nte_nodes']:
+            device = Device(deviceName=nte_entry['mcu_name'],memoryMapFile=config['config_file_paths']['mm_map_default_profile'])
             nte_nodes.append(
-                HardwareNode(
-                    device=Device(
-                        deviceName=nte_entry['mcu_name'], 
-                        memoryMapFile=config['config_file_paths']['mm_map_default_profile']
-                    ), 
+		HardwareNode(
+                    device,
                     nodeID=nte_entry['node_id'], 
-                    pipe=self._pipe
+                    pipe=pipe
                 )
             )
         return nte_nodes
@@ -201,12 +200,24 @@ class NetworkTable:
 
    def get_neighbors(self,node_id):
       #return self._neighborArray.copy()
-      if (node_id ==0 ):
-        narray =  [[1,44,1,1],[2,66,1,1]]
       if (node_id ==1 ):
-        narray =  [[2,74,1,1],[3,96,1,1]]
+        narray =  [[3,44,2,1],[4,66,2,1]]
       if (node_id ==2 ):
-        narray =  [[4,84,1,1],[5,56,1,1]]
+        narray =  [[6,74,3,1]]
+      if (node_id ==3 ):
+        narray =  [[1,44,2,1],[9,56,2,1]]
+      if (node_id ==4 ):
+        narray =  [[1,66,2,1],[5,96,2,1],[7,46,2,1]]
+      if (node_id ==5 ):
+        narray =  [[4,96,2,1]]
+      if (node_id ==6 ):
+        narray =  [[2,74,3,1]]
+      if (node_id ==7 ):
+        narray =  [[4,46,2,1],[8,66,2,1]]
+      if (node_id ==8 ):
+        narray =  [[7,66,2,1],[9,96,2,1]]
+      if (node_id ==9 ):
+        narray =  [[8,96,2,1],[3,56,2,1]]
       return (narray)
 
    def get_routes(self,node_id):

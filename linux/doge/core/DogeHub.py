@@ -106,14 +106,14 @@ def connect_sketch():
     pipe = RadioInterface("edison", node, config['debug'])
     pipe.connect_sketch()
     
-    root = VirtualNode(0)
-    return root
+    root = VirtualNode(0,"Edison")
+    return (root,pipe)
 
 def find_neighbors(nids):
     pass
 
 def rp_run():
-    root = connect_sketch() #if not already not connected 
+    root,pipe = connect_sketch() #if not already not connected 
     
     #List of network edges,nodes,routing edges. Sent to webserver/browser for vis.js n/w visiualization
     edges = []
@@ -124,10 +124,35 @@ def rp_run():
     nte = {}
     rte = {}
     
-    root.get_neighbors()
-    root.get_neighbor_table() #get edison neighbors
+    edison_neighbors = root.load_preset_nte_config(pipe)
+
+    edisonRP = RoutingProcessor(8124)
+
+    nodeId=1 
+    for nbr in edison_neighbors:
+        nte_array = nbr.get_neighbor_table(nodeId)
+        rte_array = []
+        edisonRP.createNetworkVis (nodes,edges,route_edges,nodeId,nte_array,rte_array)
+        nodeId +=1
+
+    nodes.append({'id':0,'label':0,'group':'edison'})
+    edges.append({'id':5000, 'from':0, 'to': 1,'label':88,'radio':1})
+    edges.append({'id':5001, 'from':0, 'to': 2,'label':88,'radio':3})
+    edges.append({'id':5002, 'from':0, 'to': 3,'label':88,'radio':1})
     
-    edisonRP = RoutingProcessor()
-    
+    nodes_json = json.dumps(nodes)
+    edges_json = json.dumps(edges)
+    route_edges_json = json.dumps(route_edges)
+
+    nw_json = {'nodes':nodes_json,'edges':edges_json,'routing_edges':route_edges_json}
+
+    sock= edisonRP.getSocket()
+
+    try:
+        sock.emit('load_network',json.dumps(nw_json))
+        print "Successfuly sent network load message"
+    except:
+        print "Error could not send load network message"
+
     
     
