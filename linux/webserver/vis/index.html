@@ -201,8 +201,8 @@
       var nodes_legend = new vis.DataSet();
       nodes_legend.add({id: 1000, x:-3500,y:0,label: 'Edison', group: 'edison'});
       nodes_legend.add({id: 1001, x:-3400,y:0,label: '433MHz', group: '433mhz'});
-      nodes_legend.add({id: 1002, x:-3300,y:0,label: '916MHz', group: '916mhz'});
-      nodes_legend.add({id: 1003, x:-3200,y:0,label: '1.2GHz', group: '1.2ghz'});
+      nodes_legend.add({id: 1002, x:-3300,y:0,label: '915MHz', group: '915mhz'});
+      nodes_legend.add({id: 1003, x:-3200,y:0,label: '2.4GHz', group: '2.4ghz'});
       nodes_legend.add({id: 1004, x:-3080,y:0,label: 'Masked Node', color: 'gray'});
       var data = {
        nodes: nodes_legend,
@@ -597,7 +597,7 @@
          }
       }
      },
-     '916mhz': {
+     '915mhz': {
        shape: doge_node_shape,
        color: {
          background: 'lightblue',
@@ -606,7 +606,7 @@
          }
        }
      },
-     '1.2ghz': {
+     '2.4ghz': {
       shape: doge_node_shape,
       color: {
         background: 'lightgreen',
@@ -720,8 +720,8 @@
   <select name="Network Filter" onchange="draw();">
   <option value="Full">Full Network</option>
   <option value="433mhz">433 MHz</option>
-  <option value="916mhz">916 MHz</option>
-  <option value="1.2ghz">1.2 GHz</option>
+  <option value="915mhz">915 MHz</option>
+  <option value="2.4ghz">2.4 GHz</option>
 </select>
 </div>    
   

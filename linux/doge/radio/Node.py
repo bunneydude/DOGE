@@ -72,7 +72,7 @@ class HardwareNode:
    _radios = []
    _inputs = {}
    _outputs = []
-   _nt = None	   
+   _networkTable = None	   
    _validRadios = ["nrf24", "cc1101l", "rfm69"]
    _maxRadios = 4
 
@@ -88,7 +88,7 @@ class HardwareNode:
       narray = []
       rarray = []
 
-      self._nt = NetworkTable (narray,rarray)
+      self._networkTable = NetworkTable (narray,rarray)
 
    def to_s(self):
       print("Node: device = {0}, nodeID = {1}, radio = {2}, inputs = {3}, outputs = {4}".format(self._device, self._nodeID, self._radios, self._inputs, self._outputs))
@@ -123,19 +123,19 @@ class HardwareNode:
        print("Pull complete. Got: {0}".format(self._pipe.rxData))
 
    def get_neighbor_table(self,node_id):
-       network_table =  self._nt 
+       network_table =  self._networkTable 
        return (network_table.get_neighbors(node_id))
   
    def get_neighbors (self,node_id):
        node_array =[]
-       network_table =  self._nt 
+       network_table =  self._networkTable 
        neighbor_table_array = network_table.get_neighbors(node_id)
        for x in  neighbor_table_array:
            node_array.append(x[0])
        return (node_array)
 
    def get_routing_table(self,node_id):
-       network_table =  self._nt 
+       network_table =  self._networkTable 
        return (network_table.get_routes(node_id))
   
 
@@ -155,7 +155,7 @@ class VirtualNode:
         self._nodeID = nodeID
         narray = []
         rarray = [] 
-        self._nt = NetworkTable(narray,rarray)
+        self._networkTable = NetworkTable(narray,rarray)
     
     def load_preset_nte_config(self,pipe):
         nte_nodes = []
@@ -172,15 +172,15 @@ class VirtualNode:
 
     def get_neighbors(self,node_id=0):
         node_array = self.load_preset_nte_config()
-        network_table = self._nt = NetworkTable(neighborArray=node_array,routingArray=[])
+        network_table = self._networkTable = NetworkTable(neighborArray=node_array,routingArray=[])
         return node_array
         
     def get_neighbor_table(self,node_id):
-        network_table =  self._nt 
+        network_table =  self._networkTable 
         return (network_table.get_neighbors(node_id))
 
     def get_routing_table(self,node_id):
-        network_table =  self._nt 
+        network_table =  self._networkTable 
         return (network_table.get_routes(node_id))
 
 

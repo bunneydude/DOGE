@@ -128,6 +128,12 @@ def rp_run():
 
     edisonRP = RoutingProcessor(8124)
 
+    #Create Edisons neighbor and routing table entry list and send it to the routing processor
+    edison_nte = [[1,88,0,1],[2,88,0,1],[3,88,0,1,]]
+    edison_rte = [[1,98,1],[2,91,1],[3,88,1,]]
+    edisonRP.createNetworkVis (nodes,edges,route_edges,0,edison_nte,edison_rte)
+
+
     nodeId=1 
     for nbr in edison_neighbors:
         nte_array = nbr.get_neighbor_table(nodeId)
@@ -135,13 +141,6 @@ def rp_run():
         edisonRP.createNetworkVis (nodes,edges,route_edges,nodeId,nte_array,rte_array)
         nodeId +=1
 
-    nodes.append({'id':0,'label':0,'group':'edison'})
-    edges.append({'id':5000, 'from':0, 'to': 1,'label':88,'radio':1})
-    edges.append({'id':5001, 'from':0, 'to': 2,'label':88,'radio':3})
-    edges.append({'id':5002, 'from':0, 'to': 3,'label':88,'radio':1})
-    route_edges.append({'id':6001, 'from':0, 'to': 1,'label':98,'radio':1})
-    route_edges.append({'id':6002, 'from':0, 'to': 2,'label':91,'radio':1})
-    route_edges.append({'id':6003, 'from':0, 'to': 3,'label':88,'radio':1})
 
     nodes_json = json.dumps(nodes)
     edges_json = json.dumps(edges)
