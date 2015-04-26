@@ -9,6 +9,6 @@ typedef enum {
 typedef enum {
    ERROR = -1,
    SUCCESS = 0
-} STATUS;
+} dogeStatus;
 
 #endif

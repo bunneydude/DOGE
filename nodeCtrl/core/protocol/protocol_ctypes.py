@@ -1,9 +1,9 @@
 from ctypes import *
 
-HEADER_SIZE = 8
+HEADER_SIZE = 12
 
 
-MAX_PAYLOAD_SIZE = 16
+MAX_PAYLOAD_SIZE = 14
 CMD_READ_REG_DATA_SIZE  = 2
 CMD_WRITE_REG_DATA_SIZE = 3
 CMD_ACK_DATA_SIZE       = 3
@@ -11,7 +11,7 @@ CMD_NACK_DATA_SIZE      = 3
 CMD_NOP_DATA_SIZE       = 1
 
 
-MAX_RAW_PACKET_PAYLOAD_SIZE = 23
+MAX_RAW_PACKET_PAYLOAD_SIZE = 19
 ERR_CHECKSUM = 1
 SUCCESS = 0
 ERROR = -1
@@ -70,6 +70,8 @@ class packetHdr(Structure):
                ("txInfo", c_ubyte),
                ("src",    c_ushort),
                ("dst",    c_ushort),
+               ("shSrc",  c_ushort),
+               ("shDst",  c_ushort),
                ("ttl",    c_ubyte),
                ("crc",    c_ubyte)]
 
@@ -90,8 +92,7 @@ class appPacket(Structure):
                ("addr", c_ubyte),
                ("data", c_ubyte),
                ("byteNumber", c_ubyte),
-               ("payload", c_ubyte * MAX_PAYLOAD_SIZE),
-               ("reserved", c_ubyte * 2)]
+               ("payload", c_ubyte * MAX_PAYLOAD_SIZE)]
 
 class packetAttr(Structure):
    _fields_ = [("ack", c_ubyte),
@@ -106,3 +107,8 @@ def packetToList(struct):
    toSend.append(struct.size)
    list((toSend.append(x)) for x in (list(struct.data)[0:struct.size]))
    return toSend
+
+
+def packetToBytes(struct):
+   toSend = buffer(struct)[0:HEADER_SIZE + 1 + struct.size]
+   return list(toSend)

@@ -1,3 +1,4 @@
+/** @file neighbor.h Neighbor structure definitions */
 #ifndef NEIGHBOR_H
 #define NEIGHBOR_H
 
@@ -22,24 +23,33 @@ typedef struct
    timerType end;
 }dogeTimer;
 
-//neighborEntry holds information needed to communicate w/ adjacent nodes
+/**
+ * @brief Holds information needed to communicate w/ adjacent nodes
+ */
 //#if PACK_STRUCT == 1
+#if 1
 struct neighborEntry{
-	uint16_t shNodeID; //single-hop node ID; each node has a unique ID
-	uint16_t shLQE : 12; //single-hop Link Quality Estimator; more details determined by the active LQE method
-	uint8_t radioID : 2; //which radio this entry is for. Each node can support 4 radio links (don't have to all be different radios)
-	uint8_t networkID : 2; //used for jumping between different RF networks. 
+  /** @brief single-hop node ID; each node has a unique ID */
+	uint16_t shNodeID; 
+  /** @brief single-hop Link Quality Estimator; more details determined by the active LQE method */
+	uint16_t shLQE : 12; 
+  /** @brief which radio this entry is for. Each node can support 4 radio links (don't have to all be different radios) */
+	uint8_t radioID : 2;
+  /** @brief used for jumping between different RF networks. */ 
+	uint8_t networkID : 2; 
 };
-/*
 #else
 struct neighborEntry{
+  /** @brief single-hop node ID; each node has a unique ID */
 	uint16_t shNodeID;
+  /** @brief single-hop Link Quality Estimator; more details determined by the active LQE method */
 	uint16_t shLQE;
+  /** @brief which radio this entry is for. Each node can support 4 radio links (don't have to all be different radios) */
 	uint8_t networkID;
+  /** @brief used for jumping between different RF networks. */ 
 	uint8_t radioID;
 };
 #endif
-*/
 timerType current_time();
 void timer_init(dogeTimer* timer, timerType duration);
 dogeBool timer_expired(dogeTimer* timer);
