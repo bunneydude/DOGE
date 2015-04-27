@@ -13,7 +13,7 @@ void print_decimal(uint16_t buf, printOptions options)
   }
 }
 
-void print_string(char *buf, printOptions options)
+void print_string(char const *buf, printOptions options)
 {
   if (options == NEWLINE)
   {
@@ -37,14 +37,26 @@ void print_hex(uint16_t buf, printOptions options)
   }
 }
 
-void print_packet(rawPacket* packet){
+void print_packet(dogePacket* packet){
   uint8_t i = 0;
   uint8_t* bytes = (uint8_t*)(packet);
-
+  
+  switch(GET_HEADER_TYPE(packet->hdr.type)){
+    case(RAW_PACKET):
+      Serial.print("Raw ");
+      break;
+    case(SIGNALING_BROADCAST_BEACON):
+      Serial.print("Signaling Broadcast");
+      break;
+    case(SIGNALING_UNICAST_BEACON):
+      Serial.print("Signaling Unicast");
+      break;
+  }
   Serial.println("Packet");
   Serial.print("   ["); 
-  for(i=0; i < (sizeof(packetHdr) + 1 + packet->size); i++){
-    Serial.print(bytes[i]);
+  for(i=0; i < RAW_PACKET_TOTAL_SIZE(packet); i++){
+    Serial.print(bytes[i], HEX);
+    Serial.print(" ");
   }
   Serial.println("]");
 }

@@ -3,6 +3,14 @@
 #include <stddef.h>
 #include "../nodeCtrl.h"
 #include <type.h>
+
+void copy_raw_packet_data(rawPacket* dst, rawPacket* src)
+{
+  uint8_t i = 0;
+  for (i = 0; i < RAW_PACKET_DATA_SIZE(src); i++){
+    dst->data[i] = src->data[i];
+  }
+}
  
 uint8_t packet_payload_end(dogePacket* packet)
 {

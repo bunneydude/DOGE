@@ -39,8 +39,8 @@ uint8_t link_layer_parse_packet(struct Protocol* obj, dogePacket* message, dogeP
       messageAttr.ack = ack;
       messageAttr.size = RAW_PACKET_DATA_SIZE(message);
       status = application_parse_packet(obj,
-                                        (appPacket*)((void*)message + RAW_PACKET_DATA_OFFSET),
-                                        (appPacket*)((void*)response + RAW_PACKET_DATA_OFFSET),
+                                        (appPacket*)((uint8_t*)message + RAW_PACKET_DATA_OFFSET),
+                                        (appPacket*)((uint8_t*)response + RAW_PACKET_DATA_OFFSET),
                                         &messageAttr,
                                         &responseAttr);
       if (responseAttr.ack == TRUE){ // Application layer requests a response packet

@@ -18,11 +18,12 @@ if [[ "$1" == "clean" ]]
   then
     rm -rf $ENERGIA_LIB_DIR/*
     rm -rf $ENERGIA_LIB_DIR/../nodeCtrl
-    GIT_PATH="$PWD/nodes/msp430g2553/nodeCtrl_v1/nodeCtrl.ino"
-    MOVED_DIR="$PWD/nodes/msp430g2553/nodeCtrl_v1/nodeCtrl"
+    NODE_CTRL_PATH="$PWD/nodes/msp430g2553/nodeCtrl_v1"
+    GIT_PATH="$NODE_CTRL_PATH/nodeCtrl.ino"
+    MOVED_DIR="$NODE_CTRL_PATH/nodeCtrl"
     MOVED_PATH="$MOVED_DIR/nodeCtrl.ino"
     #Delete any empty nodeCtrl directories
-    find "$PWD/nodes/msp430g2553/nodeCtrl_v1/" -depth -type d -empty -delete
+    find "$NODE_CTRL_PATH" -depth -type d -empty -delete
     #Check to see if Energia moved nodeCtrl.ino
     if [[ -e $MOVED_PATH ]] && [[ ! -e $GIT_PATH ]]
       then

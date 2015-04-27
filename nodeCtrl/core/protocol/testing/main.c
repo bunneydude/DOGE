@@ -43,19 +43,25 @@ void test_app_packet()
    packetAttr messageAttr;
    packetAttr responseAttr;
    uint8_t status;
+   uint8_t bytes[MAX_RAW_PACKET_PAYLOAD_SIZE];
  
    Protocol_init(&obj);
    memset(&message, 0, sizeof(dogePacket));
    memset(&response, 0, sizeof(dogePacket));
-   messageApp = (appPacket*)message.payload;
-   responseApp = (appPacket*)response.payload;
+   messageApp  = (appPacket*)((void*)&message + RAW_PACKET_DATA_OFFSET);
+   responseApp = (appPacket*)((void*)&response + RAW_PACKET_DATA_OFFSET);
    /* Test CMD READ REG packet */
    // Form message packet
    // If the application layer is processing this packet, then the Single Hop
    // Destination Node ID must equal the Destination Node ID
    assert(TEST_SH_DST_NODE_ID == TEST_DST_NODE_ID);
    application_form_packet(messageApp, &messageAttr, CMD_READ_REG, TEST_CMD_READ_REG_ADDR, 0x0);
+   memcpy(bytes, (void *)&message + RAW_PACKET_DATA_OFFSET, MAX_RAW_PACKET_PAYLOAD_SIZE);
+   assert(bytes[0] == CMD_READ_REG);
+   assert(bytes[1] == TEST_CMD_READ_REG_ADDR);
    link_layer_form_packet(&message, &messageAttr, RAW_PACKET, TEST_SRC_NODE_ID, TEST_DST_NODE_ID, TEST_SH_SRC_NODE_ID, TEST_SH_DST_NODE_ID);
+   // Check to make sure application data is intact
+   assert(memcmp(bytes, (void *)&message + RAW_PACKET_DATA_OFFSET, MAX_RAW_PACKET_PAYLOAD_SIZE) == 0);
    assert(RAW_PACKET_DATA_SIZE(&message) == CMD_READ_REG_DATA_SIZE);
    // Check response
    status = link_layer_parse_packet(&obj, &message, &response);

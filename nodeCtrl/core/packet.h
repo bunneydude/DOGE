@@ -152,6 +152,7 @@ while(0)
 #define PACKET_PAYLOAD_OFFSET              (offsetof(dogePacket, payload))
 #define DEFAULT_PACKET_TTL (255)
 
+void copy_raw_packet_data (rawPacket* dst, rawPacket* src);
 uint8_t packet_payload_end(dogePacket* packet);
 void add_packet_crc(dogePacket* packet);
 uint8_t check_packet_crc(dogePacket* packet);

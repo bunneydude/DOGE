@@ -12,9 +12,9 @@ typedef enum {
 }printOptions;
 
 void print_decimal(uint16_t buf, printOptions options);
-void print_string(char *buf, printOptions options);
+void print_string(char const *buf, printOptions options);
 void print_hex(uint16_t buf, printOptions options);
-void print_packet(rawPacket* packet);
+void print_packet(dogePacket* packet);
 
 #ifdef __cplusplus
 }
