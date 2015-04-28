@@ -23,6 +23,7 @@ class RadioInterface():
       
       self.txData = []
       self.rxData = []
+      self.rxPacket = None
 
    def connect_sketch(self):
       if(self.debug == False):
@@ -81,7 +82,8 @@ class RadioInterface():
          if(duration >= timeout):      
             print("Timeout")      
       else:
-         self.rxData = Protocol.form_packet(type=1, srcID=6, dstID=self._nodeID, cmd=ProtocolDefs.CMD_ACK, addr=1, data=2, enc='fields')
+         self.rxData = Protocol.form_packet(type=1, srcID=6, dstID=self._nodeID, cmd=ProtocolDefs.CMD_ACK, addr=1, data=2, enc='bytes')
+         self.rxPacket = Protocol.parse_packet(self.rxData)
          return 1
 
    def push(self, network, nodeID, data):      

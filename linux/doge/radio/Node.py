@@ -110,11 +110,15 @@ class HardwareNode:
    def pull(self, sensorName):
       if(sensorName.lower() not in self._inputs.keys()): raise Exception("Unknown sensor: {0}. Current sensor list: {1}".format(sensorName.lower(), self._inputs.keys()))
       
+      returnData = {}
+
       address = self._device.address(self._inputs[sensorName.lower()]["space"], self._inputs[sensorName.lower()]["offset"])
 
       self._pipe.proxy_send(destination=self._nodeID, command=ProtocolDefs.CMD_READ_REG, address=address, payload=0)
       self._pipe.proxy_receive()
-      print("Pull complete. Got: {0}".format(self._pipe.rxData))
+      print("Got: {0}".format(self._pipe.rxData))
+      print("Pull complete. Got: [header: [{0}], size = {1}, data = {2}]".format(ProtocolDefs.print_structure(self._pipe.rxPacket.hdr), self._pipe.rxPacket.size, list(i for i in self._pipe.rxPacket.data)))
+
 
 
 

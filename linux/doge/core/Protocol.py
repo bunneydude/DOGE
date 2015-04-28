@@ -40,6 +40,7 @@ def parse_packet(data):
    if(type(data) is not list): raise Exception("Input must be a list. It was instead a {0}".format(type(data)))
    if(len(data) == 0): raise Exception("Input list cannot be empty")
    if( (type(data[0]) is not str) and (type(data[0]) is not int)): raise Exception("The input list must consist of only ints or strings")
+   #TODO if input is a list of ints, you'll need to unpack 2-byte fields (e.g. nodeIDs) into two separate bytes
 
    # convert to a list of strings
    if(type(data[0]) is int):
