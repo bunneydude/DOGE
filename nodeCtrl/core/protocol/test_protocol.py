@@ -33,6 +33,7 @@ rawPkt1 = rawPacket()
 attr1 = packetAttr()
 
 rawPkt2 = rawPacket()
+rawPkt3 = rawPacket()
 
 libprotocol.Protocol_init(byref(obj))
 
@@ -45,9 +46,16 @@ libprotocol.link_layer_form_packet(byref(rawPkt1), byref(attr1), RAW_PACKET, TES
 print("\nPost header: \n\t[{0}], size = {1}, data = {2}".format(print_structure(rawPkt1.hdr), rawPkt1.size, list(i for i in rawPkt1.data)))
 print("Post attr: \n\t{0}".format(print_structure(attr1)))
 
-toSend = packetToBytes(rawPkt1)
-print(toSend)
-print(packetToList(rawPkt1))
+byteList = packetToBytes(rawPkt1)
+fieldList = packetToList(rawPkt1)
+print(byteList)
+print(fieldList)
+print("byteList type = {0}, fieldList type = {1}".format(type(byteList[0]), type(fieldList[0])))
+
+bytePacket = ''.join(byteList)
+print("Number of bytes = {0}, size of structure = {1}".format(len(bytePacket), sizeof(rawPkt3)))
+memmove(addressof(rawPkt3), bytePacket, len(bytePacket))
+print("\nStuffed: header: \n\t[{0}], size = {1}, data = {2}".format(print_structure(rawPkt3.hdr), rawPkt3.size, list(i for i in rawPkt3.data)))
 
 
 print("\nmessageRaw.size = {0}, cmd read_reg data size = {1}\n\n".format(rawPkt1.size, CMD_READ_REG_DATA_SIZE))

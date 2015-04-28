@@ -1,5 +1,6 @@
 from ctypes import *
 from protocol_ctypes import *
+import warnings
 
 libprotocol = CDLL("./doge/core/libprotocol.so")
 
@@ -33,78 +34,29 @@ def form_packet(type=RAW_PACKET, srcID=1, dstID=1, cmd=CMD_READ_REG, addr=0, dat
 
    return toSend
  
+
+# Expects a list of ints or strings
+def parse_packet(data):
+   if(type(data) is not list): raise Exception("Input must be a list. It was instead a {0}".format(type(data)))
+   if(len(data) == 0): raise Exception("Input list cannot be empty")
+   if( (type(data[0]) is not str) and (type(data[0]) is not int)): raise Exception("The input list must consist of only ints or strings")
+   #TODO if input is a list of ints, you'll need to unpack 2-byte fields (e.g. nodeIDs) into two separate bytes
+
+   # convert to a list of strings
+   if(type(data[0]) is int):
+      data = list(chr(x) for x in data)
+
+   # concat
+   data = ''.join(data)
+
+   newPacket = rawPacket()
+   length = min(len(data), sizeof(newPacket))
+   if(len(data) > sizeof(newPacket)): warnings.warn("Input data larger than raw packet object")
+
+   # move data into packet
+   memmove(addressof(newPacket), data, length)
+   
+   return newPacket
+
 def receive_packet(stream, registers):
    raise Exception("Protocol.receive_packet has been deprecated.")
-   # Returns response array
-   rxBuffer = 0
-   byteNum = 0
-   checksum = 0
-   execute = 0
-   remainder = []
-   response = ""
-
-
-   cmd = 0
-   size = 0
-   addr = 0
-   data = 0
-   
-   stream.reverse()
-   while(len(stream)>0):
-      rxBuffer = stream.pop()
-
-      #convert just in case
-      if(type(rxBuffer) is str):
-         rxBuffer = ord(rxBuffer)
-
-      byteNum = byteNum + 1
-      checksum = checksum + rxBuffer
-
-      if(byteNum == 1):
-         cmd = rxBuffer
-      elif(byteNum == 2):
-         size = rxBuffer
-      else:
-         if( (size + 3) > byteNum): #not at checksum if true
-            remainder.append(rxBuffer)
-         else: #at checksum if true
-            if(checksum%256 == 0):
-               execute = 1
-            else:
-               response = form_packet(NACK, 0, BAD_CHECKSUM)
-               execute = 0
-               byteNum = 0
-               checksum = 0
-               remainder = []
-               return response
-
-      if(execute == 1):
-         if(cmd == READ_REG):
-            addr = remainder[0]
-            print("Got read_reg. Addr = " + str(addr) + "\n")
-            response = form_packet(ACK, addr, registers[addr])
-         elif(cmd == WRITE_REG):
-            addr = remainder[0]
-            data = remainder[1]
-            print("Got write_reg. Addr = " + str(addr) + ", Data = " + str(data) + "\n")
-            registers[addr] = data
-            response = form_packet(ACK, addr, registers[addr])
-         elif(cmd == ACK):
-            addr = remainder[0]
-            data = remainder[1]
-            print("Got ack. Addr = " + str(addr) + ", Data = " + str(data) + "\n")
-         elif(cmd == NACK):
-            addr = remainder[0]
-            data = remainder[1]
-            print("Got nack. Addr = " + str(addr) + ", Data = " + str(data) + "\n")
-         elif(cmd == NOP):
-            print("Got nop\n")
-         else:
-            print("Unknown command: " + str(cmd) + "\n")
-            response = form_packet(NACK, 0, BAD_COMMAND)
-         execute = 0
-         byteNum = 0
-         checksum = 0
-         remainder = []
-         return response
-
