@@ -1,0 +1,17 @@
+<div class="list card">
+    
+    <div class="item item-divider">
+         Device Details 
+        
+        </div>
+    <div class="item ">
+<div class="list" ng-repeat="io in gpIos" on-hold="openModal($index, -1)">
+    
+ <a class="item " href="" style="background-color: {{io.currentColor}}"><h2>Managed by pinID: {{io.pin}}</h2><p>
+  currentState : {{io.activemode}}</a>
+</div>
+    </div>
+    <div class="item item-divider">
+        Tap and hold to edit an item.
+    </div>
+</div>

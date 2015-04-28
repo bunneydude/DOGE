@@ -1,6 +1,13 @@
 from doge.cloud.SparkfunData import SparkfunData
 from doge.cloud.IntelAnalytics import IntelAnalytics
 import json
+from collections import defaultdict
+from doge.radio.RadioInterface import RadioInterface
+from doge.radio.Node import HardwareNode, VirtualNode
+from doge.core.RoutingProcessor import RoutingProcessor
+from doge.conf.globals import config
+
+# TODO: Create inner class definition for operation on RP calls via private methods post-sketch connection
 
 def connect_cloud(service):
     stream = None
@@ -29,8 +36,8 @@ def getLatestNodeData(stream, dataFilter):
 #    return _rawData
     return {}
 
-
-"""Connect to a data stream from a specified cloud server
+'''
+Connect to a data stream from a specified cloud server
    
 Args:
       service (str): Name of the cloud service::
@@ -53,46 +60,106 @@ Args:
 
       localNodeData = #something in the form of that json structure
       streamDave.push(localNodeDatanewData)
-   """
+'''
 
 
 def connect_webserver(screen, info):
-   """Connect to the webserver on Edison
+    '''
+    Connect to the webserver on Edison
 
-   Args:
-      screen (str?): Which page to render::
-         "rssi" -- Plot signal strength of nodes over time
-         "heatmap?" -- Nodes are represented as a circle whose color changes based on its temperature
-
-      info (dictionary/array?): Depends on screen. Might contain a list of nodes that Edison plans to push data for. That way the page can render w/ the right number of data series.
-
-   Returns:
-      socket? Similar to socket in connect_cloud. Will just be used to push data
-
-   Raises:
-      See connect_cloud method
-
-   Example:
-      #Start a rssi plot for BP nodes 1 & 2, and Leaf nodes 5 & 7
-      nodeList = ["BP1", "BP2", "L5", "L7"]
-      rssiPage = connect_webserver("rssi", nodeList)
+    Args:
+       screen (str?): Which page to render::
+          "rssi" -- Plot signal strength of nodes over time
+          "heatmap?" -- Nodes are represented as a circle whose color changes based on its temperature
+ 
+       info (dictionary/array?): Depends on screen. Might contain a list of nodes that Edison plans to push data for. That way the page can render w/ the right number of data series.
+ 
+    Returns:
+       socket? Similar to socket in connect_cloud. Will just be used to push data
+ 
+    Raises:
+       See connect_cloud method
+ 
+    Example:
+       #Start a rssi plot for BP nodes 1 & 2, and Leaf nodes 5 & 7
+       nodeList = ["BP1", "BP2", "L5", "L7"]
+       rssiPage = connect_webserver("rssi", nodeList)
    
-      # loop as needed
-      localData = get_temp_from_someone(nodeList)
-      rssiPage.push(localData)
-   """
-   pass
+       # loop as needed
+       localData = get_temp_from_someone(nodeList)
+       rssiPage.push(localData)
+    '''
+    pass
 
 def connect_tui(screen, info):
-   """Connect to the text user interface on Edison
-
-   Almost the same as connect_webserver.
-   """
-   pass
+    '''
+    Connect to the text user interface on Edison
+    Almost the same as connect_webserver.
+    '''
+    pass
 
 def connect_sketch():
-   """Connect to the IPC objects from sketch
-   """
-   pass
+    '''
+    Connect to the IPC objects from sketch
+    '''
+    node = 0 #TODO: where to read this in from?
+    pipe = RadioInterface("edison", node, config['debug'])
+    pipe.connect_sketch()
+    
+    root = VirtualNode(0,"Edison")
+    return (root,pipe)
+
+def find_neighbors(nids):
+    pass
+
+def rp_run():
+    root,pipe = connect_sketch() #if not already not connected 
+    
+    #List of network edges,nodes,routing edges. Sent to webserver/browser for vis.js n/w visiualization
+    edges = []
+    nodes = []
+    route_edges = []
+    
+    #Dicts for neighbor table entry and routing table entry. Node id is key and value is list of all nte/rte for that node
+    nte = {}
+    rte = {}
+    
+    edison_neighbors = root.load_preset_nte_config(pipe)
+
+    edisonRP = RoutingProcessor(8124)
+
+    #Create Edisons neighbor and routing table entry list and send it to the routing processor
+    edison_nte = [[1,88,0,1],[2,88,0,1],[3,88,0,1,]]
+    edison_rte = [[1,98,1],[2,91,1],[3,88,1,]]
+    edisonRP.createNetworkVis (nodes,edges,route_edges,0,edison_nte,edison_rte)
 
 
+    nodeId=1 
+    for nbr in edison_neighbors:
+        nte_array = nbr.get_neighbor_table(nodeId)
+        rte_array = nbr.get_routing_table(nodeId)
+        edisonRP.createNetworkVis (nodes,edges,route_edges,nodeId,nte_array,rte_array)
+        nodeId +=1
+
+
+    nodes_json = json.dumps(nodes)
+    edges_json = json.dumps(edges)
+    route_edges_json = json.dumps(route_edges)
+
+    nw_json = {'nodes':nodes_json,'edges':edges_json,'routing_edges':route_edges_json}
+
+    sock= edisonRP.getSocket()
+
+    try:
+        sock.emit('load_network',json.dumps(nw_json))
+        print "Successfuly sent network load message"
+    except:
+        print "Error could not send load network message"
+
+    
+    
+    while True:
+        #Wait for incoming message targetted to routing processor
+        sock.on('message', edisonRP.processMessage)
+        sock.wait(seconds=1)
+    

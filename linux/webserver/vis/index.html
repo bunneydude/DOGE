@@ -125,8 +125,9 @@
        var nodesArrayLength = nodesJsonObj.length;
 
        for (var i=0;i < nodesArrayLength; i++){
-          node = {'group':JSON.stringify(nodesJsonObj[i].group),'id':JSON.stringify(nodesJsonObj[i].id),'label':JSON.stringify(nodesJsonObj[i].label)};
+          node = {'group':nodesJsonObj[i].group,'id':JSON.stringify(nodesJsonObj[i].id),'label':JSON.stringify(nodesJsonObj[i].label)};
           nodes.add(node);
+          console.log(node);
        }
        
        var edgesArrayLength = edgesJsonObj.length;
@@ -139,7 +140,7 @@
        var routingEdgesArrayLength = routingEdgesJsonObj.length;
 
        for (var i=0;i < routingEdgesArrayLength; i++){
-          route_edge = {'from':JSON.stringify(routingEdgesJsonObj[i].from),'to':JSON.stringify(routingEdgesJsonObj[i].to),'label':JSON.stringify(routingEdgesJsonObj[i].label),'id':JSON.stringify(routingEdgesJsonObj[i].id),'style':'dash-line'};
+          route_edge = {'from':JSON.stringify(routingEdgesJsonObj[i].from),'to':JSON.stringify(routingEdgesJsonObj[i].to),'label':JSON.stringify(routingEdgesJsonObj[i].label),'id':JSON.stringify(routingEdgesJsonObj[i].id),'style':'arrow','arrowScaleFactor': .5,'color':'gold'};
           edges.add(route_edge);
 
        }
@@ -147,7 +148,7 @@
        //Filter out routing edges (dash-line edges). We will add these back based on user feedback 
        routing_edges = edges.get({
          filter: function (item) {
-          return (item.style === 'dash-line');
+          return (item.style === 'arrow');
          }
        });
        edges.remove(routing_edges);
@@ -158,10 +159,24 @@
 
   });
 
+
+
     //Socket function to send data to node.js server
     function sendMessage(data) {
-      
-      socket.send(toJson(data)); // Send the message to the server
+      socket.send(toJson(data));
+    }
+   
+    //Socket function to send data to node.js server
+    function sendMessageWait(data) {
+      var resp;
+      socket.send(toJson(data),function(response){
+        resp = response;
+        console.log(response);
+      document.getElementById('selection').innerHTML = "Response:"+resp;
+         
+     }); 
+
+      return resp;
     }
    
 
@@ -186,8 +201,8 @@
       var nodes_legend = new vis.DataSet();
       nodes_legend.add({id: 1000, x:-3500,y:0,label: 'Edison', group: 'edison'});
       nodes_legend.add({id: 1001, x:-3400,y:0,label: '433MHz', group: '433mhz'});
-      nodes_legend.add({id: 1002, x:-3300,y:0,label: '916MHz', group: '916mhz'});
-      nodes_legend.add({id: 1003, x:-3200,y:0,label: '1.2GHz', group: '1.2ghz'});
+      nodes_legend.add({id: 1002, x:-3300,y:0,label: '915MHz', group: '915mhz'});
+      nodes_legend.add({id: 1003, x:-3200,y:0,label: '2.4GHz', group: '2.4ghz'});
       nodes_legend.add({id: 1004, x:-3080,y:0,label: 'Masked Node', color: 'gray'});
       var data = {
        nodes: nodes_legend,
@@ -209,6 +224,7 @@
    function toggleRouteDisplay () {
      if (route_toggle) {
       edges.add(routing_edges);
+  
       route_toggle = 0;
      }
      else {
@@ -330,7 +346,8 @@
       //Make user confirmation buttons visible
       var div = document.getElementById('user-confirm');
       div.style.display = 'block';
-      
+      params = [];
+ 
       network.on('select',function(params) {
         if (params['edges'] != "") {  
           maskEdge = params.edges ;
@@ -354,6 +371,7 @@
       maskEdge = [];
       maskNode = "";
       mode = "";
+      properties = [];
       network.off ('select');
      
     }
@@ -361,18 +379,15 @@
     //Function to update edge properties if masked
     function updateEdge (id) {
       try {
-        edges.update({id: id, style:'dash-line',color:'gray'});
-        var edgeObj = edges.get(id);
-        var message = {'command' : 'mask_physical_edge', 'data' : [parseInt(edgeObj.from),parseInt(edgeObj.to),id]};
-        sendMessage(message);
+        edges.update({id: id, style:'dash-line',color:'gray',label:''});
       }
       catch(err) {
         alert (err);
       } 
     }
     
-    
     function saveUserData () {
+
       if (mode == 'add-route') {
          document.getElementById('selection').innerHTML = "User defined route requested = " +userRoute;
           var message = {'command': 'add_route', 'data': userRoute};
@@ -408,32 +423,62 @@
       }
       else if (mode == 'mask-element'){
 
+        
         document.getElementById('selection').innerHTML = "Mask Node/Edge edge requested for Edges:" +  maskEdge +" Nodes:"+ maskNode;
 
-        //If selection had edges, mask it
-        if (maskEdge != null) {
+        //If a node was selected, mask it
+        if (maskNode != "") {
+            var message = {'command':'mask_node','data': maskNode};
+            sendMessageWait(message);
+        }
+
+        //If selection had only edges, mask it
+        if (maskEdge != null && maskNode == "") {
           if (maskEdge.length > 1) {
-            maskEdge.forEach( function(entry) {
-              updateEdge(entry);
+            maskEdge.forEach( function(id) {
+              id = parseInt(id);
+              var edgeObj = edges.get(id);
+              var message = {'command' : 'mask_physical_edge', 'data' : [parseInt(edgeObj.from),parseInt(edgeObj.to),id]};
+              sendMessage(message);
             });
           } 
           else {
-             updateEdge(parseInt(maskEdge));
+              id = parseInt(maskEdge);
+              var edgeObj = edges.get(id);
+              var message = {'command' : 'mask_physical_edge', 'data' : [parseInt(edgeObj.from),parseInt(edgeObj.to),id]};
+              sendMessage(message);
           }
        }
-       //If a node was selected, mask it
-       if (maskNode != "") {
-          try {nodes.update({id: parseInt(maskNode), color: 'gray'});
-          var message = {'command':'mask_node','data': maskNode};
-          sendMessage(message);
+              
+       socket.on ("confirm", function(message){
+       
+         message = JSON.parse(message); 
+         document.getElementById('instructions').innerHTML = 'Confirmation Message from Routing Processor Recvd: Command='+message.command+' Data='+message.data;
+         
+         if (message.command == 'mask_node') {
+           try {
+            nodes.update({id: parseInt(message.data), color: 'gray'});
+           }
+           catch(err) {
+            alert (err);
+           }
+         }
+   
+         else if (message.command == 'mask_physical_edge') {
+           var edge_array = /\[(\d+),(\d+),(\d+)\]/.exec(message.data);
+           updateEdge(edge_array[3]);
+         }
 
+         else if (message.command == 'alert') {
+           document.getElementById('instructions').innerHTML = 'Message from Routing Processor Recvd: ERROR - Cannot mask this node because it has routing tables';
+           //alert(message.data);
          }
-         catch(err) {
-          alert (err);
-         }
-        }
-       network.redraw();
+     
+       });
+
       }
+
+      
       
       clearUserBox();
     }
@@ -520,8 +565,8 @@
 
     options = {
    
-    dragNetwork: false,
-    zoomable: false,
+    dragNetwork: true,
+    zoomable: true,
     
     dataManipulation: {
     enabled: true,
@@ -552,7 +597,7 @@
          }
       }
      },
-     '916mhz': {
+     '915mhz': {
        shape: doge_node_shape,
        color: {
          background: 'lightblue',
@@ -561,7 +606,7 @@
          }
        }
      },
-     '1.2ghz': {
+     '2.4ghz': {
       shape: doge_node_shape,
       color: {
         background: 'lightgreen',
@@ -627,22 +672,27 @@
     },
     onDelete: function(data,callback) {
      // data = {nodes: [selectedNodeIds], edges: [selectedEdgeIds]};
-     document.getElementById('selection').innerHTML = 'Selection id: ' + data.edges ;
      //Only allow edge deletion
      if (data.nodes == "") {
-      var r=confirm("Are you sure you want to delete this edge?");
-      if (r==true) {
-       var edgeArray = edges.get(data.edges);
-       var message = {'command' : 'delete_edge', 'data' : [parseInt(edgeArray[0].from),parseInt(edgeArray[0].to),parseInt(edgeArray[0].id)]};
-       sendMessage(message);
-       callback(data);
-      }
-      else {
-       //Clear out deleted edges/nodes
+       var r=confirm("Are you sure you want to delete this edge?");
+       if (r==true) {
+         var edgeArray = edges.get(data.edges);
+         var message = {'command' : 'delete_edge', 'data' : [parseInt(edgeArray[0].from),parseInt(edgeArray[0].to),parseInt(edgeArray[0].id)]};
+         sendMessage(message);
+         callback(data);
+       }
+       else {
+         //Clear out deleted edges/nodes
+         data.nodes = "";
+         data.edges = "";
+         callback(data);
+       }
+     }
+     else {
+       alert('ERROR: You selected a node while trying to mask an edge - Please retry by just selecting edges ');
        data.nodes = "";
        data.edges = "";
        callback(data);
-      }
      }
     },
 
@@ -651,7 +701,7 @@
 
     network = new vis.Network(container, data, options);
 
-     
+   
     network.on("resize", function(params) {console.log(params.width,params.height)});
 
    
@@ -670,8 +720,8 @@
   <select name="Network Filter" onchange="draw();">
   <option value="Full">Full Network</option>
   <option value="433mhz">433 MHz</option>
-  <option value="916mhz">916 MHz</option>
-  <option value="1.2ghz">1.2 GHz</option>
+  <option value="915mhz">915 MHz</option>
+  <option value="2.4ghz">2.4 GHz</option>
 </select>
 </div>    
   
@@ -704,5 +754,4 @@
   
 </body>
 </html>
-
 

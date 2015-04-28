@@ -2,6 +2,9 @@ import os.path
 import json
 import RadioInterface
 import doge.core.protocol_ctypes as ProtocolDefs
+from __builtin__ import file
+import random
+from doge.conf.globals import config
 
 #The Device class represents a microcontroller and its firmware.
 class Device:
@@ -70,19 +73,23 @@ class HardwareNode:
    _radios = []
    _inputs = {}
    _outputs = []
-
+   _networkTable = None	   
    _validRadios = ["nrf24", "cc1101l", "rfm69"]
    _maxRadios = 4
 
    def __init__(self, device, nodeID, pipe):
+      print "Device={0}, pipe={1}".format(device,pipe)
       if(not isinstance(device, Device)): raise Exception("The device argument must be an instance of Node.Device.")
-      if(nodeID < 0 or nodeID > 255): raise Exception("The specified nodeID, {0}, must be in the range [0, 255]".format(nodeID))
+      if(nodeID < 1 or nodeID > 255): raise Exception("The specified nodeID, {0}, must be in the range [1, 255]".format(nodeID))
       if(not isinstance(pipe, RadioInterface.RadioInterface)): raise Exception("The device argument must be an instance of Node.Device.")
 
       self._device = device
       self._nodeID = nodeID
       self._pipe = pipe
+      narray = []
+      rarray = []
 
+      self._networkTable = NetworkTable (narray,rarray)
 
    def to_s(self):
       print("Node: device = {0}, nodeID = {1}, radio = {2}, inputs = {3}, outputs = {4}".format(self._device, self._nodeID, self._radios, self._inputs, self._outputs))
@@ -108,15 +115,73 @@ class HardwareNode:
 
 
    def pull(self, sensorName):
-      if(sensorName.lower() not in self._inputs.keys()): raise Exception("Unknown sensor: {0}. Current sensor list: {1}".format(sensorName.lower(), self._inputs.keys()))
+       if(sensorName.lower() not in self._inputs.keys()): raise Exception("Unknown sensor: {0}. Current sensor list: {1}".format(sensorName.lower(), self._inputs.keys()))
       
-      address = self._device.address(self._inputs[sensorName.lower()]["space"], self._inputs[sensorName.lower()]["offset"])
+       address = self._device.address(self._inputs[sensorName.lower()]["space"], self._inputs[sensorName.lower()]["offset"])
+       self._pipe.proxy_send(destination=self._nodeID, command=ProtocolDefs.CMD_READ_REG, address=address, payload=0)
+       self._pipe.proxy_receive()
+       print("Pull complete. Got: {0}".format(self._pipe.rxData))
 
-      self._pipe.proxy_send(destination=self._nodeID, command=ProtocolDefs.CMD_READ_REG, address=address, payload=0)
-      self._pipe.proxy_receive()
-      print("Pull complete. Got: {0}".format(self._pipe.rxData))
+   def get_neighbor_table(self,node_id):
+       network_table =  self._networkTable 
+       return (network_table.get_neighbors(node_id))
+  
+   def get_neighbors (self,node_id):
+       node_array =[]
+       network_table =  self._networkTable 
+       neighbor_table_array = network_table.get_neighbors(node_id)
+       for x in  neighbor_table_array:
+           node_array.append(x[0])
+       return (node_array)
+
+   def get_routing_table(self,node_id):
+       network_table =  self._networkTable 
+       return (network_table.get_routes(node_id))
+  
+
+   def get_rssi(self,node_id):
+       rssi = random.randint(20,30)
+       return(rssi)
 
 
+class VirtualNode:
+    _pipe = None
+    _deviceName = ""
+
+    def __init__(self, nodeID, name="Edison"):
+        if(nodeID < 0 or nodeID > 255): raise Exception("The specified nodeID, {0}, must be in the range [0, 255]".format(nodeID))
+ 
+        self._name = name + '-' + str(nodeID)
+        self._nodeID = nodeID
+        narray = []
+        rarray = [] 
+        self._networkTable = NetworkTable(narray,rarray)
+    
+    def load_preset_nte_config(self,pipe):
+        nte_nodes = []
+        for nte_entry in config['preset_nte_nodes']:
+            device = Device(deviceName=nte_entry['mcu_name'],memoryMapFile=config['config_file_paths']['mm_map_default_profile'])
+            nte_nodes.append(
+		HardwareNode(
+                    device,
+                    nodeID=nte_entry['node_id'], 
+                    pipe=pipe
+                )
+            )
+        return nte_nodes
+
+    def get_neighbors(self,node_id=0):
+        node_array = self.load_preset_nte_config()
+        network_table = self._networkTable = NetworkTable(neighborArray=node_array,routingArray=[])
+        return node_array
+        
+    def get_neighbor_table(self,node_id):
+        network_table =  self._networkTable 
+        return (network_table.get_neighbors(node_id))
+
+    def get_routing_table(self,node_id):
+        network_table =  self._networkTable 
+        return (network_table.get_routes(node_id))
 
 
 #### The below classes are currently not used ####
@@ -133,11 +198,50 @@ class NetworkTable:
    def __init__(self, neighborArray = [], routingArray = []):
       print("Network table created")
 
-   def get_neighbors(self):
-      return self._neighborArray.copy()
+   def get_neighbors(self,node_id):
+      #return self._neighborArray.copy()
+      if (node_id ==1 ):
+        narray =  [[3,44,2,1],[4,66,2,1]]
+      if (node_id ==2 ):
+        narray =  [[6,74,3,1]]
+      if (node_id ==3 ):
+        narray =  [[1,44,2,1],[9,56,2,1]]
+      if (node_id ==4 ):
+        narray =  [[1,66,2,1],[5,96,2,1],[7,46,2,1]]
+      if (node_id ==5 ):
+        narray =  [[4,96,2,1]]
+      if (node_id ==6 ):
+        narray =  [[2,74,3,1]]
+      if (node_id ==7 ):
+        narray =  [[4,46,2,1],[8,66,2,1]]
+      if (node_id ==8 ):
+        narray =  [[7,66,2,1],[9,96,2,1]]
+      if (node_id ==9 ):
+        narray =  [[8,96,2,1],[3,56,2,1]]
+      return (narray)
 
-   def get_routes(self):
-      return self._routingArray.copy()
+   def get_routes(self,node_id):
+      #return self._routingArray.copy()
+      if (node_id ==1 ):
+        rarray =  [[4,94,1]]
+      if (node_id ==2 ):
+        rarray =  [[6,34,1]]
+      if (node_id ==3 ):
+        rarray =  [[9,55,1]]
+      if (node_id ==4 ):
+        rarray =  [[5,84,1],[7,93,1]]
+      if (node_id ==5 ):
+        rarray =  []
+      if (node_id ==6 ):
+        rarray =  []
+      if (node_id ==7 ):
+        rarray =  [[8,75,1]]
+      if (node_id ==8 ):
+        rarray =  [[9,88,1]]
+      if (node_id ==9 ):
+        rarray =  []
+      return (rarray)
+        
 
    def set_max_neighbors(self, num):
       if(num < len(self._neighborArray)):

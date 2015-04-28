@@ -1,0 +1,21 @@
+<div class="list card">
+  <div class="item item-divider">
+    <h2>{{currentDevice.name}}</h2>
+  </div>
+  <div class="item">
+    <img ng-src="{{currentDevice.image}}">
+      <p/> 
+      <h2>Pins</h2>
+      <div class="list">
+        <a class="item item-thumbnail-left" href="#/pin" ng-click="setCurrentPin(pin.id)"  ng-animate="'item'"  ng-repeat='pin in currentDevice.pins' style="background-color: {{pin.currentColor}}">
+          <img ng-src="{{pin.image}}">
+          <h2>{{pin.name}}</h2>
+          <p><span class="status-{{pin.activemode}}" ng-if='!pin.inAdvancedMode'> Running in : {{pin.activemode}}  </span>
+              <span class="status-{{pin.activemode}}" ng-if='pin.inAdvancedMode'> Running in : Advanced Mode </span>
+              <br/>{{pin.otherDetailedinfomation}}</p>
+        </a>
+      </div>
+  </div>
+  <div class="item">
+  </div>
+</div>
