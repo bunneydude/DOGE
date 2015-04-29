@@ -13,10 +13,10 @@
 #include <platform.h>
 
 /*******************************************************************************
-* Test 1
-* Node 1 uses hard coded neighbor tables/routing tables to send a packet to the
-* furthest node (Node 3).
-*******************************************************************************/
+ * Test 1
+ * Node 1 uses hard coded neighbor tables/routing tables to send a packet to the
+ * furthest node (Node 3).
+ *******************************************************************************/
 #define TEST_ID 0x1
 #define ROOT_NODE 0x1
 #define NODE_ID_2 0x2
@@ -25,11 +25,13 @@
 #define TEST_SH_LQE 0x1
 #define TEST_MH_LQE 0x1
 
+uint8_t rx_loop = 4;
+
 // -----------------------------------------------------------------------------
 /**
  *  Global data
  */
-#define MY_NODE_ID NODE_ID_3
+#define MY_NODE_ID ROOT_NODE
 #define MAX_DATA_LENGTH 32
 #define NODECTRL_VERSION 1
 //Defines for network/radio IDs
@@ -69,37 +71,48 @@ void setup()
 
   // The radio library uses the SPI library internally, this call initializes
   // SPI/CSn and GDO0 lines. Also setup initial address, channel, and TX power.
-  Radio.begin(ADDRESS_BROADCAST, CHANNEL_1, POWER_MAX); 
+  Radio.begin(MY_NODE_ID, CHANNEL_1, POWER_MAX); 
 
   pinMode(RED_LED, OUTPUT);
   digitalWrite(RED_LED, hbt_output);   // set the LED on
 
 #if (TEST_ID == 0x1)
-uint8_t index;
+  uint8_t index;
 #if (MY_NODE_ID == ROOT_NODE)
-//Neighbor Table
-struct neighborEntry neighborEntry1 = {NODE_ID_2, TEST_SH_LQE, RADIO_ID_915, NETWORK_ID_0};
-network_insert((union networkEntry*)&neighborEntry1, NEIGHBOR_ENTRY);
-//Routing Table
-network_has_neighbor(NODE_ID_2, &index); 
-struct routingEntry routingEntry1 = {NODE_ID_3, TEST_MH_LQE, index};
-network_insert((union networkEntry*)&routingEntry1, ROUTING_ENTRY);
+  rx_loop=4;
+  //Neighbor Table
+  struct neighborEntry neighborEntry1 = {
+    NODE_ID_2, TEST_SH_LQE, RADIO_ID_915, NETWORK_ID_0  };
+  network_insert((union networkEntry*)&neighborEntry1, NEIGHBOR_ENTRY);
+  //Routing Table
+  network_has_neighbor(NODE_ID_2, &index); 
+  struct routingEntry routingEntry1 = {
+    NODE_ID_3, TEST_MH_LQE, index  };
+  network_insert((union networkEntry*)&routingEntry1, ROUTING_ENTRY);
 #elif (MY_NODE_ID == NODE_ID_2)
-//Neighbor Table
-struct neighborEntry neighborEntry1 = {ROOT_NODE, TEST_SH_LQE, RADIO_ID_915, NETWORK_ID_0};
-struct neighborEntry neighborEntry2 = {NODE_ID_3, TEST_SH_LQE, RADIO_ID_915, NETWORK_ID_0};
-network_insert((union networkEntry*)&neighborEntry1, NEIGHBOR_ENTRY);
-network_insert((union networkEntry*)&neighborEntry2, NEIGHBOR_ENTRY);
+  rx_loop=1;
+  //Neighbor Table
+  struct neighborEntry neighborEntry1 = {
+    ROOT_NODE, TEST_SH_LQE, RADIO_ID_915, NETWORK_ID_0  };
+  struct neighborEntry neighborEntry2 = {
+    NODE_ID_3, TEST_SH_LQE, RADIO_ID_915, NETWORK_ID_0  };
+  network_insert((union networkEntry*)&neighborEntry1, NEIGHBOR_ENTRY);
+  network_insert((union networkEntry*)&neighborEntry2, NEIGHBOR_ENTRY);
 #elif (MY_NODE_ID == NODE_ID_3)
-//Neighbor Table
-struct neighborEntry neighborEntry1 = {NODE_ID_2, TEST_SH_LQE, RADIO_ID_915, NETWORK_ID_0};
-network_insert((union networkEntry*)&neighborEntry1, NEIGHBOR_ENTRY);
-//Routing Table
-network_has_neighbor(NODE_ID_2, &index); 
-struct routingEntry routingEntry1 = {ROOT_NODE, TEST_MH_LQE, index};
-network_insert((union networkEntry*)&routingEntry1, ROUTING_ENTRY);
+  rx_loop=1;
+  //Neighbor Table
+  struct neighborEntry neighborEntry1 = {
+    NODE_ID_2, TEST_SH_LQE, RADIO_ID_915, NETWORK_ID_0  };
+  network_insert((union networkEntry*)&neighborEntry1, NEIGHBOR_ENTRY);
+  //Routing Table
+  network_has_neighbor(NODE_ID_2, &index); 
+  struct routingEntry routingEntry1 = {
+    ROOT_NODE, TEST_MH_LQE, index  };
+  network_insert((union networkEntry*)&routingEntry1, ROUTING_ENTRY);
 #endif
 #endif
+
+  uint8_t i = 0;
 }
 
 void loop()
@@ -114,69 +127,68 @@ void loop()
   link_layer_form_packet(&txPacket, &txAttr, RAW_PACKET, ROOT_NODE, NODE_ID_3, ROOT_NODE, NODE_ID_2);
   //Send to destination
   Radio.transmit(ADDRESS_BROADCAST, (uint8_t*)(&txPacket), RAW_PACKET_TOTAL_SIZE(&txPacket));
-  print_string("Sending...", NONE);
-  print_packet(&txPacket);
+  //  print_string("Sending...", NONE);
+  //  print_packet(&txPacket);
 #endif
-  //Make sure radio is ready to receive
-  while (Radio.busy());
 
-  // Turn on the receiver and listen for incoming data. Timeout after 1 seconds.
-  if (Radio.receiverOn((uint8_t*)(&rxPacket), MAX_DATA_LENGTH, 1000) > 0){
-    if(MY_NODE_ID == rxPacket.hdr.dst && MY_NODE_ID == rxPacket.hdr.shDst){ //parse message
-      digitalWrite(RED_LED, hbt_output ^= 0x1);
-      //parse message
-      sendResponse = link_layer_parse_packet(&spiProtocol, &rxPacket, &txPacket);
-      //update neighbor table
-      network_update(rxPacket.hdr.shSrc, Radio.getRssi(), RADIO_ID_915, NETWORK_ID_0, NEIGHBOR_ENTRY);
-      if (sendResponse == TRANSMIT_RESPONSE){
-        if (HEADER_TYPE_EQUALS(txPacket.hdr.type, RAW_PACKET)){
-          //XXX Taking out these print statements causes the test to fail.
-          //Working theory is that node 2 cannot switch fast enough into rx
-          //mode to receive the packet when these are taken out
-          print_string("Sending ack...", NONE);
-          print_packet(&txPacket);
-          Radio.transmit(ADDRESS_BROADCAST, (uint8_t*)(&txPacket), RAW_PACKET_TOTAL_SIZE(&txPacket));
+  for(i=0; i<rx_loop; i++){
+    //Make sure radio is ready to receive
+    while (Radio.busy());
+
+    // Turn on the receiver and listen for incoming data. Timeout after X seconds.
+    if (Radio.receiverOn((uint8_t*)(&rxPacket), MAX_DATA_LENGTH, 1000) > 0){
+      if(MY_NODE_ID == rxPacket.hdr.dst && MY_NODE_ID == rxPacket.hdr.shDst){ //parse message   
+        digitalWrite(RED_LED, hbt_output ^= 0x1);
+        //parse message
+        sendResponse = link_layer_parse_packet(&spiProtocol, &rxPacket, &txPacket);
+        //update neighbor table
+        network_update(rxPacket.hdr.shSrc, Radio.getRssi(), RADIO_ID_915, NETWORK_ID_0, NEIGHBOR_ENTRY);
+        if (sendResponse == TRANSMIT_RESPONSE){ // -- this should be done by node 3
+          if (HEADER_TYPE_EQUALS(txPacket.hdr.type, RAW_PACKET)){
+            //XXX Taking out these print statements causes the test to fail.
+            //Working theory is that node 2 cannot switch fast enough into rx
+            //mode to receive the packet when these are taken out
+            //          print_string("Sending ack...", NONE);
+            //          print_packet(&txPacket);
+            Radio.transmit(ADDRESS_BROADCAST, (uint8_t*)(&txPacket), RAW_PACKET_TOTAL_SIZE(&txPacket));
+          }
+        }
+      }
+      else if (MY_NODE_ID == rxPacket.hdr.shDst && MY_NODE_ID != rxPacket.hdr.dst){ //forward message --- This is done by node 2
+        //      print_string("Forwarding attempt...", NONE);
+        //      print_packet(&rxPacket);
+        if(network_has_neighbor(rxPacket.hdr.dst, &tempIndex)){
+          if (HEADER_TYPE_EQUALS(rxPacket.hdr.type, RAW_PACKET)){
+            txAttr.ack = GET_HEADER_TYPE_ACK(rxPacket.hdr.type);
+            txAttr.size = RAW_PACKET_DATA_SIZE(&rxPacket);
+            copy_raw_packet_data((rawPacket*)&txPacket, (rawPacket*)&rxPacket);
+            link_layer_form_packet(&txPacket, &txAttr, GET_HEADER_TYPE(rxPacket.hdr.type),
+            rxPacket.hdr.src, rxPacket.hdr.dst, MY_NODE_ID,
+            network[tempIndex].neighbor.shNodeID);
+            Radio.transmit(ADDRESS_BROADCAST, (uint8_t*)(&txPacket), RAW_PACKET_TOTAL_SIZE(&txPacket));
+            //          print_string("Forwarded...", NONE);
+            //          print_packet(&txPacket);
+          }
+        }
+        else if (network_has_route(rxPacket.hdr.dst, &tempIndex)){
+          if (HEADER_TYPE_EQUALS(txPacket.hdr.type, RAW_PACKET)){
+            txAttr.ack = GET_HEADER_TYPE_ACK(rxPacket.hdr.type);
+            txAttr.size = RAW_PACKET_DATA_SIZE(&rxPacket);
+            copy_raw_packet_data((rawPacket*)&txPacket, (rawPacket*)&rxPacket);
+            link_layer_form_packet(&txPacket, &txAttr, GET_HEADER_TYPE(rxPacket.hdr.type), 
+            rxPacket.hdr.src, rxPacket.hdr.dst, MY_NODE_ID, 
+            network[tempIndex].neighbor.shNodeID);
+            Radio.transmit(ADDRESS_BROADCAST, (uint8_t*)(&txPacket), RAW_PACKET_TOTAL_SIZE(&txPacket));
+          }
+        }
+        else
+        {
+          Serial.println("ERROR: Attempt to forward packet that does not exist in neighbor or routing tables");
         }
       }
     }
-    else if (MY_NODE_ID == rxPacket.hdr.shDst && MY_NODE_ID != rxPacket.hdr.dst){ //forward message
-      print_string("Forwarding attempt...", NONE);
-      print_packet(&rxPacket);
-      if(network_has_neighbor(rxPacket.hdr.dst, &tempIndex)){
-        if (HEADER_TYPE_EQUALS(rxPacket.hdr.type, RAW_PACKET)){
-          txAttr.ack = GET_HEADER_TYPE_ACK(rxPacket.hdr.type);
-          txAttr.size = RAW_PACKET_DATA_SIZE(&rxPacket);
-          copy_raw_packet_data((rawPacket*)&txPacket, (rawPacket*)&rxPacket);
-          link_layer_form_packet(&txPacket, &txAttr, GET_HEADER_TYPE(rxPacket.hdr.type),
-                                 rxPacket.hdr.src, rxPacket.hdr.dst, MY_NODE_ID,
-                                 network[tempIndex].neighbor.shNodeID);
-          Radio.transmit(ADDRESS_BROADCAST, (uint8_t*)(&txPacket), RAW_PACKET_TOTAL_SIZE(&txPacket));
-          print_string("Forwarded...", NONE);
-          print_packet(&txPacket);
-        }
-      }
-      else if (network_has_route(rxPacket.hdr.dst, &tempIndex)){
-        if (HEADER_TYPE_EQUALS(txPacket.hdr.type, RAW_PACKET)){
-          txAttr.ack = GET_HEADER_TYPE_ACK(rxPacket.hdr.type);
-          txAttr.size = RAW_PACKET_DATA_SIZE(&rxPacket);
-          copy_raw_packet_data((rawPacket*)&txPacket, (rawPacket*)&rxPacket);
-          link_layer_form_packet(&txPacket, &txAttr, GET_HEADER_TYPE(rxPacket.hdr.type), 
-                                 rxPacket.hdr.src, rxPacket.hdr.dst, MY_NODE_ID, 
-                                 network[tempIndex].neighbor.shNodeID);
-          Radio.transmit(ADDRESS_BROADCAST, (uint8_t*)(&txPacket), RAW_PACKET_TOTAL_SIZE(&txPacket));
-        }
-      }
-      else
-      {
-        Serial.println("ERROR: Attempt to forward packet that does not exist in neighbor or routing tables");
-      }
-    }
-  }
-  else{//end if got packet
-    //we timed out, decrement counter...this is lame I know
-    // TODO use the Energia library to set up a timer ISR
-    if(dspStatus.counter > 1){
-      dspStatus.counter--;
+    else{//end if got packet
+      //no packet
     }
   }
 
@@ -185,3 +197,5 @@ void loop()
     dsp_add_sample( analogRead(A3) );    
   }
 }
+
+
