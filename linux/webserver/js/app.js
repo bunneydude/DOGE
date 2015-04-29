@@ -23,6 +23,10 @@
       /* The chart Controller is located in page-controller.js*/
 
     });
+    $routeProvider.when('/visNetwork', {
+     templateUrl: 'views/VisNetwork.html',
+     //controller: 'VisController'
+    });
     $routeProvider.when('/deviceDetails', {
       templateUrl: 'views/DeviceDetails.html'
     });
