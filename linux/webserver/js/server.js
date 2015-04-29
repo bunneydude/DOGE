@@ -4,7 +4,7 @@
 
   app = require('express')();
 
-  app.use(require('express').static(__dirname + '../../'));
+  app.use(require('express').static('./webserver'));
 
   app.get('/', function(req, res) {
     console.log('recieved request');
@@ -48,55 +48,69 @@
 
 
 
-  generateChartData = function() {
+   generateChartData = function() {
     var lineChartData;
     return lineChartData = [
       {
-        label: 'test1',
+        label: 'node2',
         datapoints: []
       }, {
-        label: 'test2',
+        label: 'node3',
         datapoints: []
       }, {
-        label: 'test3',
+        label: 'node4',
         datapoints: []
       }, {
-        label: 'test4',
+        label: 'node5',
         datapoints: []
-      }
+      }, {
+        label: 'node6',
+        datapoints: []
+
+      }  , {
+        label: 'node7',
+        datapoints: []
+
+      }   , {
+        label: 'node8',
+        datapoints: []
+
+      }   , {
+        label: 'node9',
+        datapoints: []
+
+      }   , {
+        label: 'node10',
+        datapoints: []
+
+      }    
     ];
   };
 
-getUpdateData = function(timestamp, socket) {
-    return fs.readFile('./data.json', 'utf8', function(err, data) {
-      var nodeDataList;
-      if (err) {
-        return console.log(err);
-      } else {
-        nodeDataList = JSON.parse(data);
-        return socket.emit('update', nodeDataList);
-      }
+  
+
+chart_io.sockets.on('connection', function(socket) {
+   
+    socket.on('join', function (data) {
+        socket.join(data.socketid);
     });
-  };
-
-chart_io.on('connection', function(socket) {
-    var int, timestamp;
-    timestamp = 1383230821680;
-    /* this is just for testing it needs to be compiled with actual state of each pin  this could be done via a local database*/
-
-    socket.emit('init', generateChartData());
+ 
+    chart_io.to('chart').emit('init', generateChartData());
     console.log('connected');
-    int = setInterval(function() {
-      timestamp += 1000;
-      getUpdateData(timestamp, socket);
-//      return console.log('update Sent');
-        return;
-    }, 1000);
+    
     socket.on('updateComponent', function(data) {});
-    return socket.on('disconnect', function() {
-      return clearInterval(int);
+
+    socket.on('update',function(data){
+        console.log ('Recvd data from python');
+        data = JSON.parse(data);
+        //console.log (data);
+        chart_io.to('chart').emit('update',data);
+
     });
+
+
   });
+
 
 var nw_data; 
 
