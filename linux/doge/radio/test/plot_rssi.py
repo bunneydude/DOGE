@@ -7,7 +7,7 @@ import json
 import sys
 import time
 
-port = 8000
+port = 3000
 socket = SocketIO('localhost', port)
 
 

@@ -17,12 +17,11 @@
     var socket;
     var connection;
 
-  $(document).ready(function(){
  
-    socket = io.connect();
+    socket = io.connect('http://192.168.1.65:4000');
     socket.emit('join',{'socketid':'browsersock'});
 
-    document.getElementById('selection').innerHTML = "Loaded browser";
+    //document.getElementById('selection').innerHTML = "Loaded browser";
      
     socket.on('connect', function() {
       console.log('connected');
@@ -41,9 +40,9 @@
     socket.on ("load_network",function(message){
       
        message = JSON.parse(message);
-       var nodesJsonObj = $.parseJSON(message.nodes);
-       var edgesJsonObj = $.parseJSON(message.edges);
-       var routingEdgesJsonObj = $.parseJSON(message.routing_edges);
+       var nodesJsonObj = JSON.parse(message.nodes);
+       var edgesJsonObj = JSON.parse(message.edges);
+       var routingEdgesJsonObj = JSON.parse(message.routing_edges);
        
        nodes = new vis.DataSet();
        edges = new vis.DataSet();
@@ -52,7 +51,7 @@
        var nodesArrayLength = nodesJsonObj.length;
 
        for (var i=0;i < nodesArrayLength; i++){
-          node = {'group':JSON.stringify(nodesJsonObj[i].group),'id':JSON.stringify(nodesJsonObj[i].id),'label':JSON.stringify(nodesJsonObj[i].label)};
+          node = {'group':nodesJsonObj[i].group,'id':JSON.stringify(nodesJsonObj[i].id),'label':JSON.stringify(nodesJsonObj[i].label)};
           nodes.add(node);
        }
        
@@ -83,7 +82,6 @@
        drawLegend();
      })
 
-  });
 
 
 
@@ -127,8 +125,8 @@
       var nodes_legend = new vis.DataSet();
       nodes_legend.add({id: 1000, x:-3500,y:0,label: 'Edison', group: 'edison'});
       nodes_legend.add({id: 1001, x:-3400,y:0,label: '433MHz', group: '433mhz'});
-      nodes_legend.add({id: 1002, x:-3300,y:0,label: '916MHz', group: '916mhz'});
-      nodes_legend.add({id: 1003, x:-3200,y:0,label: '1.2GHz', group: '1.2ghz'});
+      nodes_legend.add({id: 1002, x:-3300,y:0,label: '915MHz', group: '915mhz'});
+      nodes_legend.add({id: 1003, x:-3200,y:0,label: '2.4GHz', group: '2.4ghz'});
       nodes_legend.add({id: 1004, x:-3080,y:0,label: 'Masked Node', color: 'gray'});
       var data = {
        nodes: nodes_legend,
@@ -410,28 +408,6 @@
     function draw(nodes,edges) {
     var e=document.getElementsByName("Network Filter")[0];
 
-    //nodes = new vis.DataSet();
-    //nodes.add ( [
-   //  {'id': '0', 'label': 'E',group:'edison'},
-    // {'id': '1', 'label': '1',group:'916mhz'},
-    // {'id': '2', 'label': '2',group:'433mhz'},
-    // {'id': '3', 'label': '3',group:'433mhz'},
-    // {'id': '4', 'label': '4',group:'433mhz'},
-    // {'id': '5', 'label': '5',group:'916mhz'},
-    // {'id': '6', 'label': '6',group:'1.2ghz'},
-   // ]);
-
-   // edges = new vis.DataSet();
-    //edges.add([
-    // {'id': '1',from: '0', to: '1',label:'12'},
-    // {'id': '2',from: '0', to: '1',label:'50'},
-    // {'id': '3',from: '0', to: '2',label:'60'},
-    // {'id': '4',from: '2', to: '3',label:'49'},
-    // {'id': '5',from: '2', to: '4',label:'73'},
-    // {'id': '6',from: '0', to: '5',label:'73'},
-    // {'id': '7',from: '5', to: '6',label:'73'},
-   // ]);
-
   
 
     var grpfilt =document.getElementsByName("Network Filter")[0];
@@ -489,12 +465,16 @@
 
     options = {
    
-    dragNetwork: false,
-    zoomable: false,
+    dragNetwork: true,
+    zoomable: true,
+   
+    //Enable Navigation controls
+    navigation: true,
+    keyboard: true,  
     
     dataManipulation: {
-    enabled: true,
-    initiallyVisible: true
+     enabled: true,
+     initiallyVisible: true
     },
     
     edges: {
@@ -530,7 +510,7 @@
          }
        }
      },
-     '1.2ghz': {
+     '2.4ghz': {
       shape: doge_node_shape,
       color: {
         background: 'lightgreen',

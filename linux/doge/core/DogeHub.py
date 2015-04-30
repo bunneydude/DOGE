@@ -126,7 +126,7 @@ def rp_run():
     
     edison_neighbors = root.load_preset_nte_config(pipe)
 
-    edisonRP = RoutingProcessor(8124)
+    edisonRP = RoutingProcessor(4000)
 
     #Create Edisons neighbor and routing table entry list and send it to the routing processor
     edison_nte = [[1,88,0,1],[2,88,0,1],[3,88,0,1,]]

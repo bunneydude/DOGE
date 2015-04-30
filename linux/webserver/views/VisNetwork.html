@@ -3,7 +3,7 @@
 <head>
   <title> DOGE Network</title>
 
-  <script type="text/javascript" src="/socket.io/socket.io.js"></script> 
+  <script src="http://localhost:4000/socket.io/socket.io.js"></script>
   <script type="text/javascript" src="vis.js"></script>
   <script type="text/javascript" src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
   <link type="text/css" rel="stylesheet" href="../css/graph-vis.css">
@@ -14,7 +14,7 @@
 
 
  
-<h1> DOGE Network</h1>
+<h3> DOGE Network</h3>
 
 
 <div id ="filter">
@@ -22,8 +22,8 @@
   <select name="Network Filter" onchange="draw();">
   <option value="Full">Full Network</option>
   <option value="433mhz">433 MHz</option>
-  <option value="916mhz">916 MHz</option>
-  <option value="1.2ghz">1.2 GHz</option>
+  <option value="915mhz">915 MHz</option>
+  <option value="2.4ghz">2.4 GHz</option>
 </select>
 </div>    
   
@@ -50,8 +50,6 @@
   <input type="button" value="Mask Node/Edge"  id="maskElementButton"  class="mynetwork-control-button" onclick="maskElement()"></input>
 </div> 
 <div id="mynetwork"></div>
-
-<br></br>  
 <input type="button" value="Toggle Legend" onclick="toggleLegend()"></button> <div id="mynetworklegend"></div>
   
 </body>
