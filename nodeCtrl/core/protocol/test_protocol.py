@@ -16,11 +16,14 @@ from protocol_ctypes import *
 
 libprotocol = CDLL('./libprotocol.so')
 
+#mirror the structure in /protocol/testing/main.c
+
 TEST_PACKET_ID   = 0x3
 TEST_RTA         = 0xC
 TEST_TYPE_ACK    = 0x1
-TEST_SRC_NODE_ID = 0x9
-TEST_DST_NODE_ID = 0x10
+TEST_TYPE_NO_ACK = 0x0
+TEST_SRC_NODE_ID = 0x6
+TEST_DST_NODE_ID = 0x8
 TEST_SH_SRC_NODE_ID = 0x7
 TEST_SH_DST_NODE_ID = 0x8
 TEST_TTL         = 0x5
@@ -66,9 +69,9 @@ print("Response Src ID = {0}, expected = {1}".format(rawPkt2.hdr.src, TEST_DST_N
 print("Response Dst ID = {0}, expected = {1}".format(rawPkt2.hdr.dst, TEST_SRC_NODE_ID))
 print("Response shSrc ID = {0}, expected = {1}".format(rawPkt2.hdr.shSrc, TEST_SH_DST_NODE_ID))
 print("Response shDst ID = {0}, expected = {1}".format(rawPkt2.hdr.shDst, TEST_SH_SRC_NODE_ID))
-print("Response ack = {0}, expected = {1}".format(header_type_ack(rawPkt2.hdr.type), 1))
-print("Response type = {0}, expected = {1}".format(header_type_pkt(rawPkt2.hdr.type), RAW_PACKET))
+print("Response ack = {0}, expected = {1}".format(get_header_type_ack(rawPkt2.hdr.type), 1))
+print("Response type = {0}, expected = {1}".format(get_header_type(rawPkt2.hdr.type), RAW_PACKET))
 print("Response size = {0}, expected {1}".format(rawPkt2.size, CMD_ACK_DATA_SIZE))
 
-crcResult = libprotocol.check_raw_packet_crc(byref(rawPkt2))
+crcResult = libprotocol.check_packet_crc(byref(rawPkt2))
 print("CRC result = {0}, expected 0".format(crcResult))
