@@ -58,6 +58,7 @@ mkdir -p $ENERGIA_LIB_DIR/routing
 mkdir -p $ENERGIA_LIB_DIR/task
 mkdir -p $ENERGIA_LIB_DIR/network
 mkdir -p $ENERGIA_LIB_DIR/platform
+mkdir -p $ENERGIA_LIB_DIR/cobs
 
 ln -s $PWD/nodes/msp430g2553/nodeCtrl_v1/nodeCtrl.ino        $ENERGIA_LIB_DIR/../nodeCtrl/nodeCtrl.ino
 ln -s $PWD/nodeCtrl/core/adc/adc.h                           $ENERGIA_LIB_DIR/adc/adc.h
@@ -89,3 +90,5 @@ ln -s $PWD/nodeCtrl/core/network/network.c                   $ENERGIA_LIB_DIR/ne
 ln -s $PWD/nodeCtrl/core/platform/serial_c.h                 $ENERGIA_LIB_DIR/platform/serial_c.h
 ln -s $PWD/nodeCtrl/core/platform/serial_c.cpp               $ENERGIA_LIB_DIR/platform/serial_c.cpp
 ln -s $PWD/nodeCtrl/core/platform/platform.h                 $ENERGIA_LIB_DIR/platform/platform.h
+ln -s $PWD/nodeCtrl/core/cobs/cobs.c                         $ENERGIA_LIB_DIR/cobs/cobs.cpp
+ln -s $PWD/nodeCtrl/core/cobs/cobs.h                         $ENERGIA_LIB_DIR/cobs/cobs.h
