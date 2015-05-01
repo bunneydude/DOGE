@@ -65,15 +65,15 @@
        var routingEdgesArrayLength = routingEdgesJsonObj.length;
 
        for (var i=0;i < routingEdgesArrayLength; i++){
-          route_edge = {'from':JSON.stringify(routingEdgesJsonObj[i].from),'to':JSON.stringify(routingEdgesJsonObj[i].to),'label':JSON.stringify(routingEdgesJsonObj[i].label),'id':JSON.stringify(routingEdgesJsonObj[i].id),'style':'dash-line'};
+          route_edge = {'from':JSON.stringify(routingEdgesJsonObj[i].from),'to':JSON.stringify(routingEdgesJsonObj[i].to),'label':JSON.stringify(routingEdgesJsonObj[i].label),'id':JSON.stringify(routingEdgesJsonObj[i].id),'style':'arrow','arrowScaleFactor': .5,'color':'gold'};
           edges.add(route_edge);
 
        }
       
-       //Filter out routing edges (dash-line edges). We will add these back based on user feedback 
+       //Filter out routing edges (arrow). We will add these back based on user feedback 
        routing_edges = edges.get({
          filter: function (item) {
-          return (item.style === 'dash-line');
+          return (item.style === 'arrow');
          }
        });
        edges.remove(routing_edges);
@@ -168,7 +168,7 @@
       
       //Clear out states from any previous use cases
       document.getElementById('selection').innerHTML = "";
-      //network.off ('select');
+      network.off ('select');
       
      //Display user instructions and selections
       document.getElementById('instructions').innerHTML = 'Select Source Node followed by intermediate node(s) (if any) and then the Destination Node. Click Confirm when done or Cancel to exit';
@@ -191,7 +191,7 @@
       
       //Clear out states from any previous use cases
       document.getElementById('selection').innerHTML = "";
-      //network.off ('select');
+      network.off ('select');
       
       
       //Display user instructions and selections
@@ -226,7 +226,7 @@
       
       //Clear out states from any previous use cases
       document.getElementById('selection').innerHTML = "";
-      //network.off ('select');
+      network.off ('select');
       
       //Display user instructions and selections
       document.getElementById('instructions').innerHTML = 'Select Source Node followed by the Destination Node.Click Confirm when done or Cancel to exit';
@@ -260,7 +260,8 @@
       
       //Clear out states from any previous use cases
       document.getElementById('selection').innerHTML = "";
-      //network.off ('select');
+      document.getElementById('route').innerHTML = "";
+      network.off ('select');
              
       //Display user instructions and selections
       document.getElementById('instructions').innerHTML = 'Select Node/Edge to be masked.Click Confirm when done or Cancel to exit';
@@ -271,13 +272,23 @@
       div.style.display = 'block';
       
       network.on('select',function(params) {
-        if (params['edges'] != "") {  
+        if (params['edges'] != "" && params['nodes'] == "") {  
+          document.getElementById('route').innerHTML = 'Selected Edge Id\'s:'+params.edges;
           maskEdge = params.edges ;
           
         }
-        if (params['nodes'] != "") {  
-          maskNode = parseInt(params.nodes) ;
+        else if (params['nodes'] != "" && params['edges'] == "") {  
+          document.getElementById('route').innerHTML = 'Selected Nodes:'+params.nodes;
+	  maskNode = parseInt(params.nodes) ;
         }
+        else if (params['nodes'] != "" && params['edges'] != "") {  
+          document.getElementById('route').innerHTML = 'Selected Nodes:'+params.nodes + " Selected Edge Id\'s:"+params.edges;
+         maskEdge = params.edges;
+         maskNode = parseInt(params.nodes);
+        }
+
+
+
        });
     }
     
@@ -301,7 +312,7 @@
     //Function to update edge properties if masked
     function updateEdge (id) {
       try {
-        edges.update({id: id, style:'dash-line',color:'gray'});
+        edges.update({id: id, style:'dash-line',color:'gray',label:''});
       }
       catch(err) {
         alert (err);
@@ -467,7 +478,8 @@
    
     dragNetwork: true,
     zoomable: true,
-   
+    
+    
     //Enable Navigation controls
     navigation: true,
     keyboard: true,  
@@ -483,12 +495,10 @@
      fontFace: 'verdana',
      fontSize: 14,
      inheritColor: true,
-     //style: line,
      color : {
       highlight: 'blue',
       color: 'black',
      },
-     //labelAlignment: 'line-above'
     },
     //Define groups to be used for nodes
     groups: {
@@ -501,7 +511,7 @@
          }
       }
      },
-     '916mhz': {
+     '915mhz': {
        shape: doge_node_shape,
        color: {
          background: 'lightblue',
@@ -605,7 +615,7 @@
 
     network = new vis.Network(container, data, options);
 
-   
+
     network.on("resize", function(params) {console.log(params.width,params.height)});
 
    
