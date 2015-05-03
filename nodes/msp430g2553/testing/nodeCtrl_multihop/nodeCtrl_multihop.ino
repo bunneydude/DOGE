@@ -27,16 +27,6 @@
 
 uint8_t rx_loop = 4;
 
-// -----------------------------------------------------------------------------
-/**
- *  Global data
- */
-#define MY_NODE_ID ROOT_NODE
-#define MAX_DATA_LENGTH 32
-#define NODECTRL_VERSION 1
-//Defines for network/radio IDs
-#define RADIO_ID_915 (0x1)
-#define NETWORK_ID_0 (0x0)
 // Data to write to radio TX FIFO (60 bytes MAX.)
 //unsigned char txData[DATA_LENGTH];    
 dogePacket txPacket;
@@ -61,6 +51,8 @@ union networkEntry tempEntry;
 
 void setup()
 {
+  print_string("START",NEWLINE);
+  setup_timer_hw();
   Protocol_init(&spiProtocol);
   network_init(NETWORK_DIVISION_DEFAULT);
   dsp_init(5,0);
@@ -71,7 +63,7 @@ void setup()
 
   // The radio library uses the SPI library internally, this call initializes
   // SPI/CSn and GDO0 lines. Also setup initial address, channel, and TX power.
-  Radio.begin(MY_NODE_ID, CHANNEL_1, POWER_MAX); 
+  Radio.begin(ADDRESS_BROADCAST, CHANNEL_1, POWER_MAX); 
 
   pinMode(RED_LED, OUTPUT);
   digitalWrite(RED_LED, hbt_output);   // set the LED on
@@ -79,7 +71,7 @@ void setup()
 #if (TEST_ID == 0x1)
   uint8_t index;
 #if (MY_NODE_ID == ROOT_NODE)
-  rx_loop=4;
+  rx_loop=2;
   //Neighbor Table
   struct neighborEntry neighborEntry1 = {
     NODE_ID_2, TEST_SH_LQE, RADIO_ID_915, NETWORK_ID_0  };
@@ -116,7 +108,7 @@ void setup()
 }
 
 void loop()
-{  
+{
 #if MY_NODE_ID == ROOT_NODE
   memset(&txPacket, 0, sizeof(dogePacket));
   memset(&rxPacket, 0, sizeof(dogePacket));
@@ -126,17 +118,17 @@ void loop()
   application_form_packet(txAppPacket, &txAttr, CMD_READ_REG, 55, 0);
   link_layer_form_packet(&txPacket, &txAttr, RAW_PACKET, ROOT_NODE, NODE_ID_3, ROOT_NODE, NODE_ID_2);
   //Send to destination
-  Radio.transmit(ADDRESS_BROADCAST, (uint8_t*)(&txPacket), RAW_PACKET_TOTAL_SIZE(&txPacket));
-  //  print_string("Sending...", NONE);
-  //  print_packet(&txPacket);
+  dogeBool success = reliable_transmit();
+  print_string("S:", NONE);
+  print_decimal(success, NEWLINE);
 #endif
 
-  for(i=0; i<rx_loop; i++){
+  //for(i=0; i<rx_loop; i++){
     //Make sure radio is ready to receive
     while (Radio.busy());
 
-    // Turn on the receiver and listen for incoming data. Timeout after X seconds.
-    if (Radio.receiverOn((uint8_t*)(&rxPacket), MAX_DATA_LENGTH, 1000) > 0){
+  // Turn on the receiver and listen for incoming data. Timeout after RX_TIMER_TIMEOUT.
+  if (reliable_receive(TIMEOUT_500_MS)){
       if(MY_NODE_ID == rxPacket.hdr.dst && MY_NODE_ID == rxPacket.hdr.shDst){ //parse message   
         digitalWrite(RED_LED, hbt_output ^= 0x1);
         //parse message
@@ -145,12 +137,7 @@ void loop()
         network_update(rxPacket.hdr.shSrc, Radio.getRssi(), RADIO_ID_915, NETWORK_ID_0, NEIGHBOR_ENTRY);
         if (sendResponse == TRANSMIT_RESPONSE){ // -- this should be done by node 3
           if (HEADER_TYPE_EQUALS(txPacket.hdr.type, RAW_PACKET)){
-            //XXX Taking out these print statements causes the test to fail.
-            //Working theory is that node 2 cannot switch fast enough into rx
-            //mode to receive the packet when these are taken out
-            //          print_string("Sending ack...", NONE);
-            //          print_packet(&txPacket);
-            Radio.transmit(ADDRESS_BROADCAST, (uint8_t*)(&txPacket), RAW_PACKET_TOTAL_SIZE(&txPacket));
+          reliable_transmit();
           }
         }
       }
@@ -165,7 +152,7 @@ void loop()
             link_layer_form_packet(&txPacket, &txAttr, GET_HEADER_TYPE(rxPacket.hdr.type),
             rxPacket.hdr.src, rxPacket.hdr.dst, MY_NODE_ID,
             network[tempIndex].neighbor.shNodeID);
-            Radio.transmit(ADDRESS_BROADCAST, (uint8_t*)(&txPacket), RAW_PACKET_TOTAL_SIZE(&txPacket));
+            reliable_transmit();
             //          print_string("Forwarded...", NONE);
             //          print_packet(&txPacket);
           }
@@ -178,7 +165,7 @@ void loop()
             link_layer_form_packet(&txPacket, &txAttr, GET_HEADER_TYPE(rxPacket.hdr.type), 
             rxPacket.hdr.src, rxPacket.hdr.dst, MY_NODE_ID, 
             network[tempIndex].neighbor.shNodeID);
-            Radio.transmit(ADDRESS_BROADCAST, (uint8_t*)(&txPacket), RAW_PACKET_TOTAL_SIZE(&txPacket));
+            reliable_transmit();
           }
         }
         else
@@ -190,12 +177,10 @@ void loop()
     else{//end if got packet
       //no packet
     }
-  }
+//  }
 
   if(dspStatus.counter == 1){ //reset counter and sample temperature sensor
     dspStatus.counter = dspStatus.period;
     dsp_add_sample( analogRead(A3) );    
   }
 }
-
-

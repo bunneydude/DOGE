@@ -46,15 +46,29 @@ void print_packet(dogePacket* packet){
       Serial.print("Raw ");
       break;
     case(SIGNALING_BROADCAST_BEACON):
-      Serial.print("Signaling Broadcast");
+      Serial.print("Signaling Broadcast ");
       break;
     case(SIGNALING_UNICAST_BEACON):
-      Serial.print("Signaling Unicast");
+      Serial.print("Signaling Unicast ");
+      break;
+    case(LINK_LAYER_PACKET):
+      Serial.print("Link Layer ");
       break;
   }
   Serial.println("Packet");
   Serial.print("   ["); 
   for(i=0; i < RAW_PACKET_TOTAL_SIZE(packet); i++){
+    Serial.print(bytes[i], HEX);
+    Serial.print(" ");
+  }
+  Serial.println("]");
+}
+
+void print_bytes(uint8_t* bytes){
+  uint8_t i;
+  /* Print 2 bytes */
+  Serial.print("   ["); 
+  for(i=0; i < sizeof(uint16_t); i++){
     Serial.print(bytes[i], HEX);
     Serial.print(" ");
   }

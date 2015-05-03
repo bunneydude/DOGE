@@ -76,14 +76,14 @@ uint8_t link_layer_form_packet(dogePacket* packet, packetAttr* attr, uint8_t typ
    packet->hdr.shSrc = shSrc;
    packet->hdr.shDst = shDst;
    packet->hdr.ttl = DEFAULT_PACKET_TTL;
-   //TODO: Packet ID/RTA/CRC are supposed to be set by MAC protocol
-   /*SET_TXINFO_PACKET_ID(response->hdr.txInfo, 0);*/
-   /*SET_TXINFO_RTA(response->hdr.txInfo, 0);*/
    if (type == RAW_PACKET)
    {
       ((rawPacket*)packet)->size = attr->size;
    }
-   add_packet_crc(packet);
+   else if(IS_HEADER_TYPE_ACK(packet->hdr.type))
+   {
+      ((packetAck*)packet)->errorCode = 0;
+   }
    return 0;
 }
 
