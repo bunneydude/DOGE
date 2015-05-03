@@ -2,8 +2,8 @@
 #include "proxy_nodeCtrl.h"
 #include <SPI.h>
 #include <AIR430BoostFCC.h>
-#include <nrf24.h>
-#include <nRF24L01.h>
+//#include <nrf24.h>
+//#include <nRF24L01.h>
 #include <protocol.h>
 #include <MyRingBuffer.h>
 #include <cobs.h>
@@ -13,11 +13,11 @@
  *  Global data
  */
 
-rawPacket txRawPacket;
+dogePacket txPacket;
 appPacket* txAppPacket;
 packetAttr txAttr;
 
-rawPacket rxRawPacket;
+dogePacket rxPacket;
 appPacket* rxAppPacket;
 packetAttr rxAttr;
 
@@ -38,6 +38,7 @@ uint8_t sendResponse = 0;
 uint16_t e2eSrcID = 0;
 // -----------------------------------------------------------------------------
 //functions for nRF
+/*
 void nrf24_ce_digitalWrite(uint8_t state){
   digitalWrite(RADIO_NRF_CE,state);
 }
@@ -62,7 +63,7 @@ uint8_t nrf_read_timeout(uint16_t timeout){
   }
   return 0;    
 }
-
+*/
 // Main example
 
 void setup()
@@ -72,8 +73,9 @@ void setup()
   pinMode(RADIO_NRF_CSN, OUTPUT);
   digitalWrite(RADIO_NRF_CSN, HIGH); 
 
-  Radio.begin(0x01, CHANNEL_1, POWER_MAX);
+  Radio.begin(MY_NODE_ID, CHANNEL_1, POWER_MAX);
 
+/*
 #ifdef DUAL_RADIO
   SPI.begin(); 
   nrf24_init();
@@ -81,46 +83,44 @@ void setup()
   nrf24_tx_address(nrf_address);
   nrf24_rx_address(nrf_address);  
 #endif
-
+*/
   Serial.begin(9600);
 
   pinMode(RED_LED, OUTPUT);
   digitalWrite(RED_LED, hbt_output);
 
-  memset(&txRawPacket, 0, sizeof(rawPacket));
-  memset(&rxRawPacket, 0, sizeof(rawPacket));  
-  txAppPacket = (appPacket*)txRawPacket.data;
-  rxAppPacket = (appPacket*)rxRawPacket.data;
+  memset(&txPacket, 0, sizeof(dogePacket));
+  memset(&rxPacket, 0, sizeof(dogePacket));  
+  txAppPacket = (appPacket*)((uint8_t*)&txPacket + RAW_PACKET_DATA_OFFSET);
+  rxAppPacket = (appPacket*)((uint8_t*)&rxPacket + RAW_PACKET_DATA_OFFSET);
 }
 
 void loop(){
 
-  while(serial_receive((uint8_t*)(&rxRawPacket)) == 0); //wait for data
+  while(serial_receive((uint8_t*)(&rxPacket)) == 0); //wait for data
 
-  if(rxRawPacket.hdr.dst == MY_NODE_ID){ //ACK back same address and data
+  if(rxPacket.hdr.dst == MY_NODE_ID){ //ACK back same address and data
     application_form_packet(txAppPacket, &txAttr, CMD_ACK, rxAppPacket->addr, rxAppPacket->data);
-    link_layer_form_packet(&txRawPacket, &txAttr, RAW_PACKET, MY_NODE_ID, rxRawPacket.hdr.src);  
+    link_layer_form_packet(&txPacket, &txAttr, RAW_PACKET, MY_NODE_ID, rxPacket.hdr.src, MY_NODE_ID, rxPacket.hdr.shSrc);  
   }
   else{ //forward it
-    e2eSrcID = rxRawPacket.hdr.src; //store the original source ID
-
-    Radio.transmit(0x1, (uint8_t*)(&rxRawPacket), sizeof(packetHdr) + 1 + rxRawPacket.size);
+    Radio.transmit(ADDRESS_BROADCAST, (uint8_t*)(&rxPacket), RAW_PACKET_TOTAL_SIZE(&rxPacket));
 
     //Make sure radio is ready to receive
     while (Radio.busy());
 
     // Turn on the receiver and listen for incoming data. Timeout after 1 seconds.
-    if (Radio.receiverOn((uint8_t*)(&txRawPacket), MAX_DATA_LENGTH, 1000) > 0){
+    if (Radio.receiverOn((uint8_t*)(&txPacket), MAX_DATA_LENGTH, 1000) > 0){
       digitalWrite(RED_LED, hbt_output ^= 0x1);   
 
     }
     else{ //timeout, send error message
       application_form_packet(txAppPacket, &txAttr, CMD_NACK, rxAppPacket->addr, ERR_TIMEOUT);
-      link_layer_form_packet(&txRawPacket, &txAttr, RAW_PACKET, MY_NODE_ID, e2eSrcID); 
+      link_layer_form_packet(&txPacket, &txAttr, RAW_PACKET, MY_NODE_ID, rxPacket.hdr.src, MY_NODE_ID, rxPacket.hdr.shSrc); 
     }    
   }//end forward  
   
-  serial_transmit((uint8_t*)(&txRawPacket), sizeof(packetHdr) + 1 + txRawPacket.size, 1);
+  serial_transmit((uint8_t*)(&txPacket), RAW_PACKET_TOTAL_SIZE(&txPacket), 1);
 
 }//end main loop
 

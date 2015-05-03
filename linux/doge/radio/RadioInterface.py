@@ -9,13 +9,16 @@ class RadioInterface():
    _connected = False
    _name = None
    _nodeID = 1
+   _logLevel = 1
 
-   def __init__(self, name, nodeID, debug=False):
+   def __init__(self, name, nodeID, debug=False, logLevel=3):
       if(not isinstance(name, str)): raise Exception("The name must be a string")
       if(nodeID < 0 or nodeID > 255): raise Exception("The nodeID, {0}, must be in the range [0,255]".format(nodeID))
+      if(logLevel not in range(1,4)): raise Exception("The log level must be in the range [1,3]")
 
       self._name = name
       self._nodeID = nodeID
+      self._logLevel = logLevel
 
       self.cmdBuffer = IPCBuffer(3)
       self.rxBuffer = IPCBuffer(4)
@@ -36,13 +39,13 @@ class RadioInterface():
    def proxy_send(self, destination, command, address, payload):
       if(destination not in range(0, 2**16)): raise Exception("The destination, {0}, must be in the range [0,65535]".format(destination))
 
-      self.txData = Protocol.form_packet(type=1, srcID=self._nodeID, dstID=destination, cmd=command, addr=address, data=payload, enc='bytes')
+      self.txData = Protocol.form_packet(type=1, srcID=self._nodeID, dstID=destination, shSrcID=self._nodeID, shDstID=self._nodeID, cmd=command, addr=address, data=payload, enc='bytes')
       #TODO need to import a constants file of sorts so we can use 'RAW_PACKET' instead of '1' for type, etc
-      print("   About to send: {0}".format(list(ord(x) for x in self.txData)))
+      if self._logLevel >= 2: print("   About to send: {0}".format(list(ord(x) for x in self.txData)))
       encData = cobs.encode(''.join(self.txData))
 #      print("   Encoded: {0}".format(list(encData)))
       encData = list(ord(x) for x in encData) 
-      print("   Encoded: {0}".format(encData))
+      if self._logLevel >= 2: print("   Encoded: {0}".format(encData))
 
       if(self.debug == False):
          if(self._connected == True):
@@ -52,8 +55,6 @@ class RadioInterface():
             self.cmdBuffer.write(0) #needed to mark end of frame
          else:
             print("Error - need to call connect_sketch first")
-      else:
-         print("   Debug: sent message {0}".format(encData))
 
    def proxy_receive(self):
       self.rxData = []
@@ -82,39 +83,6 @@ class RadioInterface():
          if(duration >= timeout):      
             print("Timeout")      
       else:
-         self.rxData = Protocol.form_packet(type=1, srcID=6, dstID=self._nodeID, cmd=ProtocolDefs.CMD_ACK, addr=1, data=2, enc='bytes')
+         self.rxData = Protocol.form_packet(type=1, srcID=6, dstID=self._nodeID, shSrcID=6, shDstID=self._nodeID, cmd=ProtocolDefs.CMD_ACK, addr=1, data=2, enc='fields')
          self.rxPacket = Protocol.parse_packet(self.rxData)
-         return 1
-
-   def push(self, network, nodeID, data):      
-      # set target - write nodeID to SREG_TARGET
-      self.proxy_send(WRITE, SREG_TARGET, nodeID)
-
-      # set data - write data to address
-      self.proxy_send(WRITE, SREG_TEMPERATURE, data)
-      
-      # transmit - write to SREG_PING
-      self.proxy_send(WRITE, SREG_PING, 0x2)
-
-      if(self.debug == False):
-         if(self.rxData[0] == 4):
-            print("\nError for node " + str(network) + " " + str(nodeID) + ": " + str(self.rxData[3])  + "\n")
-
-
-   def pull(self, network, nodeID, field):
-      fieldDecode = {"rssi":0x0, "temperature":0x4}
-      
-      # set target
-      self.proxy_send(WRITE, SREG_TARGET, nodeID)
-
-      #transmit
-      self.proxy_send(WRITE, SREG_PING, fieldDecode[field.lower()] | 0x1)
-
-      if(self.debug == False):
-         if(self.rxData[0] == 4):
-            print("\nError for node " + str(network) + " " + str(nodeID) + ": " + str(self.rxData[3])  + "\n")
-            return -1
-         else:
-            return self.rxData[3]
-      else:
          return 1

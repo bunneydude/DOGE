@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include <string.h>
-#include "packet.h"
+#include "../packet.h"
 #include "protocol.h"
 
 void Protocol_init(struct Protocol* obj){
@@ -8,9 +8,12 @@ void Protocol_init(struct Protocol* obj){
    obj->dataRegisters = ((&(memoryMap[MM_PHYSICAL_BAR/4].u8[MM_PHYSICAL_BAR%4])));
 }
 
-uint8_t link_layer_parse_packet(struct Protocol* obj, rawPacket* message, rawPacket* response)
+/**
+ * @brief Parses link layer packets and passes the data payload to application layer.
+ */
+uint8_t link_layer_parse_packet(struct Protocol* obj, dogePacket* message, dogePacket* response)
 {
-   uint8_t typeAck         = 0;
+   uint8_t ack             = 0;
    packetType type         = (packetType)0;
    uint8_t packetId        = 0;
    uint8_t rta             = 0;
@@ -20,34 +23,42 @@ uint8_t link_layer_parse_packet(struct Protocol* obj, rawPacket* message, rawPac
    uint8_t sendResponse    = NO_TRANSMIT;
 
    // Decode header info
-   GET_HEADER_TYPE_ACK(message->hdr.type, typeAck);
-   GET_HEADER_TYPE(message->hdr.type, type);
-//   type = (packetType) ((message->hdr.type & HEADER_TYPE_MASK) >> HEADER_TYPE_SHIFT);
-   GET_TXINFO_PACKET_ID(message->hdr.txInfo, packetId);
-   GET_TXINFO_RTA(message->hdr.txInfo, rta);
+   ack      = GET_HEADER_TYPE_ACK(message->hdr.type);
+   type     = GET_HEADER_TYPE(message->hdr.type);
+   packetId = GET_TXINFO_PACKET_ID(message->hdr.txInfo);
+   rta      = GET_TXINFO_RTA(message->hdr.txInfo);
 
    // Clear response data
-   memset(response, 0, sizeof(rawPacket));
+   memset(response, 0, sizeof(dogePacket));
    // Check message CRC before parsing the data payload
-   // TODO: Replace this CRC check later on with a generic packet CRC check
-
-   status = check_raw_packet_crc(message);
+   status = check_packet_crc(message);
    if (status == ERR_CHECKSUM){
       //TODO: log error and/or send error message back?
       sendResponse = NO_TRANSMIT;
-
-   }else if (message->hdr.type == RAW_PACKET){
-      messageAttr.ack = typeAck;
-      messageAttr.size = message->size;
+   }else if (type == RAW_PACKET){
+      messageAttr.ack = ack;
+      messageAttr.size = RAW_PACKET_DATA_SIZE(message);
       status = application_parse_packet(obj,
-                                        (appPacket*)((void*)message + RAW_PACKET_DATA_OFFSET),
-                                        (appPacket*)((void*)response + RAW_PACKET_DATA_OFFSET),
+                                        (appPacket*)((uint8_t*)message + RAW_PACKET_DATA_OFFSET),
+                                        (appPacket*)((uint8_t*)response + RAW_PACKET_DATA_OFFSET),
                                         &messageAttr,
-                                        &responseAttr);      
+                                        &responseAttr);
       if (responseAttr.ack == TRUE){ // Application layer requests a response packet
-         link_layer_form_packet(response, &responseAttr, RAW_PACKET, message->hdr.dst, message->hdr.src);
+         link_layer_form_packet(response, &responseAttr, RAW_PACKET, message->hdr.dst, message->hdr.src, message->hdr.shDst, message->hdr.shSrc);
          sendResponse = TRANSMIT_RESPONSE;
       }
+   }
+   else if (type == SIGNALING_BROADCAST_BEACON){
+      responseAttr.ack = FALSE;
+      responseAttr.size = 0; //No data payload
+      link_layer_form_packet(response, &responseAttr, SIGNALING_UNICAST_BEACON, message->hdr.dst, message->hdr.src, message->hdr.shDst, message->hdr.shSrc);
+      sendResponse = TRANSMIT_RESPONSE;
+   }
+   else if (type == SIGNALING_UNICAST_BEACON){
+      responseAttr.ack = TRUE;
+      responseAttr.size = 0; //No data payload
+      link_layer_form_packet(response, &responseAttr, SIGNALING_UNICAST_BEACON, message->hdr.dst, message->hdr.src, message->hdr.shDst, message->hdr.shSrc);
+      sendResponse = TRANSMIT_RESPONSE;
    }
    return sendResponse;
 }
@@ -55,19 +66,24 @@ uint8_t link_layer_parse_packet(struct Protocol* obj, rawPacket* message, rawPac
 /**
  *message = source/destination.
  */
-uint8_t link_layer_form_packet(rawPacket* packet, packetAttr* attr, uint8_t type, uint16_t src, uint16_t dst)
+uint8_t link_layer_form_packet(dogePacket* packet, packetAttr* attr, uint8_t type, uint16_t src, uint16_t dst, uint16_t shSrc, uint16_t shDst)
 {
    memset(packet, 0, sizeof(packet->hdr));
    SET_HEADER_TYPE(packet->hdr.type, type);
    SET_HEADER_TYPE_ACK(packet->hdr.type, attr->ack);
    packet->hdr.src = src;
    packet->hdr.dst = dst;
+   packet->hdr.shSrc = shSrc;
+   packet->hdr.shDst = shDst;
+   packet->hdr.ttl = DEFAULT_PACKET_TTL;
    //TODO: Packet ID/RTA/CRC are supposed to be set by MAC protocol
    /*SET_TXINFO_PACKET_ID(response->hdr.txInfo, 0);*/
    /*SET_TXINFO_RTA(response->hdr.txInfo, 0);*/
-   packet->hdr.ttl = DEFAULT_PACKET_TTL;
-   packet->size = attr->size;
-   add_raw_packet_crc(packet);
+   if (type == RAW_PACKET)
+   {
+      ((rawPacket*)packet)->size = attr->size;
+   }
+   add_packet_crc(packet);
    return 0;
 }
 

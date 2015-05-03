@@ -1,20 +1,12 @@
 from ctypes import *
 
-HEADER_SIZE = 8
+#mirror the layout of the C header files when possible
 
+### start of packet.h
 
-MAX_PAYLOAD_SIZE = 16
-CMD_READ_REG_DATA_SIZE  = 2
-CMD_WRITE_REG_DATA_SIZE = 3
-CMD_ACK_DATA_SIZE       = 3
-CMD_NACK_DATA_SIZE      = 3
-CMD_NOP_DATA_SIZE       = 1
-
-
-MAX_RAW_PACKET_PAYLOAD_SIZE = 23
-ERR_CHECKSUM = 1
-SUCCESS = 0
-ERROR = -1
+# max sizes
+MAX_RAW_PACKET_PAYLOAD_SIZE = 19
+MAX_PACKET_PAYLOAD_SIZE = 20
 
 #packet type enum
 UNDEFINED_PACKET_TYPE = 0,
@@ -32,12 +24,33 @@ MAX_PACKET_TYPE = 9
 NO_TRANSMIT = 0
 TRANSMIT_RESPONSE = 1
 
-def header_type_ack(hdrType):
-   return (hdrType & HEADER_TYPE_ACK_MASK) >> HEADER_TYPE_ACK_SHIFT
+# packet structures
+class packetHdr(Structure):
+   _fields_ = [("type",   c_ubyte),
+               ("txInfo", c_ubyte),
+               ("src",    c_ushort),
+               ("dst",    c_ushort),
+               ("shSrc",  c_ushort),
+               ("shDst",  c_ushort),
+               ("ttl",    c_ubyte),
+               ("crc",    c_ubyte)]
 
-def header_type_pkt(hdrType):
-   return (hdrType & HEADER_TYPE_MASK) >> HEADER_TYPE_SHIFT
+HEADER_SIZE = 12
 
+class rawPacket(Structure):
+   _fields_ = [("hdr", packetHdr),
+               ("size", c_ubyte),
+               ("data", c_ubyte * MAX_RAW_PACKET_PAYLOAD_SIZE)]
+
+class packetAck(Structure):
+   _fields_ = [("hdr", packetHdr),
+               ("errorCode", c_ubyte)]
+
+class dogePacket(Structure):
+   _fields_ = [("hdr", packetHdr),
+               ("payload", c_ubyte * MAX_PACKET_PAYLOAD_SIZE)]
+
+# field masks and shifts
 HEADER_TYPE_ACK_MASK       = 0x80
 HEADER_TYPE_ACK_SHIFT      = 7
 HEADER_TYPE_MASK           = 0x7F
@@ -49,6 +62,46 @@ TXINFO_PACKET_ID_SIZE_MASK = 0xF
 TXINFO_RTA_MASK            = 0x0F
 TXINFO_RTA_SHIFT           = 0
 TXINFO_RTA_SIZE_MASK       = 0xF
+
+# The set macros are used by the C functions and shouldn't be called directly by python:
+# - set_header_type_ack
+# - set_header_type
+# - set_txinfo_packet_id
+# - set_txinfo_rta
+
+
+# get methods
+def get_header_type(hdrType):
+   return (hdrType & HEADER_TYPE_MASK) >> HEADER_TYPE_SHIFT
+
+def get_header_type_ack(hdrType):
+   return (hdrType & HEADER_TYPE_ACK_MASK) >> HEADER_TYPE_ACK_SHIFT
+
+def get_txinfo_packet_id(txinfo):
+   return (txinfo & TXINFO_PACKET_ID_MASK) >> TXINFO_PACKET_ID_SHIFT
+
+def get_txinfo_rta(txinfo):
+   return (txinfo & TXINFO_RTA_MASK) >> TXINFO_RTA_SHIFT
+
+def is_header_type_ack(hdrType):
+   return (hdrType & HEADER_TYPE_ACK_MASK) == HEADER_TYPE_ACK_MASK
+
+#header_type_equals can be replaced by calling get_header_type
+
+#python doesn't currently need the defines for field offsets
+
+### end packet.h
+
+
+### start protocol.h
+
+MAX_PAYLOAD_SIZE = 14
+
+CMD_READ_REG_DATA_SIZE  = 2
+CMD_WRITE_REG_DATA_SIZE = 3
+CMD_ACK_DATA_SIZE       = 3
+CMD_NACK_DATA_SIZE      = 3
+CMD_NOP_DATA_SIZE       = 1
 
 
 #command enum
@@ -65,24 +118,19 @@ CMD_ADC_LOOP = 0xA
 CMD_ADC_END = 0xB
 CMD_SPI = 0xC
 
-class packetHdr(Structure):
-   _fields_ = [("type",   c_ubyte),
-               ("txInfo", c_ubyte),
-               ("src",    c_ushort),
-               ("dst",    c_ushort),
-               ("ttl",    c_ubyte),
-               ("crc",    c_ubyte)]
 
-class rawPacket(Structure):
-   _fields_ = [("hdr", packetHdr),
-               ("size", c_ubyte),
-               ("data", c_ubyte * MAX_RAW_PACKET_PAYLOAD_SIZE)]
+# error codes
+ERROR_PROTOCOL_BASE = 0 #from nodeCtrl_errno.h
 
-class packetAck(Structure):
-   _fields_ = [("hdr", packetHdr),
-               ("errorCode", c_ubyte)]
+ERR_CHECKSUM = ERROR_PROTOCOL_BASE + 1
+ERR_COMMAND = ERROR_PROTOCOL_BASE + 2
+ERR_FEATURE_WIP = ERROR_PROTOCOL_BASE + 3
+ERR_CAT = ERROR_PROTOCOL_BASE + 4
+ERR_RANGE = ERROR_PROTOCOL_BASE + 5
+ERR_TIMEOUT = ERROR_PROTOCOL_BASE + 6
 
-class protocolState(Structure):
+# protocol structures
+class protocolState(Structure): #naming issue if this is just called 'Protocol'
    _fields_ = [("dataRegisters",   c_ubyte)]
 
 class appPacket(Structure):
@@ -90,12 +138,21 @@ class appPacket(Structure):
                ("addr", c_ubyte),
                ("data", c_ubyte),
                ("byteNumber", c_ubyte),
-               ("payload", c_ubyte * MAX_PAYLOAD_SIZE),
-               ("reserved", c_ubyte * 2)]
+               ("payload", c_ubyte * MAX_PAYLOAD_SIZE)]
 
 class packetAttr(Structure):
    _fields_ = [("ack", c_ubyte),
                ("size", c_ubyte)]
+
+### end protocol.h
+
+
+# misc
+SUCCESS = 0
+ERROR = -1
+
+
+### python-specific helper functions
 
 def print_structure(struct):
    return ", ".join(f_name + " = " + str(getattr(struct, f_name)) for f_name, f_type in struct._fields_)
