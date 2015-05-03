@@ -1,5 +1,7 @@
 body {
     font: 10pt sans;
+    padding: 500;
+    
 }
 
 #mynetwork {
@@ -40,7 +42,7 @@ body {
     width:180px;
     height:28px;
     background-color:transparent;
-    padding: 8px 5px 5px 5px;
+    padding: 8px 8px 5px 8px;
 
 }
 .mynetwork-control-button:hover { 
@@ -55,6 +57,11 @@ body {
 .pageText {
     font-family:verdana;
     font-size:24;
+    margin-left: 180px;
+}
+.center {
+    margin-left: auto;
+    margin-right: auto;
 }
 #filter {
     display: none;

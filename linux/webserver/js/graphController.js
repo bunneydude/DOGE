@@ -21,8 +21,8 @@
     socket = io.connect('http://192.168.1.65:4000');
     socket.emit('join',{'socketid':'browsersock'});
 
-    //document.getElementById('selection').innerHTML = "Loaded browser";
-     
+
+
     socket.on('connect', function() {
       console.log('connected');
     });
@@ -164,11 +164,11 @@
 
 
     function addRoute() {
+     
+      //Clear any previous use cases
+      clearUserBox();
+ 
       mode = 'add-route';
-      
-      //Clear out states from any previous use cases
-      document.getElementById('selection').innerHTML = "";
-      network.off ('select');
       
      //Display user instructions and selections
       document.getElementById('instructions').innerHTML = 'Select Source Node followed by intermediate node(s) (if any) and then the Destination Node. Click Confirm when done or Cancel to exit';
@@ -187,12 +187,11 @@
      }
     
     function reqNewRoute() {
+      
+      //Clear any previous use cases
+      clearUserBox();
+      
       mode = 'req-new-route';
-      
-      //Clear out states from any previous use cases
-      document.getElementById('selection').innerHTML = "";
-      network.off ('select');
-      
       
       //Display user instructions and selections
       document.getElementById('instructions').innerHTML = 'Select Source Node followed by the Destination Node.Click Confirm when done or Cancel to exit';
@@ -222,11 +221,11 @@
     
     }
     function deleteRoute() {
-      mode = 'delete-route';
       
-      //Clear out states from any previous use cases
-      document.getElementById('selection').innerHTML = "";
-      network.off ('select');
+      //Clear any previous use cases
+      clearUserBox();
+
+      mode = 'delete-route';
       
       //Display user instructions and selections
       document.getElementById('instructions').innerHTML = 'Select Source Node followed by the Destination Node.Click Confirm when done or Cancel to exit';
@@ -256,12 +255,11 @@
     
     //Mask node or edge
     function maskElement() {
-      mode = 'mask-element';
       
-      //Clear out states from any previous use cases
-      document.getElementById('selection').innerHTML = "";
-      document.getElementById('route').innerHTML = "";
-      network.off ('select');
+      //Clear any previous use cases
+      clearUserBox();
+
+      mode = 'mask-element';
              
       //Display user instructions and selections
       document.getElementById('instructions').innerHTML = 'Select Node/Edge to be masked.Click Confirm when done or Cancel to exit';

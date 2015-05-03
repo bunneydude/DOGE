@@ -10,7 +10,7 @@
 
 <body>
  
-<h3> DOGE Network</h3>
+<h3 style="margin-left:182px"> DOGE Network</h3>
 
 
 <div id ="filter">
@@ -27,26 +27,28 @@
 <p id="instructions" class="pageText"></p>
 <p id="route" class="pageText"></p>
 
-  <div id="user-checkbox">
+  <div id="user-checkbox" style="margin-left: 182px">
     <input  id="useMaskRouteBox" type="checkbox"  > Use masked nodes/edges for routing</input>
     <br></br>
   </div>
     
   <div id="user-confirm">
-    <input type="button" value="Confirm" id="confirmButton" onclick="saveUserData()"></input>
-    <input type="button" value="Cancel" id="cancelButton" onclick="clearUserBox()"></input>
+    <input type="button" value="Confirm" id="confirmButton" onclick="saveUserData()" style="margin-left: 182px"></input>
+    <input type="button" value="Cancel" id="cancelButton" onclick="clearUserBox()" ></input>
   </div>
   <br></br>
   
-  <div id="mynetwork-control">
+  <div id="mynetwork-control" class="center">
   <input type="button" value="Toggle Routing Path Display" id="toggleRouteButton" class="mynetwork-control-button" onclick="toggleRouteDisplay()"></input>
   <input type="button" value="Add Route" id="addRouteButton" class="mynetwork-control-button" onclick="addRoute()"></input>
   <input type="button" value="Request New Route" id="reqRouteButton" class="mynetwork-control-button" onclick="reqNewRoute()"></input>
   <input type="button" value="Delete Route"  id="deleteRouteButton"  class="mynetwork-control-button" onclick="deleteRoute()"></input>
   <input type="button" value="Mask Node/Edge"  id="maskElementButton"  class="mynetwork-control-button" onclick="maskElement()"></input>
-</div> 
-<div id="mynetwork"></div>
-<input type="button" value="Toggle Legend" onclick="toggleLegend()"></button> <div id="mynetworklegend"></div>
+</div>
+ 
+<div id="mynetwork" class="center"></div>
+<input type="button" value="Toggle Legend" onclick="toggleLegend()" style="margin-left: 182px;"></button>
+<div id="mynetworklegend" class="center"></div>
   
 </body>
 </html>
