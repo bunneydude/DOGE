@@ -7,7 +7,6 @@
 #include <SPI.h>
 #include <AIR430BoostFCC.h>
 
-#define MAX_DATA_LENGTH 32
 #define TIMEOUT_500_MS (12000/2)
 
 #if 0 //DEBUG SETTINGS

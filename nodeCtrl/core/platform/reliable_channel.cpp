@@ -92,7 +92,7 @@ dogeBool reliable_receive(uint16_t timeout)
         /*
         * 1. Assign rx packet ids based on the first packet received
         * 2. Tie this receiving period to the single hop source
-        * 3. Reset rxTimer back to RX_TIMER_TIMEOUT
+        * 3. Reset rxTimer to RX_TIMER_TIMEOUT
         */
         firstPacket = FALSE;
         rxPacketId = GET_TXINFO_PACKET_ID(queuedPacket.hdr.txInfo);

@@ -8,14 +8,16 @@
 /**@brief NodeCtrl version */
 #define NODECTRL_VERSION 1
 
-/**@brief Root Node ID(Edison) **/
-#define ROOT_NODE 0x1
+/**@brief Node ID 1 **/
+#define NODE_ID_1 0x1
 /**@brief Root Node ID 2 **/
 #define NODE_ID_2 0x2
 /**@brief Root Node ID 3 **/
 #define NODE_ID_3 0x3
 /**@brief Root Node ID 4 **/
 #define NODE_ID_4 0x4
+/**@brief Root Node ID(Edison) **/
+#define ROOT_NODE NODE_ID_1
 
 /**@brief Maximum Radio Packet Length */
 #define MAX_DATA_LENGTH 32

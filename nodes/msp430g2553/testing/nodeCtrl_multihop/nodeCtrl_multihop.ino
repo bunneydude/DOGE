@@ -17,11 +17,13 @@
  * Node 1 uses hard coded neighbor tables/routing tables to send a packet to the
  * furthest node (Node 3).
  *******************************************************************************/
-#define TEST_ID 0x1
-#define ROOT_NODE 0x1
-#define NODE_ID_2 0x2
-#define NODE_ID_3 0x3
-#define NODE_ID_4 0x4
+
+/*******************************************************************************
+ * Test 2
+ * Node 1 uses hard coded neighbor tables/routing tables to send a packet to the
+ * furthest node (Node 4).
+ *******************************************************************************/
+#define TEST_ID 0x2
 #define TEST_SH_LQE 0x1
 #define TEST_MH_LQE 0x1
 
@@ -102,6 +104,62 @@ void setup()
     ROOT_NODE, TEST_MH_LQE, index  };
   network_insert((union networkEntry*)&routingEntry1, ROUTING_ENTRY);
 #endif
+#elif (TEST_ID == 0x2)
+  uint8_t index;
+#if (MY_NODE_ID == ROOT_NODE)
+  //Neighbor Table
+  struct neighborEntry neighborEntry1 = {
+    NODE_ID_2, TEST_SH_LQE, RADIO_ID_915, NETWORK_ID_0  };
+  network_insert((union networkEntry*)&neighborEntry1, NEIGHBOR_ENTRY);
+  //Routing Table
+  network_has_neighbor(NODE_ID_2, &index);
+  struct routingEntry routingEntry1 = {
+    NODE_ID_3, TEST_MH_LQE, index  };
+  struct routingEntry routingEntry2 = {
+    NODE_ID_4, TEST_MH_LQE, index  };
+  network_insert((union networkEntry*)&routingEntry1, ROUTING_ENTRY);
+  network_insert((union networkEntry*)&routingEntry2, ROUTING_ENTRY);
+#elif (MY_NODE_ID == NODE_ID_2)
+  //Neighbor Table
+  struct neighborEntry neighborEntry1 = {
+    ROOT_NODE, TEST_SH_LQE, RADIO_ID_915, NETWORK_ID_0  };
+  struct neighborEntry neighborEntry2 = {
+    NODE_ID_3, TEST_SH_LQE, RADIO_ID_915, NETWORK_ID_0  };
+  network_insert((union networkEntry*)&neighborEntry1, NEIGHBOR_ENTRY);
+  network_insert((union networkEntry*)&neighborEntry2, NEIGHBOR_ENTRY);
+  //Routing Table
+  network_has_neighbor(NODE_ID_3, &index);
+  struct routingEntry routingEntry1 = {
+    NODE_ID_4, TEST_MH_LQE, index  };
+  network_insert((union networkEntry*)&routingEntry1, ROUTING_ENTRY);
+#elif (MY_NODE_ID == NODE_ID_3)
+  //Neighbor Table
+  struct neighborEntry neighborEntry1 = {
+    NODE_ID_2, TEST_SH_LQE, RADIO_ID_915, NETWORK_ID_0  };
+  struct neighborEntry neighborEntry2 = {
+    NODE_ID_4, TEST_SH_LQE, RADIO_ID_915, NETWORK_ID_0  };
+  network_insert((union networkEntry*)&neighborEntry1, NEIGHBOR_ENTRY);
+  network_insert((union networkEntry*)&neighborEntry2, NEIGHBOR_ENTRY);
+  //Routing Table
+  network_has_neighbor(NODE_ID_2, &index); 
+  struct routingEntry routingEntry1 = {
+    ROOT_NODE, TEST_MH_LQE, index  };
+  network_insert((union networkEntry*)&routingEntry1, ROUTING_ENTRY);
+#elif (MY_NODE_ID == NODE_ID_4)
+  rx_loop=1;
+  //Neighbor Table
+  struct neighborEntry neighborEntry1 = {
+    NODE_ID_3, TEST_SH_LQE, RADIO_ID_915, NETWORK_ID_0  };
+  network_insert((union networkEntry*)&neighborEntry1, NEIGHBOR_ENTRY);
+  //Routing Table
+  network_has_neighbor(NODE_ID_3, &index);
+  struct routingEntry routingEntry1 = {
+    ROOT_NODE, TEST_MH_LQE, index  };
+  struct routingEntry routingEntry2 = {
+    NODE_ID_2, TEST_MH_LQE, index  };
+  network_insert((union networkEntry*)&routingEntry1, ROUTING_ENTRY);
+  network_insert((union networkEntry*)&routingEntry2, ROUTING_ENTRY);
+#endif
 #endif
 
   uint8_t i = 0;
@@ -109,6 +167,7 @@ void setup()
 
 void loop()
 {
+#if (TEST_ID == 0x1)
 #if MY_NODE_ID == ROOT_NODE
   memset(&txPacket, 0, sizeof(dogePacket));
   memset(&rxPacket, 0, sizeof(dogePacket));
@@ -122,12 +181,27 @@ void loop()
   print_string("S:", NONE);
   print_decimal(success, NEWLINE);
 #endif
+#elif (TEST_ID == 0x2)
+#if MY_NODE_ID == ROOT_NODE
+  memset(&txPacket, 0, sizeof(dogePacket));
+  memset(&rxPacket, 0, sizeof(dogePacket));
+  txAppPacket = (appPacket*)((uint8_t*)&txPacket + RAW_PACKET_DATA_OFFSET);
+  rxAppPacket = (appPacket*)((uint8_t*)&rxPacket + RAW_PACKET_DATA_OFFSET);
+  //Form a test packet
+  application_form_packet(txAppPacket, &txAttr, CMD_READ_REG, 55, 0);
+  link_layer_form_packet(&txPacket, &txAttr, RAW_PACKET, ROOT_NODE, NODE_ID_4, ROOT_NODE, NODE_ID_2);
+  //Send to destination
+  dogeBool success = reliable_transmit();
+  print_string("S:", NONE);
+  print_decimal(success, NEWLINE);
+#endif
+#endif
 
   //for(i=0; i<rx_loop; i++){
     //Make sure radio is ready to receive
     while (Radio.busy());
 
-  // Turn on the receiver and listen for incoming data. Timeout after RX_TIMER_TIMEOUT.
+  // Turn on the receiver and listen for incoming data. Timeout after 500ms.
   if (reliable_receive(TIMEOUT_500_MS)){
       if(MY_NODE_ID == rxPacket.hdr.dst && MY_NODE_ID == rxPacket.hdr.shDst){ //parse message   
         digitalWrite(RED_LED, hbt_output ^= 0x1);
@@ -137,7 +211,7 @@ void loop()
         network_update(rxPacket.hdr.shSrc, Radio.getRssi(), RADIO_ID_915, NETWORK_ID_0, NEIGHBOR_ENTRY);
         if (sendResponse == TRANSMIT_RESPONSE){ // -- this should be done by node 3
           if (HEADER_TYPE_EQUALS(txPacket.hdr.type, RAW_PACKET)){
-          reliable_transmit();
+            reliable_transmit();
           }
         }
       }
@@ -158,7 +232,7 @@ void loop()
           }
         }
         else if (network_has_route(rxPacket.hdr.dst, &tempIndex)){
-          if (HEADER_TYPE_EQUALS(txPacket.hdr.type, RAW_PACKET)){
+          if (HEADER_TYPE_EQUALS(rxPacket.hdr.type, RAW_PACKET)){
             txAttr.ack = GET_HEADER_TYPE_ACK(rxPacket.hdr.type);
             txAttr.size = RAW_PACKET_DATA_SIZE(&rxPacket);
             copy_raw_packet_data((rawPacket*)&txPacket, (rawPacket*)&rxPacket);
@@ -166,6 +240,8 @@ void loop()
             rxPacket.hdr.src, rxPacket.hdr.dst, MY_NODE_ID, 
             network[tempIndex].neighbor.shNodeID);
             reliable_transmit();
+            //print_string("Forwarded...", NONE);
+            //print_packet(&txPacket);
           }
         }
         else
