@@ -3,7 +3,7 @@
 #include <stddef.h>
 #include "../nodeCtrl.h"
 #include <type.h>
-#include <serial_c.h>
+#include "../platform/serial_c.h"
 
 void copy_doge_packet(dogePacket* dst, dogePacket* src)
 {
