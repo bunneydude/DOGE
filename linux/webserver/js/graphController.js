@@ -49,8 +49,21 @@
 
        var nodesArrayLength = nodesJsonObj.length;
 
-       for (var i=0;i < nodesArrayLength; i++){
-          node = {'group':nodesJsonObj[i].group,'id':JSON.stringify(nodesJsonObj[i].id),'label':JSON.stringify(nodesJsonObj[i].label)};
+       //x,y coordinates for the nodes
+       var node_x = 0;
+       var node_y = 0;
+       
+       //This is Edison  
+       node = {'group':nodesJsonObj[0].group,'id':JSON.stringify(nodesJsonObj[0].id),'label':JSON.stringify(nodesJsonObj[0].label),'x':200,'y':70};
+       nodes.add(node);
+ 
+       for (var i=1;i < nodesArrayLength; i++){
+          node = {'group':nodesJsonObj[i].group,'id':JSON.stringify(nodesJsonObj[i].id),'label':JSON.stringify(nodesJsonObj[i].label),'x':node_x,'y':node_y};
+         node_x += 200;
+         if (node_x == 600) {
+            node_x = 0;
+            node_y -= 100;
+         };
           nodes.add(node);
        }
        
