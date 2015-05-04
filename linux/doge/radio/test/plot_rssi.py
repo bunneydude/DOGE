@@ -32,7 +32,7 @@ while True:
     
     timestamp = time.time()
     for node_id in range (0,9):
-        rssi = node[node_id].get_rssi(node_id)
+        rssi = node[node_id].get_rssi()
         #print "node id={0} rssi={1}".format(nodes[node_id],rssi)
         data.append([int(timestamp),rssi])
     dataJson  = json.dumps(data)

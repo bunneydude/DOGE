@@ -76,11 +76,12 @@ class HardwareNode:
    _networkTable = None	   
    _validRadios = ["nrf24", "cc1101l", "rfm69"]
    _maxRadios = 4
+   _nodeID = None
 
    def __init__(self, device, nodeID, pipe):
       print "Device={0}, pipe={1}".format(device,pipe)
       if(not isinstance(device, Device)): raise Exception("The device argument must be an instance of Node.Device.")
-      if(nodeID < 1 or nodeID > 255): raise Exception("The specified nodeID, {0}, must be in the range [1, 255]".format(nodeID))
+      if(nodeID not in range(1, 2**16)): raise Exception("The nodeID, {0}, must be in the range [1, 65535]".format(nodeID))
       if(not isinstance(pipe, RadioInterface.RadioInterface)): raise Exception("The device argument must be an instance of Node.Device.")
 
       self._device = device
@@ -126,24 +127,24 @@ class HardwareNode:
        print("Pull complete. Got: [header: [{0}], size = {1}, data = {2}]".format(ProtocolDefs.print_structure(self._pipe.rxPacket.hdr), self._pipe.rxPacket.size, list(i for i in self._pipe.rxPacket.data)))
 
 
-   def get_neighbor_table(self,node_id):
+   def get_neighbor_table(self):
        network_table =  self._networkTable 
-       return (network_table.get_neighbors(node_id))
+       return (network_table.get_neighbors(self._nodeID))
   
-   def get_neighbors (self,node_id):
-       node_array =[]
-       network_table =  self._networkTable 
-       neighbor_table_array = network_table.get_neighbors(node_id)
+   def get_neighbors(self):
+       node_array = []
+       network_table = self._networkTable 
+       neighbor_table_array = network_table.get_neighbors(self._nodeID)
        for x in  neighbor_table_array:
            node_array.append(x[0])
        return (node_array)
 
-   def get_routing_table(self,node_id):
+   def get_routing_table(self):
        network_table =  self._networkTable 
-       return (network_table.get_routes(node_id))
+       return (network_table.get_routes(self._nodeID))
   
 
-   def get_rssi(self,node_id):
+   def get_rssi(self):
        rssi = random.randint(20,30)
        return(rssi)
 
@@ -165,7 +166,7 @@ class VirtualNode:
     def get_nodeID(self):
         return self._nodeID
  
-    def load_preset_nte_config(self,pipe):
+    def load_preset_nte_config(self, pipe):
         nte_nodes = []
         for nte_entry in config['preset_nte_nodes']:
             device = Device(deviceName=nte_entry['mcu_name'],memoryMapFile=config['config_file_paths']['mm_map_default_profile'])
@@ -178,22 +179,21 @@ class VirtualNode:
             )
         return nte_nodes
 
-    def get_neighbors(self,node_id=0):
+    def get_neighbors(self):
         node_array = self.load_preset_nte_config()
         network_table = self._networkTable = NetworkTable(neighborArray=node_array,routingArray=[])
         return node_array
         
-    def get_neighbor_table(self,node_id):
+    def get_neighbor_table(self):
         network_table =  self._networkTable 
-        return (network_table.get_neighbors(node_id))
+        return (network_table.get_neighbors(self._nodeID))
 
-    def get_routing_table(self,node_id):
+    def get_routing_table(self):
         network_table =  self._networkTable 
-        return (network_table.get_routes(node_id))
+        return (network_table.get_routes(self._nodeID))
 
 
-#### The below classes are currently not used ####
-   
+ 
 class NetworkTable:
    _neighborArray = []
    _routingArray = []
@@ -207,41 +207,42 @@ class NetworkTable:
       print("Network table created")
 
    def get_neighbors(self,nodeID):
-      if(nodeID not in range(0, 2**16)): raise Exception("The node ID, {0}, must be in the range [0,65535]".format(nodeID))
-
-      #return self._neighborArray.copy()
-      if (nodeID == 2 ):
-         narray =  [[1,74,2,1]]
-      elif (nodeID == 3 ):
-         narray =  [[1,44,2,1]]
-      elif (nodeID == 4 ):
-         narray =  [[1,66,2,1]]
-      elif (nodeID == 5 ):
-         narray =  [[1,96,2,1]]
+      if(config['debug'] is True):
+         if(nodeID not in range(0, 2**16)): raise Exception("The node ID, {0}, must be in the range [0,65535]".format(nodeID))
+         if (nodeID == 2 ):
+            narray =  [[1,74,2,1]]
+         elif (nodeID == 3 ):
+            narray =  [[1,44,2,1]]
+         elif (nodeID == 4 ):
+            narray =  [[1,66,2,1]]
+         elif (nodeID == 5 ):
+            narray =  [[1,96,2,1]]
+         else:
+            raise exception("Unexpected node ID: {0}".format(nodeID))
+            narray=[]
+         return (narray)
       else:
-         raise exception("Unexpected node ID: {0}".format(nodeID))
-         narray=[]
-
-      return (narray)
+         raise exception("Not implemented")
+         #return self._neighborArray.copy()
 
    def get_routes(self, nodeID):
-      if(nodeID not in range(0, 2**16)): raise Exception("The node ID, {0}, must be in the range [0,65535]".format(nodeID))
-      
-      #return self._routingArray.copy()
-      elif (nodeID == 2 ):
-         rarray =  []
-      elif (nodeID == 3 ):
-         rarray =  []
-      elif (nodeID == 4 ):
-         rarray =  []
-      elif (nodeID == 5 ):
-         rarray =  []
-      else:
-         raise exception("Unexpected node ID: {0}".format(nodeID))
-         rarray = []
-
-      return (rarray)
-       
+      if(config['debug'] is True):
+         if(nodeID not in range(0, 2**16)): raise Exception("The node ID, {0}, must be in the range [0,65535]".format(nodeID))
+         elif (nodeID == 2 ):
+            rarray =  []
+         elif (nodeID == 3 ):
+            rarray =  [[2, 1, 9]]
+         elif (nodeID == 4 ):
+            rarray =  []
+         elif (nodeID == 5 ):
+            rarray =  []
+         else:
+            raise exception("Unexpected node ID: {0}".format(nodeID))
+            rarray = []
+         return (rarray)
+      else:   
+         raise exception("not implemented")
+         #return self._routingArray.copy()
 
    def set_max_neighbors(self, num):
       if(num < len(self._neighborArray)):

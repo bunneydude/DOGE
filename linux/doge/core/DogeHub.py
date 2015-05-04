@@ -138,8 +138,8 @@ def rp_run():
         edison_nte.append([node.get_nodeID(), 1, 0, 1])
         edison_rte.append([node.get_nodeID(), 2, 1])
 
-        nte_array = node.get_neighbor_table(node.get_nodeID())
-        rte_array = node.get_routing_table(node.get_nodeID())
+        nte_array = node.get_neighbor_table()
+        rte_array = node.get_routing_table()
         edisonRP.createNetworkVis (nodes,edges,route_edges, node.get_nodeID(), nte_array, rte_array)
 
     edisonRP.createNetworkVis (nodes,edges,route_edges, root.get_nodeID(), edison_nte, edison_rte)
