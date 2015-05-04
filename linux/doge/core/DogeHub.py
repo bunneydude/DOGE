@@ -102,11 +102,11 @@ def connect_sketch():
     '''
     Connect to the IPC objects from sketch
     '''
-    node = 0 #TODO: where to read this in from?
-    pipe = RadioInterface("edison", node, config['debug'])
+    rootID = 1 #TODO: where to read this in from?
+    pipe = RadioInterface("edison", rootID, config['debug'])
     pipe.connect_sketch()
     
-    root = VirtualNode(0,"Edison")
+    root = VirtualNode(rootID,"Edison")
     return (root,pipe)
 
 def find_neighbors(nids):
@@ -124,24 +124,26 @@ def rp_run():
     nte = {}
     rte = {}
     
-    edison_neighbors = root.load_preset_nte_config(pipe)
+    networkNodes = root.load_preset_nte_config(pipe)
 
     edisonRP = RoutingProcessor(8124)
-
-    #Create Edisons neighbor and routing table entry list and send it to the routing processor
-    edison_nte = [[1,88,0,1],[2,88,0,1],[3,88,0,1,]]
-    edison_rte = [[1,98,1],[2,91,1],[3,88,1,]]
-    edisonRP.createNetworkVis (nodes,edges,route_edges,0,edison_nte,edison_rte)
+    edison_nte = []
+    edison_rte = []
 
 
-    nodeId=1 
-    for nbr in edison_neighbors:
-        nte_array = nbr.get_neighbor_table(nodeId)
-        rte_array = nbr.get_routing_table(nodeId)
-        edisonRP.createNetworkVis (nodes,edges,route_edges,nodeId,nte_array,rte_array)
-        nodeId +=1
 
+    for node in networkNodes:
+        # Create Edisons neighbor and routing table entry list
+        # Initially, assume Edison can hear everyone
+        edison_nte.append([node.get_nodeID(), 1, 0, 1])
+        edison_rte.append([node.get_nodeID(), 2, 1])
 
+        nte_array = node.get_neighbor_table(node.get_nodeID())
+        rte_array = node.get_routing_table(node.get_nodeID())
+        edisonRP.createNetworkVis (nodes,edges,route_edges, node.get_nodeID(), nte_array, rte_array)
+
+    edisonRP.createNetworkVis (nodes,edges,route_edges, root.get_nodeID(), edison_nte, edison_rte)
+    
     nodes_json = json.dumps(nodes)
     edges_json = json.dumps(edges)
     route_edges_json = json.dumps(route_edges)

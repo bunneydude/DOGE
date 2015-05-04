@@ -30,9 +30,12 @@ class RadioInterface():
 
    def connect_sketch(self):
       if(self.debug == False):
-         self.cmdBuffer.open_sketch()
-         self.rxBuffer.open_sketch()
-         self._connected = True #TODO error handling
+         if(self._connected == False):
+            self.cmdBuffer.open_sketch()
+            self.rxBuffer.open_sketch()
+            self._connected = True
+         else:
+            print("IPC objects already connected")
       else:
          print("In debug mode the sketch is not connected")
 

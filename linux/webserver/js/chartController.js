@@ -59,7 +59,7 @@ angular.module('DeviceManager.controllers', []).
     $scope.$on('chartCreated', function(e, chart){    
         $scope.chart=   chart;
     });
-    var socket = io.connect('http://192.168.1.65:8000');         
+    var socket = io.connect('http://192.168.1.67:8000');         
     socket.emit('join',{'socketid':'chart'});
 
      socket.on('init', function(data) {

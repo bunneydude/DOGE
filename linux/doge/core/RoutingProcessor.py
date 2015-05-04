@@ -28,7 +28,7 @@ class RoutingProcessor():
    self.network_routing_tables = {}
 
  
- def createNetworkVis(self,nodes,edges,route_edges,node_id,nte_list,rte_list):
+ def createNetworkVis(self,nodes, edges, route_edges, node_id, nte_list, rte_list):
 
    #Build lists of entire network neighbor table and routing table entries
    self.network_neighbor_tables[node_id] = nte_list
@@ -47,15 +47,15 @@ class RoutingProcessor():
      
      #If list is populated, check if edge already exists for the same radio
      else:
-      add_edge = 1
+      add_edge = True
       for edge in edges:
-        #Check if edge already exists. If it does, set flag to zero so it doesnt get added
+        #Check if edge already exists. If it does, set flag to False so it doesnt get added
         if (edge['to'] == node_id and edge['from'] == i[self.NTE_ID] and edge['radio'] == i[self.NTE_RADIO]):  
-           add_edge = 0
+           add_edge = False
       if (add_edge) :
           edges.append({'id':self.edge_id, 'from':node_id, 'to': i[self.NTE_ID],'label':i[self.NTE_LQE],'radio':i[self.NTE_RADIO]})
           self.edge_id += 1
-          add_edge = 1
+          add_edge = True
    
    #Go through Routing Table Entry list and add edges
    for j in rte_list:

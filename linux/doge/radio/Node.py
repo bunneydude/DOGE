@@ -151,16 +151,20 @@ class HardwareNode:
 class VirtualNode:
     _pipe = None
     _deviceName = ""
+    _nodeID = None
 
     def __init__(self, nodeID, name="Edison"):
-        if(nodeID < 0 or nodeID > 255): raise Exception("The specified nodeID, {0}, must be in the range [0, 255]".format(nodeID))
+        if(nodeID not in range(0, 2**16)): raise Exception("The specified nodeID, {0}, must be in the range [0, 65535]".format(nodeID))
  
         self._name = name + '-' + str(nodeID)
         self._nodeID = nodeID
         narray = []
         rarray = [] 
         self._networkTable = NetworkTable(narray,rarray)
-    
+   
+    def get_nodeID(self):
+        return self._nodeID
+ 
     def load_preset_nte_config(self,pipe):
         nte_nodes = []
         for nte_entry in config['preset_nte_nodes']:
@@ -202,50 +206,42 @@ class NetworkTable:
    def __init__(self, neighborArray = [], routingArray = []):
       print("Network table created")
 
-   def get_neighbors(self,node_id):
+   def get_neighbors(self,nodeID):
+      if(nodeID not in range(0, 2**16)): raise Exception("The node ID, {0}, must be in the range [0,65535]".format(nodeID))
+
       #return self._neighborArray.copy()
-      if (node_id ==1 ):
-        narray =  [[3,44,2,1],[4,66,2,1]]
-      if (node_id ==2 ):
-        narray =  [[6,74,3,1]]
-      if (node_id ==3 ):
-        narray =  [[1,44,2,1],[9,56,2,1]]
-      if (node_id ==4 ):
-        narray =  [[1,66,2,1],[5,96,2,1],[7,46,2,1]]
-      if (node_id ==5 ):
-        narray =  [[4,96,2,1]]
-      if (node_id ==6 ):
-        narray =  [[2,74,3,1]]
-      if (node_id ==7 ):
-        narray =  [[4,46,2,1],[8,66,2,1]]
-      if (node_id ==8 ):
-        narray =  [[7,66,2,1],[9,96,2,1]]
-      if (node_id ==9 ):
-        narray =  [[8,96,2,1],[3,56,2,1]]
+      if (nodeID == 2 ):
+         narray =  [[1,74,2,1]]
+      elif (nodeID == 3 ):
+         narray =  [[1,44,2,1]]
+      elif (nodeID == 4 ):
+         narray =  [[1,66,2,1]]
+      elif (nodeID == 5 ):
+         narray =  [[1,96,2,1]]
+      else:
+         raise exception("Unexpected node ID: {0}".format(nodeID))
+         narray=[]
+
       return (narray)
 
-   def get_routes(self,node_id):
+   def get_routes(self, nodeID):
+      if(nodeID not in range(0, 2**16)): raise Exception("The node ID, {0}, must be in the range [0,65535]".format(nodeID))
+      
       #return self._routingArray.copy()
-      if (node_id ==1 ):
-        rarray =  [[4,94,1]]
-      if (node_id ==2 ):
-        rarray =  [[6,34,1]]
-      if (node_id ==3 ):
-        rarray =  [[9,55,1]]
-      if (node_id ==4 ):
-        rarray =  [[5,84,1],[7,93,1]]
-      if (node_id ==5 ):
-        rarray =  []
-      if (node_id ==6 ):
-        rarray =  []
-      if (node_id ==7 ):
-        rarray =  [[8,75,1]]
-      if (node_id ==8 ):
-        rarray =  [[9,88,1]]
-      if (node_id ==9 ):
-        rarray =  []
+      elif (nodeID == 2 ):
+         rarray =  []
+      elif (nodeID == 3 ):
+         rarray =  []
+      elif (nodeID == 4 ):
+         rarray =  []
+      elif (nodeID == 5 ):
+         rarray =  []
+      else:
+         raise exception("Unexpected node ID: {0}".format(nodeID))
+         rarray = []
+
       return (rarray)
-        
+       
 
    def set_max_neighbors(self, num):
       if(num < len(self._neighborArray)):
