@@ -90,7 +90,24 @@ class HardwareNode:
       narray = []
       rarray = []
 
-      self._networkTable = NetworkTable (narray,rarray)
+      if(config['debug'] is True):
+         if(self._nodeID == 2 ):
+            narray =  [[1,74,2,1]]
+            rarray = []
+         elif(self._nodeID == 3 ):
+            narray =  [[1,44,2,1]]
+            rarray = []
+         elif(self._nodeID == 4 ):
+            narray =  [[1,66,2,1]]
+            rarray = []
+         elif(self._nodeID == 5 ):
+            narray =  [[1,96,2,1]]
+            rarray = []
+         else:
+            raise exception("Unexpected node ID: {0}".format(self._nodeID))
+     
+      print("Created node {0} with neighbor array {1}, routing array {2}".format(self._nodeID, narray, rarray)) 
+      self._networkTable = NetworkTable(narray,rarray)
 
    def to_s(self):
       print("Node: device = {0}, nodeID = {1}, radio = {2}, inputs = {3}, outputs = {4}".format(self._device, self._nodeID, self._radios, self._inputs, self._outputs))
@@ -128,20 +145,18 @@ class HardwareNode:
 
 
    def get_neighbor_table(self):
-       network_table =  self._networkTable 
-       return (network_table.get_neighbors(self._nodeID))
-  
+       return (self._networkTable.get_neighbors())
+ 
+   # return an array of node IDs corresponding to single-hop neighbors 
    def get_neighbors(self):
        node_array = []
-       network_table = self._networkTable 
-       neighbor_table_array = network_table.get_neighbors(self._nodeID)
+       neighbor_table_array = self._networkTable.get_neighbors()
        for x in  neighbor_table_array:
            node_array.append(x[0])
        return (node_array)
 
    def get_routing_table(self):
-       network_table =  self._networkTable 
-       return (network_table.get_routes(self._nodeID))
+       return (self._networkTable.get_routes())
   
 
    def get_rssi(self):
@@ -204,45 +219,16 @@ class NetworkTable:
 
 
    def __init__(self, neighborArray = [], routingArray = []):
+      # Make copies
+      self._neighborArray = list(neighborArray)
+      self._routingArray = list(routingArray)
       print("Network table created")
 
-   def get_neighbors(self,nodeID):
-      if(config['debug'] is True):
-         if(nodeID not in range(0, 2**16)): raise Exception("The node ID, {0}, must be in the range [0,65535]".format(nodeID))
-         if (nodeID == 2 ):
-            narray =  [[1,74,2,1]]
-         elif (nodeID == 3 ):
-            narray =  [[1,44,2,1]]
-         elif (nodeID == 4 ):
-            narray =  [[1,66,2,1]]
-         elif (nodeID == 5 ):
-            narray =  [[1,96,2,1]]
-         else:
-            raise exception("Unexpected node ID: {0}".format(nodeID))
-            narray=[]
-         return (narray)
-      else:
-         raise exception("Not implemented")
-         #return self._neighborArray.copy()
+   def get_neighbors(self):
+         return list(self._neighborArray)
 
-   def get_routes(self, nodeID):
-      if(config['debug'] is True):
-         if(nodeID not in range(0, 2**16)): raise Exception("The node ID, {0}, must be in the range [0,65535]".format(nodeID))
-         elif (nodeID == 2 ):
-            rarray =  []
-         elif (nodeID == 3 ):
-            rarray =  [[2, 1, 9]]
-         elif (nodeID == 4 ):
-            rarray =  []
-         elif (nodeID == 5 ):
-            rarray =  []
-         else:
-            raise exception("Unexpected node ID: {0}".format(nodeID))
-            rarray = []
-         return (rarray)
-      else:   
-         raise exception("not implemented")
-         #return self._routingArray.copy()
+   def get_routes(self):
+         return list(self._routingArray)
 
    def set_max_neighbors(self, num):
       if(num < len(self._neighborArray)):
@@ -255,9 +241,9 @@ class NetworkTable:
          print("Error: Trying to set max number of routes ({0}) smaller than current array ({1})".format(num, len(self._routingArray)))
       else:
          self._maxRoutes = num
-      
+     
 
-
+### FIXME the following classes aren't used ### 
 
 class NeighborTableEntry:
    _fields = {'shNodeID':None, 'shLQE':None, 'radioID':None, 'networkID':None}
@@ -276,9 +262,6 @@ class NeighborTableEntry:
       print("Neighbor field resolutions: shNodeID = {0}, shLQE = {1}, radioID = {2}, networkID = {3}".format(self._resolutions['shNodeID'], self._resolutions['shLQE'], self._resolutions['radioID'], self._resolutions['networkID']))
 
 
-
-
-      
 class RoutingTableEntry:
    _fields = {'mhNodeID':None, 'mhLQE':None, 'neighborIndex':None}
    _resolutions = {'mhNodeID':16, 'mhLQE':8, 'neighborIndex':8}
