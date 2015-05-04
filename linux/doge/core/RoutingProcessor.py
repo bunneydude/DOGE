@@ -39,23 +39,8 @@ class RoutingProcessor():
 
    #Go through Neighbor Table Entry list and add edges
    for i in nte_list:
-     
-     #If empty list, add first edge
-     if not edges  :
-      edges.append({'id':self.edge_id, 'from':node_id, 'to': i[self.NTE_ID],'label':i[self.NTE_LQE],'radio':i[self.NTE_RADIO]})
-      self.edge_id += 1
-     
-     #If list is populated, check if edge already exists for the same radio
-     else:
-      add_edge = 1
-      for edge in edges:
-        #Check if edge already exists. If it does, set flag to zero so it doesnt get added
-        if (edge['to'] == node_id and edge['from'] == i[self.NTE_ID] and edge['radio'] == i[self.NTE_RADIO]):  
-           add_edge = 0
-      if (add_edge) :
-          edges.append({'id':self.edge_id, 'from':node_id, 'to': i[self.NTE_ID],'label':i[self.NTE_LQE],'radio':i[self.NTE_RADIO]})
-          self.edge_id += 1
-          add_edge = 1
+     edges.append({'id':self.edge_id, 'from':node_id, 'to': i[self.NTE_ID],'label':i[self.NTE_LQE],'radio':i[self.NTE_RADIO]})
+     self.edge_id += 1
    
    #Go through Routing Table Entry list and add edges
    for j in rte_list:

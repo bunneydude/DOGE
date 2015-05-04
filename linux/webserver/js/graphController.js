@@ -22,7 +22,6 @@
     socket.emit('join',{'socketid':'browsersock'});
 
 
-
     socket.on('connect', function() {
       console.log('connected');
     });
@@ -58,7 +57,7 @@
        var edgesArrayLength = edgesJsonObj.length;
 
        for (var i=0;i < edgesArrayLength; i++){
-          edge = {'from':JSON.stringify(edgesJsonObj[i].from),'to':JSON.stringify(edgesJsonObj[i].to),'label':JSON.stringify(edgesJsonObj[i].label),'id':JSON.stringify(edgesJsonObj[i].id)};
+          edge = {'from':JSON.stringify(edgesJsonObj[i].from),'to':JSON.stringify(edgesJsonObj[i].to),'label':JSON.stringify(edgesJsonObj[i].label),'id':JSON.stringify(edgesJsonObj[i].id),'style':'arrow','arrowScaleFactor': .5,};
           edges.add(edge);
        }
 
@@ -73,7 +72,7 @@
        //Filter out routing edges (arrow). We will add these back based on user feedback 
        routing_edges = edges.get({
          filter: function (item) {
-          return (item.style === 'arrow');
+          return (item.color === 'gold');
          }
        });
        edges.remove(routing_edges);
