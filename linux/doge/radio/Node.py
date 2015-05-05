@@ -90,7 +90,7 @@ class HardwareNode:
       narray = []
       rarray = []
 
-      if(config['debug'] is True):
+      if(True == config['debug'] == config['debug_test_network']):
          if(self._nodeID == 2 ):
             narray =  [[1,74,2,1]]
             rarray = []
@@ -145,19 +145,24 @@ class HardwareNode:
 
 
    def get_neighbor_table(self):
-       return (self._networkTable.get_neighbors())
+       return (self._networkTable.get_neighbor_list())
  
    # return an array of node IDs corresponding to single-hop neighbors 
    def get_neighbors(self):
        node_array = []
-       neighbor_table_array = self._networkTable.get_neighbors()
+       neighbor_table_array = self._networkTable.get_neighbor_list()
        for x in  neighbor_table_array:
            node_array.append(x[0])
        return (node_array)
 
    def get_routing_table(self):
-       return (self._networkTable.get_routes())
+       return (self._networkTable.get_route_list())
   
+   def add_neighbor(self, args={}):
+       self._networkTable._neighborArray.append([args['shNodeID'], args['shLQE'], args['radioID'], args['networkID']])
+
+   def add_route(self, args={}):
+       self._networkTable._routingArray.append([args['mhNodeID'], args['mhLQE'], args['neighborIndex']])
 
    def get_rssi(self):
        rssi = random.randint(20,30)
@@ -174,40 +179,34 @@ class VirtualNode:
  
         self._name = name + '-' + str(nodeID)
         self._nodeID = nodeID
-        narray = []
+        
+        narray = [] #self.load_preset_nte_config()
         rarray = [] 
         self._networkTable = NetworkTable(narray,rarray)
    
     def get_nodeID(self):
         return self._nodeID
  
-    def load_preset_nte_config(self, pipe):
-        nte_nodes = []
-        for nte_entry in config['preset_nte_nodes']:
-            device = Device(deviceName=nte_entry['mcu_name'],memoryMapFile=config['config_file_paths']['mm_map_default_profile'])
-            nte_nodes.append(
-		HardwareNode(
-                    device,
-                    nodeID=nte_entry['node_id'], 
-                    pipe=pipe
-                )
-            )
-        return nte_nodes
 
     def get_neighbors(self):
-        node_array = self.load_preset_nte_config()
-        network_table = self._networkTable = NetworkTable(neighborArray=node_array,routingArray=[])
-        return node_array
+        node_array = []
+        neighbor_table_array = self._networkTable.get_neighbor_list()
+        for x in  neighbor_table_array:
+            node_array.append(x[0])
+        return (node_array)
         
     def get_neighbor_table(self):
-        network_table =  self._networkTable 
-        return (network_table.get_neighbors(self._nodeID))
+        return (self._networkTable.get_neighbor_list())
 
     def get_routing_table(self):
-        network_table =  self._networkTable 
-        return (network_table.get_routes(self._nodeID))
+        return (self._networkTable.get_route_list())
 
+    def add_neighbor(self, args={}):
+        self._networkTable._neighborArray.append([args['shNodeID'], args['shLQE'], args['radioID'], args['networkID']])
 
+    def add_route(self, args={}):
+        self._networkTable._routingArray.append([args['mhNodeID'], args['mhLQE'], args['neighborIndex']])
+#End of VirtualNode
  
 class NetworkTable:
    _neighborArray = []
@@ -224,10 +223,11 @@ class NetworkTable:
       self._routingArray = list(routingArray)
       print("Network table created")
 
-   def get_neighbors(self):
+   # return a list of neighbor table entries
+   def get_neighbor_list(self):
          return list(self._neighborArray)
 
-   def get_routes(self):
+   def get_route_list(self):
          return list(self._routingArray)
 
    def set_max_neighbors(self, num):

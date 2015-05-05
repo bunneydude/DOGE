@@ -21,28 +21,29 @@ class RoutingProcessor():
  edge_id = 0
  route_edge_id = 1000
 
+ networkNodes = []
+
  
- def __init__(self,port):
+ def __init__(self, port, initialNetwork=[]):
    self.socket = self.createSocket(port);
    self.network_neighbor_tables = {}
    self.network_routing_tables = {}
-
+   self.networkNodes = list(initialNetwork)
  
- def createNetworkVis(self,nodes, edges, route_edges, node_id, nte_list, rte_list):
-
+ def createNetworkVis(self,nodes, edges, route_edges, nodeID, neighborTable, routingTable): #TODO collapse nodeID and tables into just a Node object
    #Build lists of entire network neighbor table and routing table entries
-   self.network_neighbor_tables[node_id] = nte_list
-   self.network_routing_tables[node_id] = rte_list
+   self.network_neighbor_tables[nodeID] = neighborTable
+   self.network_routing_tables[nodeID] = routingTable
    
-   #Add node to list of network nodes
-   nodes.append({'id':node_id,'label':node_id,'group':self.radio_group[nte_list[0][2]]})
+   #Add node to list of network nodes for webserver
+   nodes.append({'id':nodeID,'label':nodeID,'group':self.radio_group[neighborTable[0][self.NTE_RADIO]]})
 
    #Go through Neighbor Table Entry list and add edges
-   for i in nte_list:
+   for entry in neighborTable:
      
      #If empty list, add first edge
-     if not edges  :
-      edges.append({'id':self.edge_id, 'from':node_id, 'to': i[self.NTE_ID],'label':i[self.NTE_LQE],'radio':i[self.NTE_RADIO]})
+     if len(edges) == 0:
+      edges.append({'id':self.edge_id, 'from':nodeID, 'to': entry[self.NTE_ID],'label':entry[self.NTE_LQE],'radio':entry[self.NTE_RADIO]})
       self.edge_id += 1
      
      #If list is populated, check if edge already exists for the same radio
@@ -50,16 +51,17 @@ class RoutingProcessor():
       add_edge = True
       for edge in edges:
         #Check if edge already exists. If it does, set flag to False so it doesnt get added
-        if (edge['to'] == node_id and edge['from'] == i[self.NTE_ID] and edge['radio'] == i[self.NTE_RADIO]):  
+        if ( (edge['to'] == nodeID) and (edge['from'] == entry[self.NTE_ID]) and (edge['radio'] == entry[self.NTE_RADIO])):  
            add_edge = False
-      if (add_edge) :
-          edges.append({'id':self.edge_id, 'from':node_id, 'to': i[self.NTE_ID],'label':i[self.NTE_LQE],'radio':i[self.NTE_RADIO]})
+
+      if (add_edge):
+          edges.append({'id':self.edge_id, 'from':nodeID, 'to': entry[self.NTE_ID],'label':entry[self.NTE_LQE],'radio':entry[self.NTE_RADIO]})
           self.edge_id += 1
           add_edge = True
    
    #Go through Routing Table Entry list and add edges
-   for j in rte_list:
-     route_edges.append({'id':self.route_edge_id, 'from': node_id, 'to': j[self.RTE_ID],'label':j[self.RTE_LQE]})
+   for entry in routingTable:
+     route_edges.append({'id':self.route_edge_id, 'from': nodeID, 'to': entry[self.RTE_ID],'label':entry[self.RTE_LQE]})
      self.route_edge_id += 1
 
 
@@ -77,27 +79,29 @@ class RoutingProcessor():
  def getSocket(self):
    return self.socket
 
- def mask_node(self,command,node_id):
+ def mask_node(self, command, nodeID):
    #Check if this node has any routing table entries
-   if self.network_routing_tables[int(node_id)]:
-     print "Node {0} has routing table entries".format(node_id)
+   if self.network_routing_tables[int(nodeID)]:
+     print "Node {0} has routing table entries".format(nodeID)
      data = {'command':'alert','data':'ERROR: Cannot mask node since it has routing tables'}
      self.socket.emit('confirm',json.dumps(data))
 
    else:
-     print "Node {0} has no routes. Allowing masking".format(node_id)
-     data = {'command':command,'data':node_id}
+     print "Node {0} has no routes. Allowing masking".format(nodeID)
+     data = {'command':command,'data':nodeID}
      print "Sending confirmation: {0}".format(data)
      self.socket.emit('confirm',json.dumps(data))
   
- def mask_edge(self,command,edge):
-     #Edge format is [from,to,id]
-     edge_from =json.loads(edge)[0]
-     edge_to = json.loads(edge)[1]
+ def mask_edge(self, command, edge):
+     #Edge format is [from, to, id]
+     edgeFrom =json.loads(edge)[0]
+     edgeTo = json.loads(edge)[1]
+
      #Loop through NTE list for the source node and change LQE for matching dest node to 999 (mask value)
-     for nte_arr in self.network_neighbor_tables[int(edge_from)]:
-         if nte_arr[0] == edge_to:
-             nte_arr[1] = 999
+     for neighborTableEntry in self.network_neighbor_tables[int(edgeFrom)]:
+         if neighborTableEntry[self.NTE_ID] == edgeTo:
+             neighborTableEntry[self.NTE_LQE] = 999
+
      #print "NTE = {0}".format(self.network_neighbor_tables)
      data = {'command':command,'data':edge}
      print "Sending confirmation: {0}".format(data)

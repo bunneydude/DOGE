@@ -9,6 +9,9 @@ config = defaultdict()
 
 # Debug Flag (project-wide)
 config['debug'] = True
+config['debug_no_sketch'] = True #Don't send data to sketch via IPCBuffer
+config['debug_test_network'] = True #Use a preset network for neighbor/routing edges
+
 
 # Preset Neighbor Table Nodes
 nte_nodes = [

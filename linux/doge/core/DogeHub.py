@@ -3,7 +3,7 @@ from doge.cloud.IntelAnalytics import IntelAnalytics
 import json
 from collections import defaultdict
 from doge.radio.RadioInterface import RadioInterface
-from doge.radio.Node import HardwareNode, VirtualNode
+from doge.radio.Node import HardwareNode, VirtualNode, Device
 from doge.core.RoutingProcessor import RoutingProcessor
 from doge.conf.globals import config
 
@@ -112,6 +112,15 @@ def connect_sketch():
 def find_neighbors(nids):
     pass
 
+
+def load_preset_nte_config(pipe):
+    networkNodes = []
+    for nodeInfo in config['preset_nte_nodes']:
+        device = Device(deviceName=nodeInfo['mcu_name'], memoryMapFile=config['config_file_paths']['mm_map_default_profile'])
+        networkNodes.append( HardwareNode(device, nodeID = nodeInfo['node_id'], pipe = pipe) )
+    return networkNodes
+
+
 def rp_run():
     root,pipe = connect_sketch() #if not already not connected 
     
@@ -119,30 +128,22 @@ def rp_run():
     edges = []
     nodes = []
     route_edges = []
-    
-    #Dicts for neighbor table entry and routing table entry. Node id is key and value is list of all nte/rte for that node
-    nte = {}
-    rte = {}
-    
-    networkNodes = root.load_preset_nte_config(pipe)
+   
+    # Create list of HardwareNodes 
+    networkNodes = load_preset_nte_config(pipe)
 
-    edisonRP = RoutingProcessor(8124)
-    edison_nte = []
-    edison_rte = []
-
-
+    edisonRP = RoutingProcessor(8124, networkNodes)
 
     for node in networkNodes:
         # Create Edisons neighbor and routing table entry list
-        # Initially, assume Edison can hear everyone
-        edison_nte.append([node.get_nodeID(), 1, 0, 1])
-        edison_rte.append([node.get_nodeID(), 2, 1])
+        # Initially, assume master node (Edison) can hear everyone
+        root.add_neighbor({'shNodeID':node.get_nodeID(), 'shLQE':1, 'radioID':0, 'networkID':1})
+        root.add_route({'mhNodeID':node.get_nodeID(), 'mhLQE':2, 'neighborIndex':1})
 
-        nte_array = node.get_neighbor_table()
-        rte_array = node.get_routing_table()
-        edisonRP.createNetworkVis (nodes,edges,route_edges, node.get_nodeID(), nte_array, rte_array)
+        edisonRP.createNetworkVis(nodes,edges,route_edges, node.get_nodeID(), node.get_neighbor_table(), node.get_routing_table())
 
-    edisonRP.createNetworkVis (nodes,edges,route_edges, root.get_nodeID(), edison_nte, edison_rte)
+    # Create the master node last
+    edisonRP.createNetworkVis(nodes,edges,route_edges, root.get_nodeID(), root.get_neighbor_table(), root.get_routing_table())
     
     nodes_json = json.dumps(nodes)
     edges_json = json.dumps(edges)
