@@ -164,6 +164,19 @@ class HardwareNode:
    def add_route(self, args={}):
        self._networkTable._routingArray.append([args['mhNodeID'], args['mhLQE'], args['neighborIndex']])
 
+   def has_neighbor(self, nodeID):
+      neighbors = self.get_neighbors()
+      return(nodeID in neighbors)
+
+   def mask_neighbor(self, nodeID):
+      entry = self._networkTable.get_neighbor_entry(nodeID)
+      if(len(entry) == 0):
+         print("Error: could not find node {0} in node {1}'s neighbor table.".format(nodeID, self._nodeID))
+         print("   Neighbor table = {0}".format(self._networkTable.get_neighbor_list()))
+      else:
+         print("   Masked the edge from node {0} to node {1}".format(self._nodeID, nodeID))
+         entry[1] = 999
+
    def get_rssi(self):
        rssi = random.randint(20,30)
        return(rssi)
@@ -206,6 +219,21 @@ class VirtualNode:
 
     def add_route(self, args={}):
         self._networkTable._routingArray.append([args['mhNodeID'], args['mhLQE'], args['neighborIndex']])
+   
+    def has_neighbor(self, nodeID):
+        neighbors = self.get_neighbors()
+        return(nodeID in neighbors)
+   
+    def mask_neighbor(self, nodeID):
+        entry = self._networkTable.get_neighbor_entry(nodeID)
+        if(len(entry) == 0):
+            print("Error: could not find node {0} in node {1}'s neighbor table.".format(nodeID, self._nodeID))
+            print("   Neighbor table = {0}".format(self._networkTable.get_neighbor_list()))
+        else:
+            print("   Masked the edge from node {0} to node {1}".format(self._nodeID, nodeID))
+            entry[1] = 999
+
+
 #End of VirtualNode
  
 class NetworkTable:
@@ -225,10 +253,17 @@ class NetworkTable:
 
    # return a list of neighbor table entries
    def get_neighbor_list(self):
-         return list(self._neighborArray)
+      return list(self._neighborArray)
+
+   # return empty array if node isn't found
+   def get_neighbor_entry(self, nodeID):
+      for entry in self._neighborArray:
+         if(nodeID == entry[0]):
+            return entry 
+      return [] 
 
    def get_route_list(self):
-         return list(self._routingArray)
+      return list(self._routingArray)
 
    def set_max_neighbors(self, num):
       if(num < len(self._neighborArray)):

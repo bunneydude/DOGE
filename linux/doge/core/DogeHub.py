@@ -131,16 +131,17 @@ def rp_run():
    
     # Create list of HardwareNodes 
     networkNodes = load_preset_nte_config(pipe)
+    networkNodes.append(root)
 
     edisonRP = RoutingProcessor(8124, networkNodes)
 
     for node in networkNodes:
         # Create Edisons neighbor and routing table entry list
         # Initially, assume master node (Edison) can hear everyone
-        root.add_neighbor({'shNodeID':node.get_nodeID(), 'shLQE':1, 'radioID':0, 'networkID':1})
-        root.add_route({'mhNodeID':node.get_nodeID(), 'mhLQE':2, 'neighborIndex':1})
-
-        edisonRP.createNetworkVis(nodes,edges,route_edges, node.get_nodeID(), node.get_neighbor_table(), node.get_routing_table())
+        if(node.get_nodeID() != root.get_nodeID()): #TODO might need a better way to avoid the root node
+            root.add_neighbor({'shNodeID':node.get_nodeID(), 'shLQE':1, 'radioID':0, 'networkID':1})
+            root.add_route({'mhNodeID':node.get_nodeID(), 'mhLQE':2, 'neighborIndex':1})
+            edisonRP.createNetworkVis(nodes,edges,route_edges, node.get_nodeID(), node.get_neighbor_table(), node.get_routing_table())
 
     # Create the master node last
     edisonRP.createNetworkVis(nodes,edges,route_edges, root.get_nodeID(), root.get_neighbor_table(), root.get_routing_table())

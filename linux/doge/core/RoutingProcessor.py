@@ -93,14 +93,20 @@ class RoutingProcessor():
      self.socket.emit('confirm',json.dumps(data))
   
  def mask_edge(self, command, edge):
-     #Edge format is [from, to, id]
+     foundNode = False
+
+     #Edge format is [from_nodeID, to_nodeID, edgeID]
      edgeFrom =json.loads(edge)[0]
      edgeTo = json.loads(edge)[1]
 
-     #Loop through NTE list for the source node and change LQE for matching dest node to 999 (mask value)
-     for neighborTableEntry in self.network_neighbor_tables[int(edgeFrom)]:
-         if neighborTableEntry[self.NTE_ID] == edgeTo:
-             neighborTableEntry[self.NTE_LQE] = 999
+     #Loop through node objects and mask specified edge
+     for node in self.networkNodes:
+         if( (node.get_nodeID() == edgeFrom) and (node.has_neighbor(edgeTo))):
+             foundNode = True
+             node.mask_neighbor(edgeTo)
+
+     if(foundNode == False):
+         print("Error: Could not find nodeID {0} in list of network nodes".format(edgeFrom))
 
      #print "NTE = {0}".format(self.network_neighbor_tables)
      data = {'command':command,'data':edge}
