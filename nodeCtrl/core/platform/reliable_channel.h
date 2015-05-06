@@ -8,6 +8,7 @@
 #include <AIR430BoostFCC.h>
 
 #define TIMEOUT_500_MS (12000/2)
+#define TIMEOUT_1000_MS (12000)
 
 #if 0 //DEBUG SETTINGS
 #define RETRY_COUNT (2)

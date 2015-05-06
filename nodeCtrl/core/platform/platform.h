@@ -28,8 +28,9 @@
 #define NETWORK_ID_0 (0x0)
 // -----------------------------------------------------------------------------
 
-#define MY_NODE_ID ROOT_NODE
+#define MY_NODE_ID NODE_ID_3
 
 #include "doge_timers.h"
 #include "reliable_channel.h"
+#include "serial_c.h"
 #endif

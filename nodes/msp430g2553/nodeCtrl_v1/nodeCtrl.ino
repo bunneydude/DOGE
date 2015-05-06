@@ -60,8 +60,8 @@ void loop()
   //Make sure radio is ready to receive
   while (Radio.busy());
 
-  // Turn on the receiver and listen for incoming data. Timeout after 500ms.
-  if (reliable_receive(TIMEOUT_500_MS)){
+  // Turn on the receiver and listen for incoming data. Timeout after 1000ms.
+  if (reliable_receive(TIMEOUT_1000_MS)){
     if(MY_NODE_ID == rxPacket.hdr.dst && MY_NODE_ID == rxPacket.hdr.shDst){ //parse message
       digitalWrite(RED_LED, hbt_output ^= 0x1);
       //parse message
