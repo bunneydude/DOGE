@@ -11,16 +11,7 @@
 #include <AIR430BoostFCC.h>
 #include <dsp.h>
 #include <platform.h>
-// -----------------------------------------------------------------------------
-/**
- *  Global data
- */
-#define MAX_DATA_LENGTH 32
-#define MY_NODE_ID 0x6
-#define NODECTRL_VERSION 1
-//Defines for network/radio IDs
-#define RADIO_ID_915 (0x1)
-#define NETWORK_ID_0 (0x0)
+
 // Data to write to radio TX FIFO (60 bytes MAX.)
 //unsigned char txData[DATA_LENGTH];    
 dogePacket txPacket;
@@ -45,6 +36,8 @@ union networkEntry tempEntry;
 
 void setup()
 {
+  print_string("START",NEWLINE);
+  setup_timer_hw();
   Protocol_init(&spiProtocol);
   network_init(NETWORK_DIVISION_DEFAULT);
   dsp_init(5,0);
@@ -67,8 +60,8 @@ void loop()
   //Make sure radio is ready to receive
   while (Radio.busy());
 
-  // Turn on the receiver and listen for incoming data. Timeout after 1 seconds.
-  if (Radio.receiverOn((uint8_t*)(&rxPacket), MAX_DATA_LENGTH, 1000) > 0){
+  // Turn on the receiver and listen for incoming data. Timeout after 1000ms.
+  if (reliable_receive(TIMEOUT_1000_MS)){
     if(MY_NODE_ID == rxPacket.hdr.dst && MY_NODE_ID == rxPacket.hdr.shDst){ //parse message
       digitalWrite(RED_LED, hbt_output ^= 0x1);
       //parse message
@@ -77,11 +70,11 @@ void loop()
       network_update(rxPacket.hdr.shSrc, Radio.getRssi(), RADIO_ID_915, NETWORK_ID_0, NEIGHBOR_ENTRY);
       if (sendResponse == TRANSMIT_RESPONSE){
         if (HEADER_TYPE_EQUALS(txPacket.hdr.type, RAW_PACKET)){
-          Radio.transmit(ADDRESS_BROADCAST, (uint8_t*)(&txPacket), RAW_PACKET_TOTAL_SIZE(&txPacket));
+          reliable_transmit();
         }
       }
     }
-    else if (MY_NODE_ID == rxPacket.hdr.shDst && MY_NODE_ID != rxPacket.hdr.dst){ //forward message
+    else if (MY_NODE_ID == rxPacket.hdr.shDst && MY_NODE_ID != rxPacket.hdr.dst){
       if(network_has_neighbor(rxPacket.hdr.dst, &tempIndex)){
         if (HEADER_TYPE_EQUALS(rxPacket.hdr.type, RAW_PACKET)){
           txAttr.ack = GET_HEADER_TYPE_ACK(rxPacket.hdr.type);
@@ -90,18 +83,18 @@ void loop()
           link_layer_form_packet(&txPacket, &txAttr, GET_HEADER_TYPE(rxPacket.hdr.type),
                                  rxPacket.hdr.src, rxPacket.hdr.dst, MY_NODE_ID,
                                  network[tempIndex].neighbor.shNodeID);
-          Radio.transmit(ADDRESS_BROADCAST, (uint8_t*)(&txPacket), RAW_PACKET_TOTAL_SIZE(&txPacket));
+          reliable_transmit();
         }
       }
       else if (network_has_route(rxPacket.hdr.dst, &tempIndex)){
-        if (HEADER_TYPE_EQUALS(txPacket.hdr.type, RAW_PACKET)){
+        if (HEADER_TYPE_EQUALS(rxPacket.hdr.type, RAW_PACKET)){
           txAttr.ack = GET_HEADER_TYPE_ACK(rxPacket.hdr.type);
           txAttr.size = RAW_PACKET_DATA_SIZE(&rxPacket);
           copy_raw_packet_data((rawPacket*)&txPacket, (rawPacket*)&rxPacket);
           link_layer_form_packet(&txPacket, &txAttr, GET_HEADER_TYPE(rxPacket.hdr.type), 
-                                 rxPacket.hdr.src, rxPacket.hdr.dst, MY_NODE_ID, 
-                                 network[tempIndex].neighbor.shNodeID);
-          Radio.transmit(ADDRESS_BROADCAST, (uint8_t*)(&txPacket), RAW_PACKET_TOTAL_SIZE(&txPacket));
+              rxPacket.hdr.src, rxPacket.hdr.dst, MY_NODE_ID, 
+              network[tempIndex].neighbor.shNodeID);
+          reliable_transmit();
         }
       }
       else
@@ -111,11 +104,7 @@ void loop()
     }
   }
   else{//end if got packet
-    //we timed out, decrement counter...this is lame I know
-    // TODO use the Energia library to set up a timer ISR
-    if(dspStatus.counter > 1){
-      dspStatus.counter--;
-    }
+      //no packet
   }
 
   if(dspStatus.counter == 1){ //reset counter and sample temperature sensor

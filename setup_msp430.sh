@@ -89,6 +89,10 @@ ln -s $PWD/nodeCtrl/core/network/network.h                   $ENERGIA_LIB_DIR/ne
 ln -s $PWD/nodeCtrl/core/network/network.c                   $ENERGIA_LIB_DIR/network/network.c
 ln -s $PWD/nodeCtrl/core/platform/serial_c.h                 $ENERGIA_LIB_DIR/platform/serial_c.h
 ln -s $PWD/nodeCtrl/core/platform/serial_c.cpp               $ENERGIA_LIB_DIR/platform/serial_c.cpp
+ln -s $PWD/nodeCtrl/core/platform/reliable_channel.h         $ENERGIA_LIB_DIR/platform/reliable_channel.h
+ln -s $PWD/nodeCtrl/core/platform/reliable_channel.cpp       $ENERGIA_LIB_DIR/platform/reliable_channel.cpp
+ln -s $PWD/nodeCtrl/core/platform/doge_timers.h              $ENERGIA_LIB_DIR/platform/doge_timers.h
+ln -s $PWD/nodeCtrl/core/platform/doge_timers.c              $ENERGIA_LIB_DIR/platform/doge_timers.c
 ln -s $PWD/nodeCtrl/core/platform/platform.h                 $ENERGIA_LIB_DIR/platform/platform.h
 ln -s $PWD/nodeCtrl/core/cobs/cobs.c                         $ENERGIA_LIB_DIR/cobs/cobs.cpp
 ln -s $PWD/nodeCtrl/core/cobs/cobs.h                         $ENERGIA_LIB_DIR/cobs/cobs.h

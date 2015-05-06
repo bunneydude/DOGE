@@ -3,6 +3,15 @@
 #include <stddef.h>
 #include "../nodeCtrl.h"
 #include <type.h>
+#include "../platform/serial_c.h"
+
+void copy_doge_packet(dogePacket* dst, dogePacket* src)
+{
+  uint8_t i = 0;
+  for (i = 0; i < sizeof(dogePacket); i++){
+    ((uint8_t*)dst)[i] = ((uint8_t*)src)[i];
+  }
+}
 
 void copy_raw_packet_data(rawPacket* dst, rawPacket* src)
 {

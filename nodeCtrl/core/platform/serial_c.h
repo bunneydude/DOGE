@@ -15,6 +15,7 @@ void print_decimal(uint16_t buf, printOptions options);
 void print_string(char const *buf, printOptions options);
 void print_hex(uint16_t buf, printOptions options);
 void print_packet(dogePacket* packet);
+void print_bytes(uint8_t* bytes);
 
 #ifdef __cplusplus
 }

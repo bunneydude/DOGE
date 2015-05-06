@@ -21,6 +21,7 @@ extern "C" {
 #define static_assert5(cond)
 #endif
 
+#define MAX_DATA_LENGTH 32
 #define MAX_RAW_PACKET_PAYLOAD_SIZE 19
 #define MAX_PACKET_PAYLOAD_SIZE     20
 
@@ -28,12 +29,13 @@ typedef enum {
    UNDEFINED_PACKET_TYPE = 0,
    RAW_PACKET,
    SIGNALING_BROADCAST_BEACON,
-   SIGNALING_UNICAST_BEACON, 
+   SIGNALING_UNICAST_BEACON,
    BULK_DATA_READ_REQ,
    BULK_DATA_READ_DATA,
    BULK_DATA_WRITE_REQ,
    BULK_DATA_WRITE_DATA,
    BULK_DATA_RW_ABORT,
+   LINK_LAYER_PACKET,
    MAX_PACKET_TYPE = 9
 } packetType;
 
@@ -132,7 +134,7 @@ while(0)
 #define GET_HEADER_TYPE_ACK(TYPE) (((TYPE) & HEADER_TYPE_ACK_MASK) >> HEADER_TYPE_ACK_SHIFT)
 
 /** Macro for getting packet ID in header txinfo */
-#define GET_TXINFO_PACKET_ID(TXINFO) (((TXINFO) & TXINFO_PACKET_ID_MASK) >> (TXINFO_PACKET_ID_SHIFT))
+#define GET_TXINFO_PACKET_ID(_TXINFO_) (((_TXINFO_) & TXINFO_PACKET_ID_MASK) >> (TXINFO_PACKET_ID_SHIFT))
 
 /** Macro for getting RTA in header txinfo */
 #define GET_TXINFO_RTA(TXINFO) (((TXINFO) & TXINFO_RTA_MASK) >> (TXINFO_RTA_SHIFT))
@@ -143,6 +145,9 @@ while(0)
 /** Macro for testing header type */
 #define HEADER_TYPE_EQUALS(HEADER_TYPE, TYPE) ((((HEADER_TYPE) & HEADER_TYPE_MASK) >> HEADER_TYPE_SHIFT) == (TYPE))
 
+/** Macro for testing packet id */
+#define TXINFO_PACKET_ID_EQUALS(TXINFO, PACKET_ID) (GET_TXINFO_PACKET_ID(TXINFO) == (PACKET_ID & TXINFO_PACKET_ID_SIZE_MASK))
+
 #define NUM_PACKET_HEADER_CRC_BYTES        (sizeof(packetHdr) - sizeof(((packetHdr*)0)->crc))
 #define RAW_PACKET_DATA_OFFSET             (offsetof(rawPacket, data))
 #define RAW_PACKET_DATA_CRC_BEGIN          (RAW_PACKET_DATA_OFFSET - sizeof(((rawPacket*)0)->size))
@@ -152,6 +157,7 @@ while(0)
 #define PACKET_PAYLOAD_OFFSET              (offsetof(dogePacket, payload))
 #define DEFAULT_PACKET_TTL (255)
 
+void copy_doge_packet(dogePacket* dst, dogePacket* src);
 void copy_raw_packet_data (rawPacket* dst, rawPacket* src);
 uint8_t packet_payload_end(dogePacket* packet);
 void add_packet_crc(dogePacket* packet);

@@ -5,8 +5,9 @@
 //#include <nrf24.h>
 //#include <nRF24L01.h>
 #include <protocol.h>
-#include <MyRingBuffer.h>
+/*#include <MyRingBuffer.h>*/
 #include <cobs.h>
+#include <platform.h>
 
 // -----------------------------------------------------------------------------
 /**
@@ -21,10 +22,10 @@ dogePacket rxPacket;
 appPacket* rxAppPacket;
 packetAttr rxAttr;
 
-uint8_t serialBuffer[MAX_DATA_LENGTH + 2]; //+1 for COBS overhead, another +1 for framing byte
+#define static_assert1(cond) uint8_t static_assert1[((cond) == 1) ? 1 : -1]
+static_assert1(MY_NODE_ID == ROOT_NODE);
 
-#define MY_NODE_ID 0x1
-#define NODECTRL_VERSION 1
+uint8_t serialBuffer[MAX_DATA_LENGTH + 2]; //+1 for COBS overhead, another +1 for framing byte
 
 uint8_t nrf_address[5] = {
   0xD7,0xD7,0xD7,0xD7,0xD7};
@@ -68,6 +69,7 @@ uint8_t nrf_read_timeout(uint16_t timeout){
 
 void setup()
 {
+  setup_timer_hw();
   pinMode(RADIO_NRF_CE, OUTPUT);
   digitalWrite(RADIO_NRF_CE, LOW);     
   pinMode(RADIO_NRF_CSN, OUTPUT);
@@ -104,24 +106,24 @@ void loop(){
     link_layer_form_packet(&txPacket, &txAttr, RAW_PACKET, MY_NODE_ID, rxPacket.hdr.src, MY_NODE_ID, rxPacket.hdr.shSrc);  
   }
   else{ //forward it
-    Radio.transmit(ADDRESS_BROADCAST, (uint8_t*)(&rxPacket), RAW_PACKET_TOTAL_SIZE(&rxPacket));
+    copy_doge_packet(&txPacket, &rxPacket);
+    reliable_transmit();
 
     //Make sure radio is ready to receive
     while (Radio.busy());
 
     // Turn on the receiver and listen for incoming data. Timeout after 1 seconds.
-    if (Radio.receiverOn((uint8_t*)(&txPacket), MAX_DATA_LENGTH, 1000) > 0){
-      digitalWrite(RED_LED, hbt_output ^= 0x1);   
-
+    if (reliable_receive(TIMEOUT_1000_MS))
+    {
+      copy_doge_packet(&txPacket, &rxPacket);
+      digitalWrite(RED_LED, hbt_output ^= 0x1);
     }
     else{ //timeout, send error message
       application_form_packet(txAppPacket, &txAttr, CMD_NACK, rxAppPacket->addr, ERR_TIMEOUT);
       link_layer_form_packet(&txPacket, &txAttr, RAW_PACKET, MY_NODE_ID, rxPacket.hdr.src, MY_NODE_ID, rxPacket.hdr.shSrc); 
-    }    
-  }//end forward  
-  
+    }
+  }//end forward
   serial_transmit((uint8_t*)(&txPacket), RAW_PACKET_TOTAL_SIZE(&txPacket), 1);
-
 }//end main loop
 
 
@@ -189,13 +191,3 @@ uint8_t serial_transmit(uint8_t* buf, uint8_t size, uint8_t encode){
 
   Serial.write((uint8_t)0); //indicate end of frame
 }
-
-
-
-
-
-
-
-
-
-
