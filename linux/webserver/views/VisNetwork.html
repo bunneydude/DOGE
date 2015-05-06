@@ -9,6 +9,8 @@
 </head>
 
 <body>
+
+<vis-directive> </vis-directive>
  
 <h3 style="margin-left:182px"> DOGE Network</h3>
 
@@ -43,7 +45,8 @@
   <input type="button" value="Add Route" id="addRouteButton" class="mynetwork-control-button" onclick="addRoute()"></input>
   <input type="button" value="Request New Route" id="reqRouteButton" class="mynetwork-control-button" onclick="reqNewRoute()"></input>
   <input type="button" value="Delete Route"  id="deleteRouteButton"  class="mynetwork-control-button" onclick="deleteRoute()"></input>
-  <input type="button" value="Mask Node/Edge"  id="maskElementButton"  class="mynetwork-control-button" onclick="maskElement()"></input>
+  <input type="button" value="Mask Node/Edge"  id="elementMaskingButton"  class="mynetwork-control-button" onclick="elementMasking('mask')"></input>
+  <input type="button" value="Un-Mask Node/Edge"  id="elementMaskingButton"  class="mynetwork-control-button" onclick="elementMasking('unmask')"></input>
 </div>
  
 <div id="mynetwork" class="center"></div>

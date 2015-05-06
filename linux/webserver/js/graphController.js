@@ -7,8 +7,8 @@
     var network = null;
     var userRoute = [];
     var delRoute = [];
-    var maskEdge = [];
-    var maskNode = "";
+    var userEdge = [];
+    var userNode = "";
     var newRoute = [];
     var options;
     var mode ;
@@ -265,16 +265,16 @@
     
     }
     
-    //Mask node or edge
-    function maskElement() {
+    //Mask or unmask a node or edge
+    function elementMasking(option) {
       
       //Clear any previous use cases
       clearUserBox();
 
-      mode = 'mask-element';
+      mode = option;
              
       //Display user instructions and selections
-      document.getElementById('instructions').innerHTML = 'Select Node/Edge to be masked.Click Confirm when done or Cancel to exit';
+      document.getElementById('instructions').innerHTML = 'Select Node/Edge to be '+option+'ed. Click Confirm when done or Cancel to exit';
       
       
       //Make user confirmation buttons visible
@@ -284,17 +284,17 @@
       network.on('select',function(params) {
         if (params['edges'] != "" && params['nodes'] == "") {  
           document.getElementById('route').innerHTML = 'Selected Edge Id\'s:'+params.edges;
-          maskEdge = params.edges ;
+          userEdge = params.edges ;
           
         }
         else if (params['nodes'] != "" && params['edges'] == "") {  
           document.getElementById('route').innerHTML = 'Selected Nodes:'+params.nodes;
-	  maskNode = parseInt(params.nodes) ;
+	  userNode = parseInt(params.nodes) ;
         }
         else if (params['nodes'] != "" && params['edges'] != "") {  
           document.getElementById('route').innerHTML = 'Selected Nodes:'+params.nodes + " Selected Edge Id\'s:"+params.edges;
-         maskEdge = params.edges;
-         maskNode = parseInt(params.nodes);
+         userEdge = params.edges;
+         userNode = parseInt(params.nodes);
         }
 
 
@@ -311,8 +311,8 @@
       userRoute = [];
       delRoute = [];
       newRoute = [];
-      maskEdge = [];
-      maskNode = "";
+      userEdge = [];
+      userNode = "";
       mode = "";
       properties = [];
       network.off ('select');
@@ -320,13 +320,25 @@
     }
     
     //Function to update edge properties if masked
-    function updateEdge (id) {
-      try {
-        edges.update({id: id, style:'dash-line',color:'gray',label:''});
+    function updateEdge (masking_request,id) {
+
+      if (masking_request == 'mask') {
+          try {
+              edges.update({id: id, style:'dash-line',color:'gray'});
+          }
+          catch(err) {
+              alert (err);
+          } 
       }
-      catch(err) {
-        alert (err);
-      } 
+      else if (masking_request == 'unmask') {
+          try {
+              edges.update({id: id, style:'line',color:'black'});
+          }
+          catch(err) {
+              alert (err);
+          } 
+      }
+
     }
     
     function saveUserData () {
@@ -364,31 +376,33 @@
 
         }
       }
-      else if (mode == 'mask-element'){
+      else if (mode == 'mask' || mode == 'unmask' ){
 
         
-        document.getElementById('selection').innerHTML = "Mask Node/Edge edge requested for Edges:" +  maskEdge +" Nodes:"+ maskNode;
+        document.getElementById('selection').innerHTML = mode+" Node/Edge edge requested for Edges:" +  userEdge +" Nodes:"+ userNode;
 
         //If a node was selected, mask it
-        if (maskNode != "") {
-            var message = {'command':'mask_node','data': maskNode};
+        if (userNode != "") {
+            var command = mode+'_node';
+            var message = {'command':command,'data': userNode};
             sendMessageWait(message);
         }
 
         //If selection had only edges, mask it
-        if (maskEdge != null && maskNode == "") {
-          if (maskEdge.length > 1) {
-            maskEdge.forEach( function(id) {
+        if (userEdge != null && userNode == "") {
+          var command = mode+'_physical_edge';
+          if (userEdge.length > 1) {
+            userEdge.forEach( function(id) {
               id = parseInt(id);
               var edgeObj = edges.get(id);
-              var message = {'command' : 'mask_physical_edge', 'data' : [parseInt(edgeObj.from),parseInt(edgeObj.to),id]};
+              var message = {'command' : command, 'data' : [parseInt(edgeObj.from),parseInt(edgeObj.to),id]};
               sendMessage(message);
             });
           } 
           else {
-              id = parseInt(maskEdge);
+              id = parseInt(userEdge);
               var edgeObj = edges.get(id);
-              var message = {'command' : 'mask_physical_edge', 'data' : [parseInt(edgeObj.from),parseInt(edgeObj.to),id]};
+              var message = {'command' : command, 'data' : [parseInt(edgeObj.from),parseInt(edgeObj.to),id]};
               sendMessage(message);
           }
        }
@@ -400,21 +414,49 @@
          
          if (message.command == 'mask_node') {
            try {
-            nodes.update({id: parseInt(message.data), color: 'gray'});
+             nodes.update({id: parseInt(message.data), color: 'gray'});
            }
            catch(err) {
             alert (err);
            }
          }
-   
+         else if (message.command == 'unmask_node') {
+           try {
+             var node_group = nodes.get(parseInt(message.data)).group;
+             var node_color;
+             if (node_group == '915mhz') {
+                 node_color = 'lightblue';
+             }
+             else if (node_group == '2.4ghz') {
+                 node_color = 'lightgreen';
+             }
+             else if (node_group == '433mhz') {
+                 node_color = 'tomato';
+             }
+
+             nodes.update({id: parseInt(message.data),color:node_color});
+           } 
+           catch(err) {
+            alert (err);
+           }
+         }
+ 
          else if (message.command == 'mask_physical_edge') {
+           //Format of array is [from,to,id]
            var edge_array = /\[(\d+),(\d+),(\d+)\]/.exec(message.data);
-           updateEdge(edge_array[3]);
+           //update edge based on id
+           updateEdge('mask',edge_array[3]);
+         }
+        
+          else if (message.command == 'unmask_physical_edge'  ) {
+           //Format of array is [from,to,id]
+           var edge_array = /\[(\d+),(\d+),(\d+)\]/.exec(message.data);
+           //update edge based on id
+           updateEdge('unmask',edge_array[3]);
          }
 
          else if (message.command == 'alert') {
-           document.getElementById('instructions').innerHTML = 'Message from Routing Processor Recvd: ERROR - Cannot mask this node because it has routing tables';
-           //alert(message.data);
+           document.getElementById('instructions').innerHTML = 'Message from Routing Processor Recvd: ' + message.data;
          }
      
        });
