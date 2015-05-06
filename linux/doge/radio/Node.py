@@ -73,11 +73,13 @@ class HardwareNode:
     _radios = []
     _inputs = {}
     _outputs = []
-    _networkTable = None	   
+    _networkTable = None
     _validRadios = ["nrf24", "cc1101l", "rfm69"]
     _maxRadios = 4
     _nodeID = None
-    _stateFields = ['all', 'neighbors', 'routes', 'adc', 'uart', 'dsp']
+    _hardwareState = {'neighbors':[], 'routes':[]}
+    _stateFields = ['all'] + _hardwareState.keys()
+    _validSources = ['state', 'hardware']
 
     def __init__(self, device, nodeID, pipe):
         print "Device={0}, pipe={1}".format(device,pipe)
@@ -92,6 +94,10 @@ class HardwareNode:
         rarray = []
 
         if(True == config['debug'] == config['debug_test_network']):
+            maxNetworkSize = 8
+            maxNeighbors = 4
+            maxRoutes = 4
+
             if(self._nodeID == 2 ):
                 narray =  [[1,74,2,1]]
                 rarray = []
@@ -105,10 +111,13 @@ class HardwareNode:
                 narray =  [[1,96,2,1], [4,33,2,1]]
                 rarray = []
             else:
-                raise exception("Unexpected node ID: {0}".format(self._nodeID))
+                raise Exception("Unexpected node ID: {0}".format(self._nodeID))
+        else: #read info from node
+            narray, rarry, maxNetworkSize, maxNeighbors, maxRoutes = self.read_network_state()
       
+        narray, rarry, maxNetworkSize, maxNeighbors, maxRoutes = self.read_network_state()
         print("Created node {0} with neighbor array {1}, routing array {2}".format(self._nodeID, narray, rarray)) 
-        self._networkTable = NetworkTable(narray,rarray)
+        self._networkTable = NetworkTable(narray, rarray, maxNetworkSize, maxNeighbors, maxRoutes)
 
     def to_s(self):
         print("Node: device = {0}, nodeID = {1}, radio = {2}, inputs = {3}, outputs = {4}".format(self._device, self._nodeID, self._radios, self._inputs, self._outputs))
@@ -116,13 +125,16 @@ class HardwareNode:
     def get_nodeID(self):
         return self._nodeID
 
-    def commit(self, field='all'):
+    # field - which state to commit
+    # force - if False, first check to see if the state needs to be updated. Otherwise always update
+    def commit(self, field='all', force=False):
         pass
+    #    if(field.lower() == 'all'):
 
     #returns True if there is state that needs to be committed to the HW node
     # if returns True, the info list has the keys for which fields have been modified
     def modified(self, info=[]):
-        pass
+        pass 
 
 
     def add_radio(self, radio):
@@ -153,7 +165,8 @@ class HardwareNode:
         print("Pull complete. Got: [header: [{0}], size = {1}, data = {2}]".format(ProtocolDefs.print_structure(self._pipe.rxPacket.hdr), self._pipe.rxPacket.size, list(i for i in self._pipe.rxPacket.data)))
 
 
-    def get_neighbor_table(self):
+    def get_neighbor_table(self, source='state'):
+        if(source not in self._validSources): raise Exception("The source {0}, must be one of {1}".format(self._validSources))
         return (self._networkTable.get_neighbor_list())
  
     # return an array of node IDs corresponding to single-hop neighbors 
@@ -171,7 +184,8 @@ class HardwareNode:
             nodeIDs.append(entry[0])
         return(nodeIDs)
 
-    def get_routing_table(self):
+    def get_routing_table(self, source='state'):
+        if(source not in self._validSources): raise Exception("The source {0}, must be one of {1}".format(self._validSources))
         return (self._networkTable.get_route_list())
   
     def add_neighbor(self, args={}):
@@ -199,15 +213,47 @@ class HardwareNode:
             for entry in self._networkTable._neighborArray: #FIXME breaking abstraction/protection rules here...
                 print("   Masked edge from node {0} to node {1}".format(self._nodeID, entry[0]))
                 entry[1] = maskValues[action]
+                self.update_neighbor_entry(entry, self._networkTable._neighborArray.index(entry))
         else:
             if(nodeID not in range(1, 2**16)): raise Exception("The specified nodeID, {0}, must be in the range [1, 65535]".format(nodeID))
-            entry = self._networkTable.get_neighbor_entry(nodeID)
+            entry, index = self._networkTable.get_neighbor_entry(nodeID)
             if(len(entry) == 0):
                 print("Error: could not find node {0} in node {1}'s neighbor table.".format(nodeID, self._nodeID))
                 print("   Neighbor table = {0}".format(self._networkTable.get_neighbor_list()))
             else:
                 print("   Masked the edge from node {0} to node {1}".format(self._nodeID, nodeID))
                 entry[1] = maskValues[action]
+                self.update_neighbor_entry(entry, index)
+
+    def update_neighbor_entry(self, entry, index):
+        print("   Node {0}: update neighbor entry at index {1} to {2}".format(self._nodeID, index, entry))
+
+    # returns neighborArray, routingArray, max network size, max neighbors, max routes
+    def read_network_state(self):        
+        #from memory map
+        maxNetworkSize = 8 #TODO just reference memory map object from Device
+
+        # from 'device' region (for now) TODO use 'pull'-like method
+        neighborCount = 1
+        routeCount = 0
+        divisionIndex = 4
+
+        #determine max number of entry types
+        maxNeighbors = divisionIndex
+        maxRoutes = maxNetworkSize - divisionIndex
+
+        # maybe this should be a warning instead of exception
+        if((maxNeighbors + maxRoutes ) != maxNetworkSize): raise Exception("Node {0}: Max neighbors ({1}), max routes ({2}), max table size ({3}) don't add up".format(self._nodeID, maxNeighbors, maxRoutes, maxNetworkSize))
+
+        for index in range(0, neighborCount):
+            print("   Node {0}: Fetch neighbor entry at index {1}".format(self._nodeID, index))
+
+        for index in range(0, routeCount):
+            print("   Node {0}: Fetch routing entry at index {1}".format(self._nodeID, index))
+
+        neighborArray = [[1, 40 + self._nodeID, 2, 1]]
+        routingArray = []
+        return neighborArray, routingArray, maxNetworkSize, maxNeighbors, maxRoutes
 
     def get_rssi(self):
         rssi = random.randint(20,30)
@@ -227,7 +273,7 @@ class VirtualNode:
         
         narray = [] #self.load_preset_nte_config()
         rarray = [] 
-        self._networkTable = NetworkTable(narray,rarray)
+        self._networkTable = NetworkTable(narray, rarray, maxNetworkSize=255, maxNeighbors=128, maxRoutes=128) #virtual nodes have 'infinite' memory for now
    
     def get_nodeID(self):
         return self._nodeID
@@ -295,27 +341,34 @@ class NetworkTable:
    _neighborArray = []
    _routingArray = []
    _networkArray = []
-   _maxNetworkSize = 1
+   _maxNetworkSize = None
    _maxNeighbors = 1
    _maxRoutes = 0
 
 
-   def __init__(self, neighborArray = [], routingArray = []):
-      # Make copies
+   def __init__(self, neighborArray, routingArray, maxNetworkSize, maxNeighbors, maxRoutes):
+      if(maxNetworkSize not in range(1, (2**8)+1)): raise Exception("The specified max network size, {0}, must be in the range [1, 256]".format(maxNetworkSize))
+      if(maxNeighbors not in range(1, maxNetworkSize+1)): raise Exception("The specified max neighbors, {0}, must be in the range [1, {1}]".format(maxNeighbors, maxNetworkSize))
+      if(maxRoutes not in range(1, maxNetworkSize+1)): raise Exception("The specified max routes {0}, must be in the range [1, {1}]".format(maxNeighbors, maxNetworkSize))
+
       self._neighborArray = list(neighborArray)
       self._routingArray = list(routingArray)
-      print("Network table created")
+      self._maxNetworkSize = maxNetworkSize        
+      self._maxNeighbors = maxNeighbors
+      self._maxRoutes = maxRoutes
+
 
    # return a list of neighbor table entries
    def get_neighbor_list(self):
       return list(self._neighborArray)
 
-   # return empty array if node isn't found
+   # returns an entry and the table index if foud
+   # return empty array and -1 if node isn't found
    def get_neighbor_entry(self, nodeID):
-      for entry in self._neighborArray:
+      for entry in self._neighborArray: #entry is an array
          if(nodeID == entry[0]):
-            return entry 
-      return [] 
+            return entry, self._neighborArray.index(entry)
+      return [], -1
 
    def get_route_list(self):
       return list(self._routingArray)
@@ -331,7 +384,6 @@ class NetworkTable:
          print("Error: Trying to set max number of routes ({0}) smaller than current array ({1})".format(num, len(self._routingArray)))
       else:
          self._maxRoutes = num
-     
 
 ### FIXME the following classes aren't used ### 
 
