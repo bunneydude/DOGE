@@ -77,6 +77,7 @@ class HardwareNode:
     _validRadios = ["nrf24", "cc1101l", "rfm69"]
     _maxRadios = 4
     _nodeID = None
+    _stateFields = ['all', 'neighbors', 'routes', 'adc', 'uart', 'dsp']
 
     def __init__(self, device, nodeID, pipe):
         print "Device={0}, pipe={1}".format(device,pipe)
@@ -101,7 +102,7 @@ class HardwareNode:
                 narray =  [[1,66,2,1]]
                 rarray = []
             elif(self._nodeID == 5 ):
-                narray =  [[1,96,2,1]]
+                narray =  [[1,96,2,1], [4,33,2,1]]
                 rarray = []
             else:
                 raise exception("Unexpected node ID: {0}".format(self._nodeID))
@@ -114,6 +115,15 @@ class HardwareNode:
 
     def get_nodeID(self):
         return self._nodeID
+
+    def commit(self, field='all'):
+        pass
+
+    #returns True if there is state that needs to be committed to the HW node
+    # if returns True, the info list has the keys for which fields have been modified
+    def modified(self, info=[]):
+        pass
+
 
     def add_radio(self, radio):
         if(radio.lower() not in self._validRadios): raise Exception("Invalid radio specified: {0}. Must be one of {1}".format(radio.lower(), self._validRadios))
@@ -178,17 +188,26 @@ class HardwareNode:
         if(nodeID is None): #return True if there's any route, False otherwise
             return (len(self._networkTable._routingArray) > 0)
         else: #check for a specific nodeID
-            if(nodeID not in range(1, 2**16)): raise Exception("The specified nodeID, {0}, must be in the range [0, 65535]".format(nodeID))            
+            if(nodeID not in range(1, 2**16)): raise Exception("The specified nodeID, {0}, must be in the range [1, 65535]".format(nodeID))            
             return(nodeID in self.get_routes())
 
-    def mask_neighbor(self, nodeID):
-        entry = self._networkTable.get_neighbor_entry(nodeID)
-        if(len(entry) == 0):
-            print("Error: could not find node {0} in node {1}'s neighbor table.".format(nodeID, self._nodeID))
-            print("   Neighbor table = {0}".format(self._networkTable.get_neighbor_list()))
+    def mask_neighbor(self, nodeID=None, action="mask"): # TODO pick a better name for the method
+        maskValues = {'mask':255, 'unmask':1}
+        if(action not in ["mask", "unmask"]): raise Exception("The action, {0}, must be either 'mask' or 'unmask'".format(action))
+
+        if nodeID is None: #mask all entries
+            for entry in self._networkTable._neighborArray: #FIXME breaking abstraction/protection rules here...
+                print("   Masked edge from node {0} to node {1}".format(self._nodeID, entry[0]))
+                entry[1] = maskValues[action]
         else:
-            print("   Masked the edge from node {0} to node {1}".format(self._nodeID, nodeID))
-            entry[1] = 999
+            if(nodeID not in range(1, 2**16)): raise Exception("The specified nodeID, {0}, must be in the range [1, 65535]".format(nodeID))
+            entry = self._networkTable.get_neighbor_entry(nodeID)
+            if(len(entry) == 0):
+                print("Error: could not find node {0} in node {1}'s neighbor table.".format(nodeID, self._nodeID))
+                print("   Neighbor table = {0}".format(self._networkTable.get_neighbor_list()))
+            else:
+                print("   Masked the edge from node {0} to node {1}".format(self._nodeID, nodeID))
+                entry[1] = maskValues[action]
 
     def get_rssi(self):
         rssi = random.randint(20,30)
@@ -201,7 +220,7 @@ class VirtualNode:
     _nodeID = None
 
     def __init__(self, nodeID, name="Edison"):
-        if(nodeID not in range(1, 2**16)): raise Exception("The specified nodeID, {0}, must be in the range [0, 65535]".format(nodeID))
+        if(nodeID not in range(1, 2**16)): raise Exception("The specified nodeID, {0}, must be in the range [1, 65535]".format(nodeID))
  
         self._name = name + '-' + str(nodeID)
         self._nodeID = nodeID
@@ -241,27 +260,34 @@ class VirtualNode:
         self._networkTable._routingArray.append([args['mhNodeID'], args['mhLQE'], args['neighborIndex']])
    
     def has_neighbor(self, nodeID):
-        if(nodeID not in range(1, 2**16)): raise Exception("The specified nodeID, {0}, must be in the range [0, 65535]".format(nodeID))
+        if(nodeID not in range(1, 2**16)): raise Exception("The specified nodeID, {0}, must be in the range [1, 65535]".format(nodeID))
         return(nodeID in self.get_neighbors())
 
     def has_route(self, nodeID=None):
         if(nodeID is None): #return True if there's any route, False otherwise
             return (len(self._networkTable._routingArray) > 0)
         else: #check for a specific nodeID
-            if(nodeID not in range(1, 2**16)): raise Exception("The specified nodeID, {0}, must be in the range [0, 65535]".format(nodeID))            
+            if(nodeID not in range(1, 2**16)): raise Exception("The specified nodeID, {0}, must be in the range [1, 65535]".format(nodeID))            
             return(nodeID in self.get_routes())
         
    
-    def mask_neighbor(self, nodeID):
-        if(nodeID not in range(1, 2**16)): raise Exception("The specified nodeID, {0}, must be in the range [0, 65535]".format(nodeID))
-        entry = self._networkTable.get_neighbor_entry(nodeID)
-        if(len(entry) == 0):
-            print("Error: could not find node {0} in node {1}'s neighbor table.".format(nodeID, self._nodeID))
-            print("   Neighbor table = {0}".format(self._networkTable.get_neighbor_list()))
-        else:
-            print("   Masked the edge from node {0} to node {1}".format(self._nodeID, nodeID))
-            entry[1] = 999
+    def mask_neighbor(self, nodeID=None, action="mask"): # TODO pick a better name for the method
+        maskValues = {'mask':255, 'unmask':1}
+        if(action not in ["mask", "unmask"]): raise Exception("The action, {0}, must be either 'mask' or 'unmask'".format(action))
 
+        if nodeID is None: #mask all entries
+            for entry in self._networkTable._neighborArray: #FIXME breaking abstraction/protection rules here...
+                print("   Masked edge from node {0} to node {1}".format(self._nodeID, entry[0]))
+                entry[1] = maskValues[action]
+        else:
+            if(nodeID not in range(1, 2**16)): raise Exception("The specified nodeID, {0}, must be in the range [1, 65535]".format(nodeID))
+            entry = self._networkTable.get_neighbor_entry(nodeID)
+            if(len(entry) == 0):
+                print("Error: could not find node {0} in node {1}'s neighbor table.".format(nodeID, self._nodeID))
+                print("   Neighbor table = {0}".format(self._networkTable.get_neighbor_list()))
+            else:
+                print("   Masked the edge from node {0} to node {1}".format(self._nodeID, nodeID))
+                entry[1] = maskValues[action]
 
 #End of VirtualNode
  

@@ -79,17 +79,30 @@ class RoutingProcessor():
  def getSocket(self):
    return self.socket
 
+ # nodeID is a string
  def mask_node(self, command, nodeID):
-   #Check if this node has any routing table entries
-   if self.network_routing_tables[int(nodeID)]:
-     print "Node {0} has routing table entries".format(nodeID)
-     data = {'command':'alert','data':'ERROR: Cannot mask node since it has routing tables'}
-     self.socket.emit('confirm',json.dumps(data))
+     data = {'command':'alert','data':'Error: Unhandled execution in mask_node'}
+     if int(nodeID) in self.networkNodes:
+         node = self.networkNodes[int(nodeID)]
+         #assert int(nodeID) == node.get_nodeID()
+         
+         if node.has_route(): #Check if this node has any routing table entries
+             errorMessage = "Error: Node {0} cannot be masked since it has routing table entries".format(int(nodeID))
+             print(errorMessage)
+             data = {'command':'alert','data':errorMessage}
+         else:
+             print "Node {0} has no routes. Allowing masking".format(int(nodeID))
+             node.mask_neighbor() #no id means to mask all neighbor edges
+             node.commit()
+             data = {'command':command,'data':nodeID}
+             print "Sending confirmation: {0}".format(data)
 
-   else:
-     print "Node {0} has no routes. Allowing masking".format(nodeID)
-     data = {'command':command,'data':nodeID}
-     print "Sending confirmation: {0}".format(data)
+     else:
+         print("networkNodes = {0}".format(self.networkNodes))
+         errorMessage = "Error: Node {0} not found in networkNodes".format(int(nodeID))
+         print(errorMessage)
+         data = {'command':'alert','data':errorMessage}
+     
      self.socket.emit('confirm',json.dumps(data))
   
  def mask_edge(self, command, edge):
@@ -107,6 +120,7 @@ class RoutingProcessor():
          if(node.has_neighbor(edgeTo)):
              foundNode = True
              node.mask_neighbor(edgeTo)
+             node.commit()
              responseData = {'command':command,'data':edge}
              print "Sending confirmation: {0}".format(responseData)
          else:
