@@ -21,14 +21,14 @@ class RoutingProcessor():
  edge_id = 0
  route_edge_id = 1000
 
- networkNodes = []
+ networkNodes = {}
 
  
- def __init__(self, port, initialNetwork=[]):
+ def __init__(self, port, initialNetwork={}):
    self.socket = self.createSocket(port);
    self.network_neighbor_tables = {}
    self.network_routing_tables = {}
-   self.networkNodes = list(initialNetwork)
+   self.networkNodes = initialNetwork.copy()
  
  def createNetworkVis(self,nodes, edges, route_edges, nodeID, neighborTable, routingTable): #TODO collapse nodeID and tables into just a Node object
    #Build lists of entire network neighbor table and routing table entries
@@ -94,24 +94,31 @@ class RoutingProcessor():
   
  def mask_edge(self, command, edge):
      foundNode = False
+     responseData = {'command':'alert', 'data':'ERROR: Unhandled execution in mask_edge'}
 
      #Edge format is [from_nodeID, to_nodeID, edgeID]
      edgeFrom =json.loads(edge)[0]
      edgeTo = json.loads(edge)[1]
 
-     #Loop through node objects and mask specified edge
-     for node in self.networkNodes:
-         if( (node.get_nodeID() == edgeFrom) and (node.has_neighbor(edgeTo))):
+     #Find node then mask specified edge
+     if edgeFrom in self.networkNodes:                      
+         node = self.networkNodes[edgeFrom]
+         #assert edgeFrom == node.get_nodeID()
+         if(node.has_neighbor(edgeTo)):
              foundNode = True
              node.mask_neighbor(edgeTo)
-
-     if(foundNode == False):
-         print("Error: Could not find nodeID {0} in list of network nodes".format(edgeFrom))
-
-     #print "NTE = {0}".format(self.network_neighbor_tables)
-     data = {'command':command,'data':edge}
-     print "Sending confirmation: {0}".format(data)
-     self.socket.emit('confirm',json.dumps(data))
+             responseData = {'command':command,'data':edge}
+             print "Sending confirmation: {0}".format(responseData)
+         else:
+             errorMessage = "Error: Node {0} does not have a neighbor entry for node {1}".format(edgeFrom, edgeTo)
+             print(errorMessage)
+             responseData = {'command':'alert','data':errorMessage}
+     else:
+         errorMessage =  "Error: Could not find nodeID {0} in list of network nodes".format(edgeFrom)
+         print(errorMessage)
+         responseData = {'command':'alert','data':errorMessage}
+              
+     self.socket.emit('confirm',json.dumps(responseData))
 
 
  def processMessage(self,*args):

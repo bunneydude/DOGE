@@ -114,12 +114,11 @@ def find_neighbors(nids):
 
 
 def load_preset_nte_config(pipe):
-    networkNodes = []
+    networkNodes = {}
     for nodeInfo in config['preset_nte_nodes']:
         device = Device(deviceName=nodeInfo['mcu_name'], memoryMapFile=config['config_file_paths']['mm_map_default_profile'])
-        networkNodes.append( HardwareNode(device, nodeID = nodeInfo['node_id'], pipe = pipe) )
+        networkNodes[nodeInfo['node_id']] = HardwareNode(device, nodeID = nodeInfo['node_id'], pipe = pipe)
     return networkNodes
-
 
 def rp_run():
     root,pipe = connect_sketch() #if not already not connected 
@@ -131,11 +130,11 @@ def rp_run():
    
     # Create list of HardwareNodes 
     networkNodes = load_preset_nte_config(pipe)
-    networkNodes.append(root)
+    networkNodes[root.get_nodeID()] = root
 
     edisonRP = RoutingProcessor(8124, networkNodes)
 
-    for node in networkNodes:
+    for node in networkNodes.values():
         # Create Edisons neighbor and routing table entry list
         # Initially, assume master node (Edison) can hear everyone
         if(node.get_nodeID() != root.get_nodeID()): #TODO might need a better way to avoid the root node
