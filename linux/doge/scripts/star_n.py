@@ -14,6 +14,7 @@ star_nte = [
 config['preset_nte_nodes'] = star_nte
 
 config['debug'] = True
+config['debug_test_network'] = True
 
 print("In debug mode? {0}".format(config['debug']))
 

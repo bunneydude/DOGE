@@ -46,6 +46,7 @@ def parse_packet(data):
 
    # convert to a list of strings
    if(type(data[0]) is int):
+      raise Exception("Protocol.parse_packet doesn't currently unpack the 2-byte fields.")
       data = list(chr(x) for x in data)
 
    # concat
