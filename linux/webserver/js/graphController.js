@@ -1,16 +1,16 @@
 'use strict';
 
-/* Controllers */
+var nodes;
+var edges;
+var routing_edges;
+var network;
 
+/* Controllers */
 angular.module('DeviceManager.controllers', []).
   controller('graphController', ['$scope', 'pageService','$window',  function ($scope, pageService,$window) {
 
 
     //These should be global so that all functions can modify network properties
-    var nodes;
-    var edges;
-    var routing_edges;
-    var network;
     var userRoute = [];
     var delRoute = [];
     var userEdge = [];
@@ -24,6 +24,7 @@ angular.module('DeviceManager.controllers', []).
  
     socket = io.connect('http://192.168.1.65:4000');
     socket.emit('join',{'socketid':'browsersock'});
+    draw(nodes,edges);
 
 
     socket.on('connect', function() {
@@ -97,7 +98,6 @@ angular.module('DeviceManager.controllers', []).
        draw(nodes,edges);
        $scope.drawLegend();
      })
-
 
 
 
@@ -336,7 +336,7 @@ angular.module('DeviceManager.controllers', []).
       }
       else if (masking_request == 'unmask') {
           try {
-              edges.update({id: id, style:'line',color:'black'});
+              edges.update({id: id, style:'line',color:'black','style':'arrow'});
           }
           catch(err) {
               alert (err);

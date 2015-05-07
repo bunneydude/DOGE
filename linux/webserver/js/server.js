@@ -100,6 +100,7 @@ chart_io.sockets.on('connection', function(socket) {
 
 
 var nw_data; 
+var sent_nw_data = 0;
 
 /*initializing the websockets communication , server instance has to be sent as the argument */
 graph_io.sockets.on("connection",function(socket){
@@ -111,10 +112,10 @@ graph_io.sockets.on("connection",function(socket){
         console.log(data.socketid);
         socket.join(data.socketid);
         //If browser just joined - send it the DOGE network info
-        if (data.socketid === 'browsersock') {
+        if (data.socketid === 'browsersock' && sent_nw_data == 0) {
           graph_io.to('browsersock').emit("load_network",nw_data);
           console.log('browser connected - sending load n/w data');
-
+          sent_nw_data = 1;
         }
  
     });
@@ -134,6 +135,7 @@ graph_io.sockets.on("connection",function(socket){
     socket.on("load_network",function(data){
         console.log("Received load network");
         nw_data = data;
+        sent_nw_data  = 0;
         //Debug
         //data = JSON.parse(data);
         //console.log(data);
