@@ -6,7 +6,7 @@ edges =[]
 nodes =[]
 route_edges= []
 
-edisonRP = RoutingProcessor(8124)
+edisonRP = RoutingProcessor(4000)
 
 nte_array = [ [1,50,1,0],[9,30,2,0]]
 rte_array = []

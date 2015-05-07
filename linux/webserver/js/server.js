@@ -2,52 +2,38 @@
 (function() {
   var app, fs, generateChartData, getUpdateData, io,  server, __dirname;
 
-  app = require('express')();
+  var express = require ('express');
+ 
+  var request = require('request');
 
-  app.use(require('express').static('./webserver'));
-
-  app.get('/', function(req, res) {
-    console.log('recieved request');
-    return fs.readFile(__dirname + '../index.html', function(err, data) {
-      if (err) {
-        console.log('error');
-        res.writeHead(500);
-        return res.end('error loading index.html');
-      } else {
-        console.log('success');
-        res.writeHead(200);
-        return res.end(data);
-      }
-    });
-  });
-
-  webserver = require('http').createServer(app);
-  chartserver = require('http').createServer(app);
-  graphserver = require('http').createServer(app);
-
+  app = express();
   
+ 
+
+  app.use(require('express').static('../../webserver'));
+
+
+
   fs = require('fs');
 
   __dirname = '';
 
-  webserver.listen(8000, function() {
-    return console.log('Web listening');
-  });
 
-  chartserver.listen(3000, function() {
-    return console.log('Chart socket listening');
+  var webserver = app.listen(8000,function(){
+    console.log("Server started on port 8000");
+   });
+
+  var chartserver = app.listen(3000, function() {
   });
 
   chart_io = require('socket.io')(chartserver);
 
-  graphserver.listen(4000, function() {
-    return console.log('Graph socket listening');
+  var graphserver = app.listen(4000, function() {
   });
 
   graph_io = require('socket.io')(graphserver);
 
-
-
+ 
    generateChartData = function() {
     var lineChartData;
     return lineChartData = [
@@ -97,7 +83,8 @@ chart_io.sockets.on('connection', function(socket) {
  
     chart_io.to('chart').emit('init', generateChartData());
     console.log('connected');
-    
+   
+     
     socket.on('updateComponent', function(data) {});
 
     socket.on('update',function(data){
@@ -117,10 +104,10 @@ var nw_data;
 /*initializing the websockets communication , server instance has to be sent as the argument */
 graph_io.sockets.on("connection",function(socket){
       
-      //Clients will join the server in rooms/channels
-      //rpsock is the routing processor socket
-      //browswersock is the web browser socket
-      socket.on('join', function (data) {
+    //Clients will join the server in rooms/channels
+    //rpsock is the routing processor socket
+    //browswersock is the web browser socket
+    socket.on('join', function (data) {
         console.log(data.socketid);
         socket.join(data.socketid);
         //If browser just joined - send it the DOGE network info
@@ -130,12 +117,9 @@ graph_io.sockets.on("connection",function(socket){
 
         }
  
-      });
-      var ack_to_client = {
-          data:"Server Received the message"
-        }
-      graph_io.to('browsersock').emit(JSON.stringify(ack_to_client));
-  
+    });
+
+
     console.log('Socket.io Connection with the client established');
     
     //Handle incoming messages from the browser
@@ -151,12 +135,8 @@ graph_io.sockets.on("connection",function(socket){
         console.log("Received load network");
         nw_data = data;
         //Debug
-        // data = JSON.parse(data);
-        // console.log(data);
-        var ack_to_client = {
-          data:"Server Received the message"
-        }
-        graph_io.to('rpsock').emit('ack',JSON.stringify(ack_to_client));
+        //data = JSON.parse(data);
+        //console.log(data);
     });
 
     socket.on("confirm",function(data){

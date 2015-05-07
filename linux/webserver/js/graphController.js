@@ -1,10 +1,16 @@
-    
+'use strict';
+
+/* Controllers */
+
+angular.module('DeviceManager.controllers', []).
+  controller('graphController', ['$scope', 'pageService','$window',  function ($scope, pageService,$window) {
+
 
     //These should be global so that all functions can modify network properties
-    var nodes = [];
-    var edges = [];
-    var routing_edges = [];
-    var network = null;
+    var nodes;
+    var edges;
+    var routing_edges;
+    var network;
     var userRoute = [];
     var delRoute = [];
     var userEdge = [];
@@ -15,8 +21,6 @@
     var route_toggle = 1;
     var legend_toggle = 1;
     var socket;
-    var connection;
-
  
     socket = io.connect('http://192.168.1.65:4000');
     socket.emit('join',{'socketid':'browsersock'});
@@ -54,7 +58,7 @@
        var node_y = 0;
        
        //This is Edison  
-       node = {'group':nodesJsonObj[0].group,'id':JSON.stringify(nodesJsonObj[0].id),'label':JSON.stringify(nodesJsonObj[0].label),'x':200,'y':70};
+       var node = {'group':nodesJsonObj[0].group,'id':JSON.stringify(nodesJsonObj[0].id),'label':JSON.stringify(nodesJsonObj[0].label),'x':200,'y':70};
        nodes.add(node);
  
        for (var i=1;i < nodesArrayLength; i++){
@@ -70,14 +74,14 @@
        var edgesArrayLength = edgesJsonObj.length;
 
        for (var i=0;i < edgesArrayLength; i++){
-          edge = {'from':JSON.stringify(edgesJsonObj[i].from),'to':JSON.stringify(edgesJsonObj[i].to),'label':JSON.stringify(edgesJsonObj[i].label),'id':JSON.stringify(edgesJsonObj[i].id),'style':'arrow','arrowScaleFactor': .5,};
+          var edge = {'from':JSON.stringify(edgesJsonObj[i].from),'to':JSON.stringify(edgesJsonObj[i].to),'label':JSON.stringify(edgesJsonObj[i].label),'id':JSON.stringify(edgesJsonObj[i].id),'style':'arrow','arrowScaleFactor': .5,};
           edges.add(edge);
        }
 
        var routingEdgesArrayLength = routingEdgesJsonObj.length;
 
        for (var i=0;i < routingEdgesArrayLength; i++){
-          route_edge = {'from':JSON.stringify(routingEdgesJsonObj[i].from),'to':JSON.stringify(routingEdgesJsonObj[i].to),'label':JSON.stringify(routingEdgesJsonObj[i].label),'id':JSON.stringify(routingEdgesJsonObj[i].id),'style':'arrow','arrowScaleFactor': .5,'color':'gold'};
+          var route_edge = {'from':JSON.stringify(routingEdgesJsonObj[i].from),'to':JSON.stringify(routingEdgesJsonObj[i].to),'label':JSON.stringify(routingEdgesJsonObj[i].label),'id':JSON.stringify(routingEdgesJsonObj[i].id),'style':'arrow','arrowScaleFactor': .5,'color':'gold'};
           edges.add(route_edge);
 
        }
@@ -91,7 +95,7 @@
        edges.remove(routing_edges);
        
        draw(nodes,edges);
-       drawLegend();
+       $scope.drawLegend();
      })
 
 
@@ -117,7 +121,7 @@
    
 
        
-    function toggleLegend () {
+    $scope.toggleLegend = function() {
      
        var e = document.getElementById('mynetworklegend');
        if(legend_toggle) {
@@ -133,7 +137,7 @@
     }
     
     
-    function drawLegend (){ 
+    $scope.drawLegend = function(){ 
       var nodes_legend = new vis.DataSet();
       nodes_legend.add({id: 1000, x:-3500,y:0,label: 'Edison', group: 'edison'});
       nodes_legend.add({id: 1001, x:-3400,y:0,label: '433MHz', group: '433mhz'});
@@ -152,12 +156,12 @@
       // create a network
       var container = document.getElementById('mynetworklegend');
       
-      network_legend = new vis.Network(container, data, options_legend);
+      var network_legend = new vis.Network(container, data, options_legend);
     }
 
 
     
-   function toggleRouteDisplay () {
+   $scope.toggleRouteDisplay = function () {
      if (route_toggle) {
       edges.add(routing_edges);
       route_toggle = 0;
@@ -175,10 +179,10 @@
     }
 
 
-    function addRoute() {
+    $scope.addRoute = function () {
      
       //Clear any previous use cases
-      clearUserBox();
+      $scope.clearUserBox();
  
       mode = 'add-route';
       
@@ -198,10 +202,10 @@
        });
      }
     
-    function reqNewRoute() {
+    $scope.reqNewRoute = function() {
       
       //Clear any previous use cases
-      clearUserBox();
+      $scope.clearUserBox();
       
       mode = 'req-new-route';
       
@@ -232,10 +236,10 @@
        });
     
     }
-    function deleteRoute() {
+    $scope.deleteRoute = function() {
       
       //Clear any previous use cases
-      clearUserBox();
+      $scope.clearUserBox();
 
       mode = 'delete-route';
       
@@ -266,10 +270,10 @@
     }
     
     //Mask or unmask a node or edge
-    function elementMasking(option) {
-      
+    $scope.elementMasking = function(option) {
+     
       //Clear any previous use cases
-      clearUserBox();
+      $scope.clearUserBox();
 
       mode = option;
              
@@ -303,7 +307,8 @@
     }
     
     
-    function clearUserBox () {
+    $scope.clearUserBox = function() {
+      document.getElementById('selection').innerHTML = "";
       document.getElementById('instructions').innerHTML = "";
       document.getElementById('route').innerHTML = "";
       document.getElementById('user-confirm').style.display = 'none';
@@ -314,7 +319,6 @@
       userEdge = [];
       userNode = "";
       mode = "";
-      properties = [];
       network.off ('select');
      
     }
@@ -341,8 +345,8 @@
 
     }
     
-    function saveUserData () {
-
+    $scope.saveUserData = function () {
+  
       if (mode == 'add-route') {
          document.getElementById('selection').innerHTML = "User defined route requested = " +userRoute;
           var message = {'command': 'add_route', 'data': userRoute};
@@ -391,6 +395,7 @@
         //If selection had only edges, mask it
         if (userEdge != null && userNode == "") {
           var command = mode+'_physical_edge';
+          var id;
           if (userEdge.length > 1) {
             userEdge.forEach( function(id) {
               id = parseInt(id);
@@ -465,7 +470,7 @@
 
       
       
-      clearUserBox();
+      $scope.clearUserBox();
     }
     
     function draw(nodes,edges) {
@@ -672,5 +677,10 @@
 
    
     } // End of draw() function
+
+
+
+  }]);
+
 
 

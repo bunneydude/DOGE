@@ -25,8 +25,8 @@
     });
     $routeProvider.when('/visNetwork', {
      templateUrl: 'views/VisNetwork.html',
-     //controller: 'VisController'
-    });
+     controller: 'graphController'
+     });
     $routeProvider.when('/deviceDetails', {
       templateUrl: 'views/DeviceDetails.html'
     });

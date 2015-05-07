@@ -3,14 +3,12 @@
 <head>
   <title> DOGE Network</title>
 
-  <script src="http://localhost:4000/socket.io/socket.io.js"></script>
   <script type="text/javascript" src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
 
 </head>
 
 <body>
 
-<vis-directive> </vis-directive>
  
 <h3 style="margin-left:182px"> DOGE Network</h3>
 
@@ -35,22 +33,22 @@
   </div>
     
   <div id="user-confirm">
-    <input type="button" value="Confirm" id="confirmButton" onclick="saveUserData()" style="margin-left: 182px"></input>
-    <input type="button" value="Cancel" id="cancelButton" onclick="clearUserBox()" ></input>
+    <input type="button" value="Confirm" id="confirmButton" ng-click="saveUserData()" style="margin-left: 182px"></input>
+    <input type="button" value="Cancel" id="cancelButton" ng-click="clearUserBox()" ></input>
   </div>
   <br></br>
   
   <div id="mynetwork-control" class="center">
-  <input type="button" value="Toggle Routing Path Display" id="toggleRouteButton" class="mynetwork-control-button" onclick="toggleRouteDisplay()"></input>
-  <input type="button" value="Add Route" id="addRouteButton" class="mynetwork-control-button" onclick="addRoute()"></input>
-  <input type="button" value="Request New Route" id="reqRouteButton" class="mynetwork-control-button" onclick="reqNewRoute()"></input>
-  <input type="button" value="Delete Route"  id="deleteRouteButton"  class="mynetwork-control-button" onclick="deleteRoute()"></input>
-  <input type="button" value="Mask Node/Edge"  id="elementMaskingButton"  class="mynetwork-control-button" onclick="elementMasking('mask')"></input>
-  <input type="button" value="Un-Mask Node/Edge"  id="elementMaskingButton"  class="mynetwork-control-button" onclick="elementMasking('unmask')"></input>
+  <input type="button" value="Toggle Routing Path Display" id="toggleRouteButton" class="mynetwork-control-button" ng-click="toggleRouteDisplay()"></input>
+  <input type="button" value="Add Route" id="addRouteButton" class="mynetwork-control-button" ng-click="addRoute()"></input>
+  <input type="button" value="Request New Route" id="reqRouteButton" class="mynetwork-control-button" ng-click="reqNewRoute()"></input>
+  <input type="button" value="Delete Route"  id="deleteRouteButton"  class="mynetwork-control-button" ng-click="deleteRoute()"></input>
+  <input type="button" value="Mask Node/Edge"  id="elementMaskingButton"  class="mynetwork-control-button" ng-click="elementMasking('mask')"></input>
+  <input type="button" value="Un-Mask Node/Edge"  id="elementMaskingButton"  class="mynetwork-control-button" ng-click="elementMasking('unmask')"></input>
 </div>
  
 <div id="mynetwork" class="center"></div>
-<input type="button" value="Toggle Legend" onclick="toggleLegend()" style="margin-left: 182px;"></button>
+<input type="button" value="Toggle Legend" ng-click="toggleLegend()" style="margin-left: 182px;"></button>
 <div id="mynetworklegend" class="center"></div>
   
 </body>
