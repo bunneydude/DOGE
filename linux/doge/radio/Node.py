@@ -302,8 +302,8 @@ class HardwareNode:
             routingArray.append(entry)
 
         print("   Node {0}: neighbors = {1}, routes = {2}".format(self._nodeID, neighborArray, routingArray))
-        neighborArray = [[1, 40 + self._nodeID, 2, 1]]
-        routingArray = []
+#        neighborArray = [[1, 40 + self._nodeID, 2, 1]]
+#        routingArray = []
         return neighborArray, routingArray, maxNetworkSize, maxNeighbors, maxRoutes
 
     def get_rssi(self):
@@ -378,14 +378,17 @@ class VirtualNode:
                 entry[1] = maskValues[action]
         else:
             if(nodeID not in range(1, 2**16)): raise Exception("The specified nodeID, {0}, must be in the range [1, 65535]".format(nodeID))
-            entry = self._networkTable.get_neighbor_entry(nodeID)
+            entry, index = self._networkTable.get_neighbor_entry(nodeID)
             if(len(entry) == 0):
                 print("Error: could not find node {0} in node {1}'s neighbor table.".format(nodeID, self._nodeID))
                 print("   Neighbor table = {0}".format(self._networkTable.get_neighbor_list()))
             else:
                 print("   Masked the edge from node {0} to node {1}".format(self._nodeID, nodeID))
                 entry[1] = maskValues[action]
+                self.update_neighbor_entry(entry, index)
 
+    def update_neighbor_entry(self, entry, index): #nothing to do for a virtual node
+        print("   Node {0}: update neighbor entry at index {1} to {2}".format(self._nodeID, index, entry))
 #End of VirtualNode
  
 class NetworkTable:

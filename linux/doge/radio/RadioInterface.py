@@ -11,7 +11,7 @@ class RadioInterface():
    _nodeID = 1
    _logLevel = 1
 
-   def __init__(self, name, nodeID, debug=False, logLevel=2):
+   def __init__(self, name, nodeID, debug=False, logLevel=1):
       if(not isinstance(name, str)): raise Exception("The name must be a string")
       if(nodeID < 0 or nodeID > 255): raise Exception("The nodeID, {0}, must be in the range [0,255]".format(nodeID))
       if(logLevel not in range(1,4)): raise Exception("The log level must be in the range [1,3]")

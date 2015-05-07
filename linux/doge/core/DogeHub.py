@@ -140,6 +140,7 @@ def rp_run():
         if(node.get_nodeID() != root.get_nodeID()): #TODO might need a better way to avoid the root node
             root.add_neighbor({'shNodeID':node.get_nodeID(), 'shLQE':1, 'radioID':0, 'networkID':1})
             root.add_route({'mhNodeID':node.get_nodeID(), 'mhLQE':2, 'neighborIndex':1})
+            print("Node {0}: neighbors = {1}, routes = {2}".format(node.get_nodeID(), node.get_neighbor_table(), node.get_routing_table()))
             edisonRP.createNetworkVis(nodes,edges,route_edges, node.get_nodeID(), node.get_neighbor_table(), node.get_routing_table())
 
     # Create the master node last

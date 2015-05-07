@@ -93,7 +93,6 @@ class RoutingProcessor():
          else:
              print "Node {0} has no routes. Allowing masking".format(int(nodeID))
              node.mask_neighbor() #no id means to mask all neighbor edges
-             node.commit()
              data = {'command':command,'data':nodeID}
              print "Sending confirmation: {0}".format(data)
 
@@ -120,7 +119,6 @@ class RoutingProcessor():
          if(node.has_neighbor(edgeTo)):
              foundNode = True
              node.mask_neighbor(edgeTo)
-             node.commit()
              responseData = {'command':command,'data':edge}
              print "Sending confirmation: {0}".format(responseData)
          else:
