@@ -36,7 +36,7 @@ typedef enum {
    BULK_DATA_WRITE_DATA,
    BULK_DATA_RW_ABORT,
    LINK_LAYER_PACKET,
-   MAX_PACKET_TYPE = 9
+   MAX_PACKET_TYPE = 10
 } packetType;
 
 typedef enum {
@@ -44,7 +44,7 @@ typedef enum {
   TRANSMIT_RESPONSE = 1
 } responseStatus;
 
-static_assert1(BULK_DATA_RW_ABORT < MAX_PACKET_TYPE);
+static_assert1(LINK_LAYER_PACKET < MAX_PACKET_TYPE);
 
 typedef struct {
    uint8_t type;
