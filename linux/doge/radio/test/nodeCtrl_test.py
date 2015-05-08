@@ -5,7 +5,7 @@ from doge.conf.globals import config
 
 import sys
 
-config['debug'] = True
+config['debug'] = False
 config['debug_test_network'] = False
 
 pipe = RadioInterface.RadioInterface("edison", 1, config['debug'], logLevel=2)
@@ -14,7 +14,8 @@ pipe.connect_sketch()
 mspV1 = Device("msp430g2553", "./doge/radio/mm_msp430_v1.txt")
 mspV1.to_s()
 
-kitchenNode = HardwareNode(mspV1, 6, pipe)
+kitchenNode = HardwareNode(mspV1, 2, pipe)
+deskNode = HardwareNode(mspV1, 3, pipe)
 kitchenNode.add_sensor("stoveTemp", "adc", mmFields.ADC_RESULT_3)
 kitchenNode.add_sensor("n0", "network", 0)
 kitchenNode.add_sensor("n1", "network", 1)

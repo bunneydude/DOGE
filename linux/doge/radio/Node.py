@@ -176,7 +176,7 @@ class HardwareNode:
 
         self._pipe.proxy_send(destination=self._nodeID, command=ProtocolDefs.CMD_READ_REG, address=address, payload=0, singleHopDest=2)
         self._pipe.proxy_receive()
-#        print("Pull complete. Got: [header: [{0}], size = {1}, data = {2}]".format(ProtocolDefs.print_structure(self._pipe.rxPacket.hdr), self._pipe.rxPacket.size, list(i for i in self._pipe.rxPacket.data)))
+        #print("Pull complete. Got: [header: [{0}], size = {1}, data = {2}]".format(ProtocolDefs.print_structure(self._pipe.rxPacket.hdr), self._pipe.rxPacket.size, list(i for i in self._pipe.rxPacket.data)))
 
         return self._pipe.rxPacket.size, list(self._pipe.rxPacket.data)
 
@@ -269,7 +269,8 @@ class HardwareNode:
                 print("   Field {0} = {1}".format(field, networkState[field]))
             else:
                 print("   Node {0}: error reading field {1}: size = {2}, data = {3}".format(self._nodeID, field, size, data))
-
+        
+	networkState = {"neighborCount":2, "routeCount":0, "divisionIndex":maxNetworkSize/2}
         #determine max number of entry types
         maxNeighbors = networkState["divisionIndex"]
         maxRoutes = maxNetworkSize - networkState["divisionIndex"]

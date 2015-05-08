@@ -34,9 +34,11 @@ class RoutingProcessor():
    #Build lists of entire network neighbor table and routing table entries
    self.network_neighbor_tables[nodeID] = neighborTable
    self.network_routing_tables[nodeID] = routingTable
-   
+  
+   radioGroup = (neighborTable[0][3] >> 4) & 0x3
+
    #Add node to list of network nodes for webserver
-   nodes.append({'id':nodeID,'label':nodeID,'group':self.radio_group[neighborTable[0][self.NTE_RADIO]]})
+   nodes.append({'id':nodeID,'label':nodeID,'group':self.radio_group[radioGroup]})
 
    #Go through Neighbor Table Entry list and add edges
    for entry in neighborTable:

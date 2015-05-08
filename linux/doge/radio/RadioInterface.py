@@ -48,7 +48,7 @@ class RadioInterface():
       #TODO need to import a constants file of sorts so we can use 'RAW_PACKET' instead of '1' for type, etc
       if self._logLevel >= 2: #print("   About to send: {0}".format(list(ord(x) for x in self.txData)))
          txPacket = Protocol.parse_packet(self.txData)
-         print("About to send: [header: [{0}], size = {1}, data = {2}]".format(ProtocolDefs.print_structure(txPacket.hdr), txPacket.size, list(i for i in txPacket.data)))
+         #print("About to send: [header: [{0}], size = {1}, data = {2}]".format(ProtocolDefs.print_structure(txPacket.hdr), txPacket.size, list(i for i in txPacket.data)))
 
 
       encData = cobs.encode(''.join(self.txData))
@@ -72,7 +72,7 @@ class RadioInterface():
       duration = 0
       if(self.debug == False):
          while(duration < timeout):
-            print("   Available bytes = {0}".format(self.rxBuffer.available())) 
+            if self._logLevel >= 3: print("   Available bytes = {0}".format(self.rxBuffer.available()))
             if(self.rxBuffer.available() > 0): 
                encData.append(ord(self.rxBuffer.read()))
                if(encData[0] == 0): #caught the end of a previous frame
@@ -82,9 +82,9 @@ class RadioInterface():
                   encData.append(ord(self.rxBuffer.read()))
 
                encData = encData[0:-1] #remove trailing 0
-               print(" Got encData: {0}".format(list(encData)))
+               #print(" Got encData: {0}".format(list(encData)))
 
-               tempData = cobs.decode(''.join(struct.pack('<B',x) for x in encData))
+               tempData = list(cobs.decode(''.join(struct.pack('<B',x) for x in encData)))
                self.rxPacket = Protocol.parse_packet(tempData)
                self.rxData = list(ord(x) for x in tempData)
                return 1

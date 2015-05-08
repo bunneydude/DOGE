@@ -23,7 +23,7 @@ def form_packet(type=RAW_PACKET, srcID=1, dstID=1, shSrcID=1, shDstID=1, cmd=CMD
    attr = packetAttr()
 
    libprotocol.application_form_packet(byref(rawPkt.data), byref(attr), cmd, addr, data)
-   libprotocol.link_layer_form_packet(byref(rawPkt), byref(attr), type, srcID, dstID, shSrcID, shDstID)
+   libprotocol.link_layer_form_packet(byref(rawPkt), byref(attr), type, srcID, dstID, shSrcID, dstID)#shDstID)
    
 #   print("\n\tPacket: \n\t[{0}], size = {1}, data = {2}".format(print_structure(rawPkt.hdr), rawPkt.size, list(i for i in rawPkt.data)))
 
