@@ -22,7 +22,7 @@ angular.module('DeviceManager.controllers', []).
     var legend_toggle = 1;
     var socket;
  
-    socket = io.connect('http://192.168.1.65:4000');
+    socket = io.connect('http://192.168.10.103:4000');
     socket.emit('join',{'socketid':'browsersock'});
     draw(nodes,edges);
 
@@ -564,7 +564,8 @@ angular.module('DeviceManager.controllers', []).
       color: {
         background:'tomato',
         highlight: {
-           background: 'tomato',
+           background: 'purple',
+	   border: 'yellow'
          }
       }
      },
@@ -573,7 +574,8 @@ angular.module('DeviceManager.controllers', []).
        color: {
          background: 'lightblue',
          highlight: {
-           background: 'lightblue',
+           background: 'purple',
+	   border: 'yellow'
          }
        }
      },
@@ -582,7 +584,8 @@ angular.module('DeviceManager.controllers', []).
       color: {
         background: 'lightgreen',
         highlight: {
-           background: 'lightgreen',
+           background: 'purple',
+	   border: 'yellow'
          }
       }
      },
@@ -591,7 +594,8 @@ angular.module('DeviceManager.controllers', []).
       color: { 
         background: 'gold',
         highlight: {
-           background: 'gold',
+           background: 'purple',
+	   border: 'yellow'
          }
       }
      },

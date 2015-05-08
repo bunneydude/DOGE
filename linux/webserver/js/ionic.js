@@ -1525,6 +1525,7 @@ window.ionic = {
    * Quick touch at a place or double at the same place
    * events  tap, doubletap
    */
+   /*** XXX DISABLED - Interferes with vis.js networkController graph interactivity XXX ***
   ionic.Gestures.gestures.Tap = {
     name: 'tap',
     index: 100,
@@ -1564,7 +1565,7 @@ window.ionic = {
       }
     }
   };
-
+*/
 
   /**
    * Swipe
