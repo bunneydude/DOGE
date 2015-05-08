@@ -5,6 +5,14 @@
 #include <type.h>
 #include "../platform/serial_c.h"
 
+void copy_bytes(uint8_t* dst, uint8_t* src, uint8_t size)
+{
+  uint8_t i = 0;
+  for (i = 0; i < size; i++){
+    ((uint8_t*)dst)[i] = ((uint8_t*)src)[i];
+  }
+}
+
 void copy_doge_packet(dogePacket* dst, dogePacket* src)
 {
   uint8_t i = 0;

@@ -155,8 +155,11 @@ while(0)
 #define RAW_PACKET_TOTAL_SIZE(_packet_)    (sizeof(packetHdr) + sizeof(((rawPacket*)0)->size) + ((rawPacket*)(_packet_))->size)
 #define RAW_PACKET_DATA_SIZE(_packet_)     (((rawPacket*)(_packet_))->size)
 #define PACKET_PAYLOAD_OFFSET              (offsetof(dogePacket, payload))
+#define CMD_READ_MEM_DATA_ADDRESS(_packet_) (&((appPacket*)(_packet_))->data)
+#define CMD_WRITE_MEM_DATA_ADDRESS(_packet_) (&((appPacket*)(_packet_))->byteNumber)
 #define DEFAULT_PACKET_TTL (255)
 
+void copy_bytes(uint8_t* dst, uint8_t* src, uint8_t size);
 void copy_doge_packet(dogePacket* dst, dogePacket* src);
 void copy_raw_packet_data (rawPacket* dst, rawPacket* src);
 uint8_t packet_payload_end(dogePacket* packet);

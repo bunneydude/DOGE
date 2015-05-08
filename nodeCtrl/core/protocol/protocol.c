@@ -122,6 +122,28 @@ uint8_t application_parse_packet(struct Protocol* obj, appPacket* message, appPa
          }
          returnCode = 1;
          break;
+      
+      case(CMD_READ_MEM): //READ_MEM
+         if(message->addr > MM_PHYSICAL_MAX || (message->addr + message->data) > MM_PHYSICAL_MAX ||
+            message->data > MAX_CMD_READ_MEM_DATA_SIZE){
+            application_form_packet(response, responseAttr, CMD_NACK, 0, ERR_RANGE);
+         }else{
+            application_form_packet(response, responseAttr, CMD_READ_MEM_ACK, message->addr, message->data);
+            copy_bytes(CMD_READ_MEM_DATA_ADDRESS(response), (uint8_t*)&obj->dataRegisters[message->addr], message->data);
+         }
+         returnCode = 1;
+         break;
+
+      case(CMD_WRITE_MEM): //WRITE_MEM
+         if(message->addr > MM_PHYSICAL_MAX || (message->addr + message->data) > MM_PHYSICAL_MAX ||
+            message->data > MAX_CMD_WRITE_MEM_DATA_SIZE){
+            application_form_packet(response, responseAttr, CMD_NACK, 0, ERR_RANGE);
+         }else{
+            application_form_packet(response, responseAttr, CMD_WRITE_MEM_ACK, message->addr, message->data);
+            copy_bytes((uint8_t*)&obj->dataRegisters[message->addr], CMD_WRITE_MEM_DATA_ADDRESS(message), message->data);
+         }
+         returnCode = 1;
+         break;
 
       case(CMD_ACK): //ack
          //Serial.println("Got ack");
@@ -141,6 +163,11 @@ uint8_t application_parse_packet(struct Protocol* obj, appPacket* message, appPa
 
       case(CMD_NOP): //nop
          //Serial.println("Got nop");
+         returnCode = 0;
+         break;
+      
+      case(CMD_READ_MEM_ACK):
+      case(CMD_WRITE_MEM_ACK):
          returnCode = 0;
          break;
 
@@ -170,6 +197,29 @@ uint8_t application_form_packet(appPacket* packet, packetAttr* attr, uint8_t cmd
          packet->data = (data);
          attr->ack = TRUE;
          attr->size = CMD_ACK_DATA_SIZE;
+         break;
+      case(CMD_READ_MEM):
+         packet->addr = (addr);
+         packet->data = (data);
+         attr->size = CMD_READ_MEM_DATA_SIZE; 
+         break;
+      case(CMD_WRITE_MEM):
+         packet->addr = (addr);
+         packet->data = (data);
+         //caller copies in data after forming packet
+         attr->size = CMD_WRITE_MEM_DATA_SIZE(data);
+         break;
+      case(CMD_READ_MEM_ACK):
+         packet->addr = (addr);
+         //caller copies in data after forming packet
+         attr->ack = TRUE;
+         attr->size = CMD_READ_MEM_ACK_DATA_SIZE(data);
+         break;
+      case(CMD_WRITE_MEM_ACK):
+         packet->addr = (addr);
+         packet->data = (data);
+         attr->ack = TRUE;
+         attr->size = CMD_WRITE_MEM_ACK_DATA_SIZE;
          break;
       case(CMD_NACK):
          packet->addr = (addr);

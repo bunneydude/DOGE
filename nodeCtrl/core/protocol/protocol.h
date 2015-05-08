@@ -19,13 +19,19 @@ extern "C" {
 #define static_assert6(cond)
 #endif
 
-#define MAX_PAYLOAD_SIZE 14
+#define MAX_PAYLOAD_SIZE (14)
+#define MAX_CMD_READ_MEM_DATA_SIZE (12)
+#define MAX_CMD_WRITE_MEM_DATA_SIZE (12)
 
-#define CMD_READ_REG_DATA_SIZE  (2)
-#define CMD_WRITE_REG_DATA_SIZE (3)
-#define CMD_ACK_DATA_SIZE       (3)
-#define CMD_NACK_DATA_SIZE      (3)
-#define CMD_NOP_DATA_SIZE       (1)
+#define CMD_READ_REG_DATA_SIZE           (2)
+#define CMD_WRITE_REG_DATA_SIZE          (3)
+#define CMD_ACK_DATA_SIZE                (3)
+#define CMD_NACK_DATA_SIZE               (3)
+#define CMD_NOP_DATA_SIZE                (1)
+#define CMD_READ_MEM_DATA_SIZE           (3)
+#define CMD_READ_MEM_ACK_DATA_SIZE(size) ((size) + 2)
+#define CMD_WRITE_MEM_DATA_SIZE(size)    ((size) + 3)
+#define CMD_WRITE_MEM_ACK_DATA_SIZE      (3)
 
 //commands
 enum Protocol_commands{
@@ -40,7 +46,9 @@ enum Protocol_commands{
    CMD_ADC_RESULT = 0x9,
    CMD_ADC_LOOP = 0xA,
    CMD_ADC_END = 0xB,
-   CMD_SPI = 0xC
+   CMD_SPI = 0xC,
+   CMD_READ_MEM_ACK = 0xD,
+   CMD_WRITE_MEM_ACK = 0xE
 };
 
 //error codes

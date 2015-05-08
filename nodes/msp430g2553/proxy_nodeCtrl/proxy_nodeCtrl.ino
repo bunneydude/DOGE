@@ -22,8 +22,8 @@ dogePacket rxPacket;
 appPacket* rxAppPacket;
 packetAttr rxAttr;
 
-#define static_assert1(cond) uint8_t static_assert1[((cond) == 1) ? 1 : -1]
-static_assert1(MY_NODE_ID == ROOT_NODE);
+#define static_assert_root(cond) uint8_t static_assert_root[((cond) == 1) ? 1 : -1]
+static_assert_root(MY_NODE_ID == ROOT_NODE);
 
 uint8_t serialBuffer[MAX_DATA_LENGTH + 2]; //+1 for COBS overhead, another +1 for framing byte
 
