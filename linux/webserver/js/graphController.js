@@ -6,8 +6,8 @@ var routing_edges;
 var network;
 
 /* Controllers */
-angular.module('DeviceManager.controllers', []).
-  controller('graphController', ['$scope', 'pageService','$window',  function ($scope, pageService,$window) {
+angular.module('DeviceManager.graphController', []).
+  controller('graphController', ['$scope', '$window',  function ($scope, $window) {
 
 
     //These should be global so that all functions can modify network properties
@@ -22,7 +22,7 @@ angular.module('DeviceManager.controllers', []).
     var legend_toggle = 1;
     var socket;
  
-    socket = io.connect('http://192.168.10.103:4000');
+    socket = io.connect('http://192.168.1.65:4000');
     socket.emit('join',{'socketid':'browsersock'});
     draw(nodes,edges);
 
@@ -175,7 +175,7 @@ angular.module('DeviceManager.controllers', []).
     
     // convenience method to stringify a JSON object
     function toJson (obj) {
-      return JSON.stringify(obj); //, null, 4);
+      return JSON.stringify(obj); 
     }
 
 
@@ -564,8 +564,7 @@ angular.module('DeviceManager.controllers', []).
       color: {
         background:'tomato',
         highlight: {
-           background: 'purple',
-	   border: 'yellow'
+           background: 'tomato',
          }
       }
      },
@@ -574,8 +573,7 @@ angular.module('DeviceManager.controllers', []).
        color: {
          background: 'lightblue',
          highlight: {
-           background: 'purple',
-	   border: 'yellow'
+           background: 'lightblue',
          }
        }
      },
@@ -584,8 +582,7 @@ angular.module('DeviceManager.controllers', []).
       color: {
         background: 'lightgreen',
         highlight: {
-           background: 'purple',
-	   border: 'yellow'
+           background: 'lightgreen',
          }
       }
      },
@@ -594,8 +591,7 @@ angular.module('DeviceManager.controllers', []).
       color: { 
         background: 'gold',
         highlight: {
-           background: 'purple',
-	   border: 'yellow'
+           background: 'gold',
          }
       }
      },
