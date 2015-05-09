@@ -97,13 +97,22 @@ def is_header_type_ack(hdrType):
 ### start protocol.h
 
 MAX_PAYLOAD_SIZE = 14
+MAX_CMD_READ_MEM_DATA_SIZE = 12
+MAX_CMD_WRITE_MEM_DATA_SIZE = 12
 
-CMD_READ_REG_DATA_SIZE  = 2
-CMD_WRITE_REG_DATA_SIZE = 3
-CMD_ACK_DATA_SIZE       = 3
-CMD_NACK_DATA_SIZE      = 3
-CMD_NOP_DATA_SIZE       = 1
+CMD_READ_REG_DATA_SIZE      = 2
+CMD_WRITE_REG_DATA_SIZE     = 3
+CMD_ACK_DATA_SIZE           = 3
+CMD_NACK_DATA_SIZE          = 3
+CMD_NOP_DATA_SIZE           = 1
+CMD_READ_MEM_DATA_SIZE      = 3
+CMD_WRITE_MEM_ACK_DATA_SIZE = 3
 
+def CMD_READ_MEM_ACK_DATA_SIZE(size):
+    return ((size) + 2)
+
+def CMD_WRITE_MEM_DATA_SIZE(size):
+    return ((size) + 3)
 
 #command enum
 CMD_READ_REG = 0x1

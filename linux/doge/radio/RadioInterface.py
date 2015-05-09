@@ -75,10 +75,10 @@ class RadioInterface():
                   encData.append(ord(self.rxBuffer.read()))
 
                encData = encData[0:-1] #remove trailing 0
-               print(" Got encData: {0}".format(list(encData)))
+               if self._logLevel >= 3: print(" Got encData: {0}".format(list(encData)))
                self.rxData = cobs.decode(''.join(struct.pack('<B',x) for x in encData))
                self.rxData = list(ord(x) for x in self.rxData)
-	       self.rxPacket = Protocol.parse_packet(self.rxData)
+               self.rxPacket = Protocol.parse_packet(self.rxData)
                break
             else:
                duration += 100

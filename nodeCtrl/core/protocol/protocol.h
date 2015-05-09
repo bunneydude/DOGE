@@ -29,9 +29,9 @@ extern "C" {
 #define CMD_NACK_DATA_SIZE               (3)
 #define CMD_NOP_DATA_SIZE                (1)
 #define CMD_READ_MEM_DATA_SIZE           (3)
+#define CMD_WRITE_MEM_ACK_DATA_SIZE      (3)
 #define CMD_READ_MEM_ACK_DATA_SIZE(size) ((size) + 2)
 #define CMD_WRITE_MEM_DATA_SIZE(size)    ((size) + 3)
-#define CMD_WRITE_MEM_ACK_DATA_SIZE      (3)
 
 //commands
 enum Protocol_commands{
