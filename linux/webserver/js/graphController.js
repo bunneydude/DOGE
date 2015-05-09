@@ -101,6 +101,20 @@ angular.module('DeviceManager.graphController', []).
      })
 
 
+     function getNodeColor (node_group) {
+       var node_color;
+       if (node_group == '915mhz') {
+         node_color = 'lightblue';
+       }
+       else if (node_group == '2.4ghz') {
+         node_color = 'lightgreen';
+       }
+       else if (node_group == '433mhz') {
+         node_color = 'tomato';
+       }
+
+       return node_color;
+    }
 
     //Socket function to send data to node.js server
     function sendMessage(data) {
@@ -180,11 +194,13 @@ angular.module('DeviceManager.graphController', []).
               mode = 'hide-edges';
               document.getElementById('route').innerHTML = 'Selected Nodes:'+params.nodes + " Selected Edge Id\'s:"+params.edges;
               userEdge = params.edges;
+              userNode = parseInt(params.nodes);
+              
         }
         //Check for a selection with only nodes selected - This is show edges case
         else if (params['nodes'] != "" && params['edges'] == "") {  
               mode = 'show-edges';
-              document.getElementById('route').innerHTML = 'Selected Nodes:'+params.nodes + " Selected Edge Id\'s:"+params.edges;
+              document.getElementById('route').innerHTML = 'Selected Nodes:'+params.nodes ;
               userNode = parseInt(params.nodes);
         }
 
@@ -448,18 +464,9 @@ angular.module('DeviceManager.graphController', []).
          else if (message.command == 'unmask_node') {
            try {
              var node_group = nodes.get(parseInt(message.data)).group;
-             var node_color;
-             if (node_group == '915mhz') {
-                 node_color = 'lightblue';
-             }
-             else if (node_group == '2.4ghz') {
-                 node_color = 'lightgreen';
-             }
-             else if (node_group == '433mhz') {
-                 node_color = 'tomato';
-             }
+             var node_color = getNodeColor(node_group);
 
-             nodes.update({id: parseInt(message.data),color:node_color});
+             nodes.update({id: parseInt(message.data),color:{background:node_color, border:'blue'}});
            } 
            catch(err) {
             alert (err);
@@ -490,13 +497,33 @@ angular.module('DeviceManager.graphController', []).
       
       else if (mode == 'hide-edges'  ) {
           var id;
+
+          //Hide all edges for this node and add it to the hidden edges array
           if (userEdge.length > 1) {
             userEdge.forEach( function(id) {
               id = parseInt(id);
-              hidden_edges.push (edges.get(id));
+              var addHiddenEdge = 1;
+ 
+              //Only add to hidden edges if it  previously didnt exist
+              for (var i = 0; i < hidden_edges.length; i++) {
+	        if (parseInt(hidden_edges[i].id) === id) {
+                  addHiddenEdge = 0;
+                }
+              }
+
+              if (addHiddenEdge) {
+                hidden_edges.push (edges.get(id));
+              }
               edges.remove(id);
             });
+            console.log (hidden_edges);
           } 
+          //Get original color of the node
+          var node_group = nodes.get(userNode).group;
+          var node_color = getNodeColor(node_group);
+
+          //Add red border to indicate hidden edges
+          nodes.update({id:userNode,color:{background: node_color, border:'red'}});
       }
       
       else if (mode == 'show-edges'  ) {
@@ -507,6 +534,14 @@ angular.module('DeviceManager.graphController', []).
                  edges.add(add_edge);
               }
           })
+
+           //Get original color of the node
+          var node_group = nodes.get(userNode).group;
+          var node_color = getNodeColor(node_group);
+
+          //Add red border to indicate hidden edges
+          nodes.update({id:userNode,color:{background: node_color, border:'blue'}});
+
       }
 
 
@@ -605,6 +640,7 @@ angular.module('DeviceManager.graphController', []).
       shape: doge_node_shape,
       color: {
         background:'tomato',
+        border: 'blue',
         highlight: {
            background: 'tomato',
          }
@@ -614,6 +650,7 @@ angular.module('DeviceManager.graphController', []).
        shape: doge_node_shape,
        color: {
          background: 'lightblue',
+         border: 'blue',
          highlight: {
            background: 'lightblue',
          }
@@ -623,6 +660,7 @@ angular.module('DeviceManager.graphController', []).
       shape: doge_node_shape,
       color: {
         background: 'lightgreen',
+        border: 'blue',
         highlight: {
            background: 'lightgreen',
          }
@@ -632,9 +670,11 @@ angular.module('DeviceManager.graphController', []).
       shape: doge_node_shape,
       color: { 
         background: 'gold',
+        border: 'blue',
         highlight: {
            background: 'gold',
          }
+        
       }
      },
     },
