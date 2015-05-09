@@ -90,7 +90,7 @@ void Protocol_init(struct Protocol* obj);
 uint8_t link_layer_parse_packet(struct Protocol* obj, dogePacket* message, dogePacket* response);
 uint8_t link_layer_form_packet(dogePacket* packet, packetAttr* attr, uint8_t type, uint16_t src, uint16_t dst, uint16_t shSrc, uint16_t shDst);
 uint8_t application_parse_packet(struct Protocol* obj, appPacket* message, appPacket* response, packetAttr* messageAttr, packetAttr* responseAttr);
-uint8_t application_form_packet(appPacket* packet, packetAttr* attr, uint8_t cmd, uint8_t addr, uint8_t data);
+uint8_t application_form_packet(appPacket* packet, packetAttr* attr, uint8_t cmd, uint8_t addr, uint8_t data, uint8_t* bytes);
 
 #ifdef __cplusplus
 }

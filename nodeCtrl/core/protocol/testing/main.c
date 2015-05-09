@@ -66,7 +66,7 @@ void test_app_packet()
    // If the application layer is processing this packet, then the Single Hop
    // Destination Node ID must equal the Destination Node ID
    assert(TEST_SH_DST_NODE_ID == TEST_DST_NODE_ID);
-   application_form_packet(messageApp, &messageAttr, CMD_READ_REG, TEST_CMD_READ_REG_ADDR, 0x0);
+   application_form_packet(messageApp, &messageAttr, CMD_READ_REG, TEST_CMD_READ_REG_ADDR, 0x0, NULL);
    memcpy(bytes, (void *)&message + RAW_PACKET_DATA_OFFSET, MAX_RAW_PACKET_PAYLOAD_SIZE);
    assert(bytes[0] == CMD_READ_REG);
    assert(bytes[1] == TEST_CMD_READ_REG_ADDR);
@@ -214,7 +214,7 @@ void test_read_write_mem_packets()
    // If the application layer is processing this packet, then the Single Hop
    // Destination Node ID must equal the Destination Node ID
    assert(TEST_SH_DST_NODE_ID == TEST_DST_NODE_ID);
-   application_form_packet(messageApp, &messageAttr, CMD_READ_MEM, MM_NETWORK_BASE, MAX_CMD_READ_MEM_DATA_SIZE);
+   application_form_packet(messageApp, &messageAttr, CMD_READ_MEM, MM_NETWORK_BASE, MAX_CMD_READ_MEM_DATA_SIZE, NULL);
    //Check app packet is inserted correctly into dogePacket by inspecting bytes
    memcpy(bytes, (void *)&message + RAW_PACKET_DATA_OFFSET, MAX_RAW_PACKET_PAYLOAD_SIZE);
    assert(bytes[0] == CMD_READ_MEM);
@@ -243,8 +243,7 @@ void test_read_write_mem_packets()
    // Form message packet
    memset(&message, 0, sizeof(dogePacket));
    memset(&response, 0, sizeof(dogePacket));
-   application_form_packet(messageApp, &messageAttr, CMD_WRITE_MEM, MM_NETWORK_BASE, MAX_CMD_WRITE_MEM_DATA_SIZE);
-   copy_bytes(CMD_WRITE_MEM_DATA_ADDRESS(((rawPacket*)&message)->data), newBytes, MAX_CMD_WRITE_MEM_DATA_SIZE);
+   application_form_packet(messageApp, &messageAttr, CMD_WRITE_MEM, MM_NETWORK_BASE, MAX_CMD_WRITE_MEM_DATA_SIZE, newBytes);
    link_layer_form_packet(&message, &messageAttr, RAW_PACKET, TEST_SRC_NODE_ID, TEST_DST_NODE_ID, TEST_SH_SRC_NODE_ID, TEST_SH_DST_NODE_ID);
    //Mock reliable transmit/receive crc calculation
    add_packet_crc(&message);

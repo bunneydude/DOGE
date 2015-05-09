@@ -95,14 +95,14 @@ uint8_t application_parse_packet(struct Protocol* obj, appPacket* message, appPa
    switch(message->cmd){
       case(CMD_READ_REG): //read_reg
          if(message->addr >= MM_FUNCTION_MAX){
-            application_form_packet(response, responseAttr, CMD_NACK, 0, ERR_RANGE);
+            application_form_packet(response, responseAttr, CMD_NACK, 0, ERR_RANGE, NULL);
          }else{
             if(message->addr < MM_PHYSICAL_MAX){
                returnData = obj->dataRegisters[message->addr];
             }else{
                check_mm_space(1, message->addr, &returnData, 0);
             }
-            application_form_packet(response, responseAttr, CMD_ACK, message->addr, returnData);
+            application_form_packet(response, responseAttr, CMD_ACK, message->addr, returnData, NULL);
          }
          returnCode = 1;
          break;
@@ -111,25 +111,24 @@ uint8_t application_parse_packet(struct Protocol* obj, appPacket* message, appPa
          //Serial.println("Got write_reg");
 
          if(message->addr >= MM_FUNCTION_MAX){
-            application_form_packet(response, responseAttr, CMD_NACK, 0, ERR_RANGE);
+            application_form_packet(response, responseAttr, CMD_NACK, 0, ERR_RANGE, NULL);
          }else{
             if(message->addr < MM_PHYSICAL_MAX){
                obj->dataRegisters[message->addr] = message->data;
             }else{
                check_mm_space(0, message->addr, &message->data, 0);
             }
-            application_form_packet(response, responseAttr, CMD_ACK, message->addr, message->data);
+            application_form_packet(response, responseAttr, CMD_ACK, message->addr, message->data, NULL);
          }
          returnCode = 1;
          break;
-      
+ 
       case(CMD_READ_MEM): //READ_MEM
          if(message->addr >= MM_PHYSICAL_MAX || (message->addr + message->data) > MM_PHYSICAL_MAX ||
             message->data > MAX_CMD_READ_MEM_DATA_SIZE){
-            application_form_packet(response, responseAttr, CMD_NACK, message->addr, ERR_RANGE);
+            application_form_packet(response, responseAttr, CMD_NACK, message->addr, ERR_RANGE, NULL);
          }else{
-            application_form_packet(response, responseAttr, CMD_READ_MEM_ACK, message->addr, message->data);
-            copy_bytes(CMD_READ_MEM_DATA_ADDRESS(response), (uint8_t*)&obj->dataRegisters[message->addr], message->data);
+            application_form_packet(response, responseAttr, CMD_READ_MEM_ACK, message->addr, message->data, (uint8_t*)&obj->dataRegisters[message->addr]);
          }
          returnCode = 1;
          break;
@@ -137,10 +136,10 @@ uint8_t application_parse_packet(struct Protocol* obj, appPacket* message, appPa
       case(CMD_WRITE_MEM): //WRITE_MEM
          if(message->addr >= MM_PHYSICAL_MAX || (message->addr + message->data) > MM_PHYSICAL_MAX ||
             message->data > MAX_CMD_WRITE_MEM_DATA_SIZE){
-            application_form_packet(response, responseAttr, CMD_NACK, message->addr, ERR_RANGE);
+            application_form_packet(response, responseAttr, CMD_NACK, message->addr, ERR_RANGE, NULL);
          }else{
-            application_form_packet(response, responseAttr, CMD_WRITE_MEM_ACK, message->addr, message->data);
             copy_bytes((uint8_t*)&obj->dataRegisters[message->addr], CMD_WRITE_MEM_DATA_ADDRESS(message), message->data);
+            application_form_packet(response, responseAttr, CMD_WRITE_MEM_ACK, message->addr, message->data, NULL);
          }
          returnCode = 1;
          break;
@@ -173,14 +172,14 @@ uint8_t application_parse_packet(struct Protocol* obj, appPacket* message, appPa
 
       default: //unknown command
          //Serial.println("Got unknown command. Send nack");
-         application_form_packet(response, responseAttr, CMD_NACK, 0, ERR_COMMAND);
+         application_form_packet(response, responseAttr, CMD_NACK, 0, ERR_COMMAND, NULL);
          returnCode = 1;
          break;
    }//end switch
    return returnCode;
 }//end application_parse_packet
 
-uint8_t application_form_packet(appPacket* packet, packetAttr* attr, uint8_t cmd, uint8_t addr, uint8_t data){
+uint8_t application_form_packet(appPacket* packet, packetAttr* attr, uint8_t cmd, uint8_t addr, uint8_t data, uint8_t* bytes){
    packet->cmd = cmd;
    switch(packet->cmd){
       case(CMD_READ_REG):
@@ -206,12 +205,12 @@ uint8_t application_form_packet(appPacket* packet, packetAttr* attr, uint8_t cmd
       case(CMD_WRITE_MEM):
          packet->addr = (addr);
          packet->data = (data);
-         //caller copies in data after forming packet
+         copy_bytes(&packet->byteNumber, bytes, packet->data);
          attr->size = CMD_WRITE_MEM_DATA_SIZE(data);
          break;
       case(CMD_READ_MEM_ACK):
          packet->addr = (addr);
-         //caller copies in data after forming packet
+         copy_bytes(&packet->data, bytes, data);
          attr->ack = TRUE;
          attr->size = CMD_READ_MEM_ACK_DATA_SIZE(data);
          break;
