@@ -21,32 +21,34 @@ class RoutingProcessor():
  edge_id = 0
  route_edge_id = 1000
 
+ networkNodes = {}
+
  
- def __init__(self,port):
+ def __init__(self, port, initialNetwork={}):
    self.socket = self.createSocket(port);
    self.network_neighbor_tables = {}
    self.network_routing_tables = {}
-
+   self.networkNodes = initialNetwork.copy()
  
- def createNetworkVis(self,nodes,edges,route_edges,node_id,nte_list,rte_list):
-
+ def createNetworkVis(self,nodes, edges, route_edges, nodeID, neighborTable, routingTable): #TODO collapse nodeID and tables into just a Node object
    #Build lists of entire network neighbor table and routing table entries
-   self.network_neighbor_tables[node_id] = nte_list
-   self.network_routing_tables[node_id] = rte_list
-   
-   #Add node to list of network nodes
-   nodes.append({'id':node_id,'label':node_id,'group':self.radio_group[nte_list[0][2]]})
+   self.network_neighbor_tables[nodeID] = neighborTable
+   self.network_routing_tables[nodeID] = routingTable
+  
+   radioGroup = (neighborTable[0][3] >> 4) & 0x3
+
+   #Add node to list of network nodes for webserver
+   nodes.append({'id':nodeID,'label':nodeID,'group':self.radio_group[radioGroup]})
 
    #Go through Neighbor Table Entry list and add edges
-   for i in nte_list:
-     edges.append({'id':self.edge_id, 'from':node_id, 'to': i[self.NTE_ID],'label':i[self.NTE_LQE],'radio':i[self.NTE_RADIO]})
-     self.edge_id += 1
-   
+   for entry in neighborTable:
+      edges.append({'id':self.edge_id, 'from':nodeID, 'to': entry[self.NTE_ID],'label':entry[self.NTE_LQE],'radio':entry[self.NTE_RADIO]})
+      self.edge_id += 1
+     
    #Go through Routing Table Entry list and add edges
-   for j in rte_list:
-     route_edges.append({'id':self.route_edge_id, 'from': node_id, 'to': j[self.RTE_ID],'label':j[self.RTE_LQE]})
+   for entry in routingTable:
+     route_edges.append({'id':self.route_edge_id, 'from': nodeID, 'to': entry[self.RTE_ID],'label':entry[self.RTE_LQE]})
      self.route_edge_id += 1
-
 
 
  def createSocket(self,port):
@@ -62,38 +64,65 @@ class RoutingProcessor():
  def getSocket(self):
    return self.socket
 
- def mask_node(self,command,node_id):
-   #Check if this node has any routing table entries
-   if self.network_routing_tables[int(node_id)]:
-     print "Node {0} has routing table entries".format(node_id)
-     data = {'command':'alert','data':'ERROR: Cannot mask node since it has routing tables'}
-     self.socket.emit('confirm',json.dumps(data))
+ # nodeID is a string
+ def mask_node(self, command, nodeID):
+     data = {'command':'alert','data':'Error: Unhandled execution in mask_node'}
+     if int(nodeID) in self.networkNodes:
+         node = self.networkNodes[int(nodeID)]
+         #assert int(nodeID) == node.get_nodeID()
+         
+         if node.has_route(): #Check if this node has any routing table entries
+             errorMessage = "Error: Node {0} cannot be masked since it has routing table entries".format(int(nodeID))
+             print(errorMessage)
+             data = {'command':'alert','data':errorMessage}
+         else:
+             print "Node {0} has no routes. Allowing masking".format(int(nodeID))
+             node.mask_neighbor() #no id means to mask all neighbor edges
+             data = {'command':command,'data':nodeID}
+             print "Sending confirmation: {0}".format(data)
 
-   else:
-     print "Node {0} has no routes. Allowing masking".format(node_id)
+     else:
+         print("networkNodes = {0}".format(self.networkNodes))
+         errorMessage = "Error: Node {0} not found in networkNodes".format(int(nodeID))
+         print(errorMessage)
+         data = {'command':'alert','data':errorMessage}
+     
+     self.socket.emit('confirm',json.dumps(data))
+ 
+ def unmask_node(self, command, node_id):
      data = {'command':command,'data':node_id}
      print "Sending confirmation: {0}".format(data)
      self.socket.emit('confirm',json.dumps(data))
  
- def unmask_node(self,command,node_id):
-     data = {'command':command,'data':node_id}
-     print "Sending confirmation: {0}".format(data)
-     self.socket.emit('confirm',json.dumps(data))
- 
- def mask_edge(self,command,edge):
-     #Edge format is [from,to,id]
-     edge_from =json.loads(edge)[0]
-     edge_to = json.loads(edge)[1]
-     #Loop through NTE list for the source node and change LQE for matching dest node to 999 (mask value)
-     for nte_arr in self.network_neighbor_tables[int(edge_from)]:
-         if nte_arr[0] == edge_to:
-             nte_arr[1] = 999
-     #print "NTE = {0}".format(self.network_neighbor_tables)
-     data = {'command':command,'data':edge}
-     print "Sending confirmation: {0}".format(data)
-     self.socket.emit('confirm',json.dumps(data))
+ def mask_edge(self, command, edge):
+     foundNode = False
+     responseData = {'command':'alert', 'data':'ERROR: Unhandled execution in mask_edge'}
 
- def unmask_edge(self,command,edge):
+     #Edge format is [from_nodeID, to_nodeID, edgeID]
+     edgeFrom =json.loads(edge)[0]
+     edgeTo = json.loads(edge)[1]
+
+     #Find node then mask specified edge
+     if edgeFrom in self.networkNodes:                      
+         node = self.networkNodes[edgeFrom]
+         #assert edgeFrom == node.get_nodeID()
+         if(node.has_neighbor(edgeTo)):
+             foundNode = True
+             node.mask_neighbor(edgeTo)
+             responseData = {'command':command,'data':edge}
+             print "Sending confirmation: {0}".format(responseData)
+         else:
+             errorMessage = "Error: Node {0} does not have a neighbor entry for node {1}".format(edgeFrom, edgeTo)
+             print(errorMessage)
+             responseData = {'command':'alert','data':errorMessage}
+     else:
+         errorMessage =  "Error: Could not find nodeID {0} in list of network nodes".format(edgeFrom)
+         print(errorMessage)
+         responseData = {'command':'alert','data':errorMessage}
+              
+     self.socket.emit('confirm',json.dumps(responseData))
+
+ def unmask_edge(self, command, edge):
      #Edge format is [from,to,id]
      edge_from =json.loads(edge)[0]
      edge_to = json.loads(edge)[1]

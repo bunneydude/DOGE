@@ -11,7 +11,7 @@ class RadioInterface():
    _nodeID = 1
    _logLevel = 1
 
-   def __init__(self, name, nodeID, debug=False, logLevel=3):
+   def __init__(self, name, nodeID, debug=False, logLevel=1):
       if(not isinstance(name, str)): raise Exception("The name must be a string")
       if(nodeID < 0 or nodeID > 255): raise Exception("The nodeID, {0}, must be in the range [0,255]".format(nodeID))
       if(logLevel not in range(1,4)): raise Exception("The log level must be in the range [1,3]")
@@ -30,9 +30,12 @@ class RadioInterface():
 
    def connect_sketch(self):
       if(self.debug == False):
-         self.cmdBuffer.open_sketch()
-         self.rxBuffer.open_sketch()
-         self._connected = True #TODO error handling
+         if(self._connected == False):
+            self.cmdBuffer.open_sketch()
+            self.rxBuffer.open_sketch()
+            self._connected = True
+         else:
+            print("IPC objects already connected")
       else:
          print("In debug mode the sketch is not connected")
 
@@ -43,7 +46,11 @@ class RadioInterface():
 
       self.txData = Protocol.form_packet(type=1, srcID=self._nodeID, dstID=destination, shSrcID=self._nodeID, shDstID=singleHopDest, cmd=command, addr=address, data=payload, enc='bytes')
       #TODO need to import a constants file of sorts so we can use 'RAW_PACKET' instead of '1' for type, etc
-      if self._logLevel >= 2: print("   About to send: {0}".format(list(ord(x) for x in self.txData)))
+      if self._logLevel >= 2: #print("   About to send: {0}".format(list(ord(x) for x in self.txData)))
+         txPacket = Protocol.parse_packet(self.txData)
+         #print("About to send: [header: [{0}], size = {1}, data = {2}]".format(ProtocolDefs.print_structure(txPacket.hdr), txPacket.size, list(i for i in txPacket.data)))
+
+
       encData = cobs.encode(''.join(self.txData))
 #      print("   Encoded: {0}".format(list(encData)))
       encData = list(ord(x) for x in encData) 
@@ -65,7 +72,7 @@ class RadioInterface():
       duration = 0
       if(self.debug == False):
          while(duration < timeout):
-            print("   Available bytes = {0}".format(self.rxBuffer.available())) 
+            if self._logLevel >= 3: print("   Available bytes = {0}".format(self.rxBuffer.available()))
             if(self.rxBuffer.available() > 0): 
                encData.append(ord(self.rxBuffer.read()))
                if(encData[0] == 0): #caught the end of a previous frame
@@ -75,17 +82,20 @@ class RadioInterface():
                   encData.append(ord(self.rxBuffer.read()))
 
                encData = encData[0:-1] #remove trailing 0
-               print(" Got encData: {0}".format(list(encData)))
-               self.rxData = cobs.decode(''.join(struct.pack('<B',x) for x in encData))
-               self.rxData = list(ord(x) for x in self.rxData)
-	       self.rxPacket = Protocol.parse_packet(self.rxData)
-               break
+               #print(" Got encData: {0}".format(list(encData)))
+
+               tempData = list(cobs.decode(''.join(struct.pack('<B',x) for x in encData)))
+               self.rxPacket = Protocol.parse_packet(tempData)
+               self.rxData = list(ord(x) for x in tempData)
+               return 1
             else:
                duration += 100
                time.sleep(0.1)
          if(duration >= timeout):      
-            print("Timeout")      
+            print("Timeout")
+            return -1
       else:
-         self.rxData = Protocol.form_packet(type=1, srcID=6, dstID=self._nodeID, shSrcID=6, shDstID=self._nodeID, cmd=ProtocolDefs.CMD_ACK, addr=1, data=2, enc='fields')
-         self.rxPacket = Protocol.parse_packet(self.rxData)
+         tempData = Protocol.form_packet(type=1, srcID=6, dstID=self._nodeID, shSrcID=6, shDstID=self._nodeID, cmd=ProtocolDefs.CMD_ACK, addr=1, data=2, enc='bytes')
+         self.rxPacket = Protocol.parse_packet(tempData)
+         self.rxData = list(ord(x) for x in tempData)
          return 1
