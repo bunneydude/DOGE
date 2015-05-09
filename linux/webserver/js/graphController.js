@@ -5,6 +5,8 @@ var edges;
 var routing_edges;
 var network;
 
+var hidden_edges = [];
+
 /* Controllers */
 angular.module('DeviceManager.graphController', []).
   controller('graphController', ['$scope', '$window',  function ($scope, $window) {
@@ -18,7 +20,6 @@ angular.module('DeviceManager.graphController', []).
     var newRoute = [];
     var options;
     var mode ;
-    var route_toggle = 1;
     var legend_toggle = 1;
     var socket;
  
@@ -94,7 +95,7 @@ angular.module('DeviceManager.graphController', []).
          }
        });
        edges.remove(routing_edges);
-       
+      
        draw(nodes,edges);
        $scope.drawLegend();
      })
@@ -161,15 +162,33 @@ angular.module('DeviceManager.graphController', []).
 
 
     
-   $scope.toggleRouteDisplay = function () {
-     if (route_toggle) {
-      edges.add(routing_edges);
-      route_toggle = 0;
-     }
-     else {
-      edges.remove(routing_edges);
-      route_toggle = 1;
-     }
+    $scope.toggleNodeEdges = function () {
+
+       //Clear any previous use cases
+      $scope.clearUserBox();
+ 
+     
+      document.getElementById('instructions').innerHTML =  'Select node edges to hide/un-hide';
+ 
+      //Make user confirmation buttons visible
+      var div = document.getElementById('user-confirm');
+      div.style.display = 'block';
+
+      network.on('select',function(params) {
+       //Check for a selection with both nodes and edges selected - This is hide edges case
+        if (params['nodes'] != "" && params['edges'] != "") {  
+              mode = 'hide-edges';
+              document.getElementById('route').innerHTML = 'Selected Nodes:'+params.nodes + " Selected Edge Id\'s:"+params.edges;
+              userEdge = params.edges;
+        }
+        //Check for a selection with only nodes selected - This is show edges case
+        else if (params['nodes'] != "" && params['edges'] == "") {  
+              mode = 'show-edges';
+              document.getElementById('route').innerHTML = 'Selected Nodes:'+params.nodes + " Selected Edge Id\'s:"+params.edges;
+              userNode = parseInt(params.nodes);
+        }
+
+      });
    }
 
     
@@ -236,6 +255,7 @@ angular.module('DeviceManager.graphController', []).
        });
     
     }
+
     $scope.deleteRoute = function() {
       
       //Clear any previous use cases
@@ -453,13 +473,13 @@ angular.module('DeviceManager.graphController', []).
            updateEdge('mask',edge_array[3]);
          }
         
-          else if (message.command == 'unmask_physical_edge'  ) {
+         else if (message.command == 'unmask_physical_edge'  ) {
            //Format of array is [from,to,id]
            var edge_array = /\[(\d+),(\d+),(\d+)\]/.exec(message.data);
            //update edge based on id
            updateEdge('unmask',edge_array[3]);
          }
-
+ 
          else if (message.command == 'alert') {
            document.getElementById('instructions').innerHTML = 'Message from Routing Processor Recvd: ' + message.data;
          }
@@ -467,6 +487,28 @@ angular.module('DeviceManager.graphController', []).
        });
 
       }
+      
+      else if (mode == 'hide-edges'  ) {
+          var id;
+          if (userEdge.length > 1) {
+            userEdge.forEach( function(id) {
+              id = parseInt(id);
+              hidden_edges.push (edges.get(id));
+              edges.remove(id);
+            });
+          } 
+      }
+      
+      else if (mode == 'show-edges'  ) {
+          var edgeObj;
+          hidden_edges.forEach( function(edgeObj) {
+              if ( parseInt(edgeObj.from) == userNode || parseInt(edgeObj.to) == userNode) {
+                 var add_edge = {'from':edgeObj.from,'to':edgeObj.to,'label':edgeObj.label,'id':edgeObj.id,'style':'arrow','arrowScaleFactor': .5,};
+                 edges.add(add_edge);
+              }
+          })
+      }
+
 
       
       
