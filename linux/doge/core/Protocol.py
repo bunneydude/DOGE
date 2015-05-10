@@ -4,7 +4,7 @@ import warnings
 
 libprotocol = CDLL("./doge/core/libprotocol.so")
 
-def form_packet(type=RAW_PACKET, srcID=1, dstID=1, shSrcID=1, shDstID=1, cmd=CMD_READ_REG, addr=0, data=0, enc="bytes", memBytes=None):
+def form_packet(type=RAW_PACKET, srcID=1, dstID=1, shSrcID=1, shDstID=1, cmd=CMD_READ_REG, addr=0, data=0, bytes=None, enc="bytes"):
    validEncodings = ["bytes", "fields"]
 
    #TODO generalize error check for type and cmd to list valid names instead of the numeric range
@@ -22,7 +22,7 @@ def form_packet(type=RAW_PACKET, srcID=1, dstID=1, shSrcID=1, shDstID=1, cmd=CMD
    rawPkt = rawPacket()
    attr = packetAttr()
 
-   libprotocol.application_form_packet(byref(rawPkt.data), byref(attr), cmd, addr, data)
+   libprotocol.application_form_packet(byref(rawPkt.data), byref(attr), cmd, addr, data, bytes)
    libprotocol.link_layer_form_packet(byref(rawPkt), byref(attr), type, srcID, dstID, shSrcID, shDstID)
    
 #   print("\n\tPacket: \n\t[{0}], size = {1}, data = {2}".format(print_structure(rawPkt.hdr), rawPkt.size, list(i for i in rawPkt.data)))
