@@ -163,7 +163,7 @@ angular.module('DeviceManager.graphController', []).
       nodes_legend.add({id: 1002, x:-3300,y:0,label: '915MHz', group: '915mhz'});
       nodes_legend.add({id: 1003, x:-3200,y:0,label: '2.4GHz', group: '2.4ghz'});
       nodes_legend.add({id: 1004, x:-3080,y:0,label: 'Masked Node', color: 'gray'});
-      nodes_legend.add({id: 1005, x:-2925,y:0,label: 'Hidden Edges', color:{background: 'lightgreen', border:'red'}});
+      nodes_legend.add({id: 1005, x:-2925,y:0,label: 'Hidden Edges', color:{border:'red'}});
       var data = {
        nodes: nodes_legend,
       };
@@ -194,7 +194,7 @@ angular.module('DeviceManager.graphController', []).
 
       network.on('select',function(params) {
               mode = 'toggle-routes';
-              document.getElementById('route').innerHTML = 'Selected Nodes:'+params.nodes;
+              document.getElementById('route').innerHTML = 'Selected Node:'+params.nodes;
               userEdge = params.edges;
               userNode = parseInt(params.nodes);
       });
@@ -214,7 +214,7 @@ angular.module('DeviceManager.graphController', []).
 
       network.on('select',function(params) {
               mode = 'toggle-edges';
-              document.getElementById('route').innerHTML = 'Selected Nodes:'+params.nodes;
+              document.getElementById('route').innerHTML = 'Selected Node:'+params.nodes;
               userEdge = params.edges;
               userNode = parseInt(params.nodes);
       });
@@ -586,7 +586,7 @@ angular.module('DeviceManager.graphController', []).
           var node_color = getNodeColor(node_group);
 
           //Add red border to indicate hidden edges
-          nodes.update({id:userNode,color:{background: node_color, border:'red'}});
+          nodes.update({id:userNode,color:{border:'red'}});
 
           }
       
@@ -608,7 +608,7 @@ angular.module('DeviceManager.graphController', []).
             var node_group = nodes.get(userNode).group;
             var node_color = getNodeColor(node_group);
 
-            //Add red border to indicate hidden edges
+            //Add blue border to indicate viewable edges
             nodes.update({id:userNode,color:{background: node_color, border:'blue'}});
           }
       }
