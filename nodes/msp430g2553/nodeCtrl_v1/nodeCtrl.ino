@@ -75,7 +75,7 @@ void loop()
       }
     }
     else if (MY_NODE_ID == rxPacket.hdr.shDst && MY_NODE_ID != rxPacket.hdr.dst){
-      if(network_has_neighbor(rxPacket.hdr.dst, &tempIndex)){
+      if(network_has_neighbor(rxPacket.hdr.dst, &tempIndex, FALSE)){
         if (HEADER_TYPE_EQUALS(rxPacket.hdr.type, RAW_PACKET)){
           txAttr.ack = GET_HEADER_TYPE_ACK(rxPacket.hdr.type);
           txAttr.size = RAW_PACKET_DATA_SIZE(&rxPacket);
@@ -86,7 +86,7 @@ void loop()
           reliable_transmit();
         }
       }
-      else if (network_has_route(rxPacket.hdr.dst, &tempIndex)){
+      else if (network_has_route(rxPacket.hdr.dst, &tempIndex, FALSE)){
         if (HEADER_TYPE_EQUALS(rxPacket.hdr.type, RAW_PACKET)){
           txAttr.ack = GET_HEADER_TYPE_ACK(rxPacket.hdr.type);
           txAttr.size = RAW_PACKET_DATA_SIZE(&rxPacket);

@@ -40,8 +40,15 @@
 
 /**@brief 915MHz Radio ID */
 #define RADIO_ID_915 (0x1)
-/**@brief Network ID */
-#define NETWORK_ID_0 (0x0)
+/**@brief 2.4GHz Radio ID */
+#define RADIO_ID_2400 (0x2)
+/**@brief Network ID 0 */
+#define NETWORK_ID_0  (0x0)
+/**@brief Network ID 1 */
+#define NETWORK_ID_1  (0x1)
+/**@brief Network ID 2 */
+#define NETWORK_ID_2  (0x2)
+
 // -----------------------------------------------------------------------------
 
 #define MY_NODE_ID NODE_ID_1

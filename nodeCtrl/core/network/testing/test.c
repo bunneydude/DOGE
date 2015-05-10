@@ -1,102 +1,220 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "network.h"
+#include "../platform/platform.h"
 
-#ifdef LINUX 
+extern union networkEntry* network;
+extern struct networkControl* networkInfo;
+
+#ifdef LINUX
+#define TEST_SH_LOW_LQE    (0x10)
+#define TEST_SH_MEDIUM_LQE (0x7F)
+#define TEST_SH_HIGH_LQE   (0xE7)
+
+void print_entry(union networkEntry e, enum networkEntryType type);
 
 void print_contents(){
-	uint8_t j = 0;
-	uint8_t x;
-printf("\n");
-	for(j=1; j<=4; j++){
-		printf("Network has neighbor %d: %d\n",j, network_has_neighbor(j, &x));
-		printf("Network has route %d: %d\n",j, network_has_route(j, &x));
-	}
+   uint8_t i = 0;
+   uint8_t j = 0;
+   uint8_t x;
+   printf("\n");
+   for (i = 0; i < networkInfo->numberEntries[NEIGHBOR_ENTRY]; i++){
+      print_entry(network[i], NEIGHBOR_ENTRY);
+   }
+   for (i = MAX_NETWORK_ENTRIES - 1; i > MAX_NETWORK_ENTRIES - 1 - networkInfo->numberEntries[ROUTING_ENTRY];  i--){
+      print_entry(network[i], ROUTING_ENTRY);
+   }
 }
 void print_entry(union networkEntry e, enum networkEntryType type)
 {
-	printf("Number neighbor entries = %d, number routing entries = %d, division index = %d\n", networkTable.numberEntries[NEIGHBOR_ENTRY], networkTable.numberEntries[ROUTING_ENTRY], networkTable.divisionIndex);
+   printf("Number neighbor entries = %d, number routing entries = %d, division index = %d\n", networkInfo->numberEntries[NEIGHBOR_ENTRY], networkInfo->numberEntries[ROUTING_ENTRY], networkInfo->divisionIndex);
 
-	switch(type){
-		case NEIGHBOR_ENTRY :
-			printf("Neighbor entry:\n");
-			printf("   shNodeID = %d\n", e.neighbor.shNodeID);
-			printf("   shLQE = %d\n", e.neighbor.shLQE);
-			printf("   radioID = %d\n", e.neighbor.radioID);
-			printf("   networkID = %d\n\n", e.neighbor.networkID);
-			break;
-		case ROUTING_ENTRY : 
-			printf("Routing entry:\n");
-			printf("   mhNodeID = %d\n", e.routing.mhNodeID);
-			printf("   mhLQE = %d\n", e.routing.mhLQE);
-			printf("   neighborIndex = %d\n\n", e.routing.neighborIndex);
-			break;
-	}
+   switch(type){
+      case NEIGHBOR_ENTRY :
+         printf("Neighbor entry:\n");
+         printf("   shNodeID = %d\n", e.neighbor.shNodeID);
+         printf("   shLQE = %d\n", e.neighbor.shLQE);
+         printf("   radioID = %d\n", e.neighbor.radioID);
+         printf("   networkID = %d\n\n", e.neighbor.networkID);
+         break;
+      case ROUTING_ENTRY : 
+         printf("Routing entry:\n");
+         printf("   mhNodeID = %d\n", e.routing.mhNodeID);
+         printf("   mhLQE = %d\n", e.routing.mhLQE);
+         printf("   neighborIndex = %d\n\n", e.routing.neighborIndex);
+         break;
+   }
 
 }
 
 #endif
 
-uint8_t i =0;
+uint8_t i = 0;
+
+void init_test_table_1()
+{
+   uint8_t index;
+   struct neighborEntry neighborEntry1 = {
+      NODE_ID_2, PERFECT_LQE, RADIO_ID_915, NETWORK_ID_0 };
+   struct neighborEntry neighborEntry2 = {
+      NODE_ID_4, MASKED_LQE, RADIO_ID_915, NETWORK_ID_0 };
+   struct neighborEntry neighborEntry3 = {
+      NODE_ID_5, PERFECT_LQE, RADIO_ID_915, NETWORK_ID_0 };
+   struct neighborEntry neighborEntry4 = {
+      NODE_ID_6, MASKED_LQE, RADIO_ID_915, NETWORK_ID_0 };
+   network_insert((union networkEntry*)&neighborEntry1, NEIGHBOR_ENTRY);
+   network_insert((union networkEntry*)&neighborEntry2, NEIGHBOR_ENTRY);
+   network_insert((union networkEntry*)&neighborEntry3, NEIGHBOR_ENTRY);
+   network_insert((union networkEntry*)&neighborEntry4, NEIGHBOR_ENTRY);
+   //Routing Table
+   network_has_neighbor(NODE_ID_2, &index, TRUE);
+   struct routingEntry routingEntry1 = {
+      ROOT_NODE, 0x0, index };
+   network_has_neighbor(NODE_ID_5, &index, TRUE);
+   struct routingEntry routingEntry2 = {
+      NODE_ID_4, 0x0, index };
+   network_has_neighbor(NODE_ID_5, &index, TRUE);
+   struct routingEntry routingEntry3 = {
+      NODE_ID_7, 0x0, index };
+   network_has_neighbor(NODE_ID_4, &index, TRUE);
+   struct routingEntry routingEntry4 = {
+      NODE_ID_7, 0x0, index };
+   network_insert((union networkEntry*)&routingEntry1, ROUTING_ENTRY);
+   network_insert((union networkEntry*)&routingEntry2, ROUTING_ENTRY);
+   network_insert((union networkEntry*)&routingEntry3, ROUTING_ENTRY);
+   network_insert((union networkEntry*)&routingEntry4, ROUTING_ENTRY);
+}
+
+void init_test_table_2()
+{
+   /*
+   * neighbor = {shNodeID = 0x4, shLQE = 0x10, radioID = 0x1, networkID = 0x0},
+   * neighbor = {shNodeID = 0x4, shLQE = 0x0, radioID = 0x2, networkID = 0x0},
+   * neighbor = {shNodeID = 0x4, shLQE = 0x7f, radioID = 0x1, networkID = 0x1},
+   * neighbor = {shNodeID = 0x4, shLQE = 0xe7, radioID = 0x2, networkID = 0x1},
+   * routing = {mhNodeID = 0x7, mhLQE = 0x0, neighborIndex = 0x3},
+   * routing = {mhNodeID = 0x7, mhLQE = 0x0, neighborIndex = 0x2},
+   * routing = {mhNodeID = 0x7, mhLQE = 0x0, neighborIndex = 0x0},
+   * routing = {mhNodeID = 0x7, mhLQE = 0x0, neighborIndex = 0x0}
+   */
+   uint8_t index;
+   network_init(NETWORK_DIVISION_DEFAULT);
+   //Neighbor Table
+   struct neighborEntry neighborEntry1 = {
+      NODE_ID_4, TEST_SH_LOW_LQE, RADIO_ID_915, NETWORK_ID_0 };
+   struct neighborEntry neighborEntry2 = {
+      NODE_ID_4, MASKED_LQE, RADIO_ID_2400, NETWORK_ID_0 };
+   struct neighborEntry neighborEntry3 = {
+      NODE_ID_4, TEST_SH_MEDIUM_LQE, RADIO_ID_915, NETWORK_ID_1 };
+   struct neighborEntry neighborEntry4 = {
+      NODE_ID_4, TEST_SH_HIGH_LQE, RADIO_ID_2400, NETWORK_ID_1 };
+   network_insert((union networkEntry*)&neighborEntry1, NEIGHBOR_ENTRY);
+   network_insert((union networkEntry*)&neighborEntry2, NEIGHBOR_ENTRY);
+   //Insert the other neighbors later...
+
+   //Routing Table (insert neighbors gradually to get different routes)
+   network_has_neighbor(NODE_ID_4, &index, TRUE);
+   struct routingEntry routingEntry1 = {
+      NODE_ID_7, 0x0, index };
+   network_has_neighbor(NODE_ID_4, &index, TRUE);
+   struct routingEntry routingEntry2 = {
+      NODE_ID_7, 0x0, index };
+   network_insert((union networkEntry*)&neighborEntry3, NEIGHBOR_ENTRY);
+
+   network_has_neighbor(NODE_ID_4, &index, TRUE);
+   struct routingEntry routingEntry3 = {
+      NODE_ID_7, 0x0, index };
+   network_insert((union networkEntry*)&neighborEntry4, NEIGHBOR_ENTRY);
+
+   network_has_neighbor(NODE_ID_4, &index, TRUE);
+   struct routingEntry routingEntry4 = {
+      NODE_ID_7, 0x0, index };
+
+   network_insert((union networkEntry*)&routingEntry1, ROUTING_ENTRY);
+   network_insert((union networkEntry*)&routingEntry2, ROUTING_ENTRY);
+   network_insert((union networkEntry*)&routingEntry3, ROUTING_ENTRY);
+   network_insert((union networkEntry*)&routingEntry4, ROUTING_ENTRY);
+}
 
 void main(){
-//init network
+   //init network
+   uint8_t index;
 
-network_init(NETWORK_DIVISION_DEFAULT);
-
-#ifdef LINUX
-printf("N size = 0x%lu, R size = 0x%lu\n", sizeof(struct neighborEntry), sizeof(struct routingEntry));
-printf("N entries = %d, R entries = %d\n", networkTable.numberEntries[NEIGHBOR_ENTRY], networkTable.numberEntries[ROUTING_ENTRY]);
-printf("Entry division index = %d, max network entries = %d\n", networkTable.divisionIndex, MAX_NETWORK_ENTRIES);
-#endif
-
-union networkEntry nEntries[4];
-union networkEntry rEntries[4];
-uint8_t index;
-
-for(i=0; i<4; i++){
-	nEntries[i].neighbor.shNodeID = i+1;
-	nEntries[i].neighbor.shLQE = 3;
-	nEntries[i].neighbor.radioID = 2;
-	nEntries[i].neighbor.networkID = 1;
-
-	rEntries[i].routing.mhNodeID = i+1;
-	rEntries[i].routing.mhLQE = 4;
-	rEntries[i].routing.neighborIndex = 5;
-}
-
-network_insert(&nEntries[0], NEIGHBOR_ENTRY);
-network_insert(&rEntries[0], ROUTING_ENTRY);
-
-network[0].neighbor.shLQE = 1;
-print_entry(nEntries[0], NEIGHBOR_ENTRY);
-
-print_contents();
-
-printf("Orig LQE = %d\n", network[0].neighbor.shLQE);
-if(network_has_neighbor(1, &index)){
-	network[index].neighbor.shLQE = 0x5;
-}
-printf("New LQE = %d\n", network[0].neighbor.shLQE);
-
-
-printf("Orig LQE = %d\n", network[MAX_NETWORK_ENTRIES-1].routing.mhLQE);
-if(network_has_route(1, &index)){
-	network[index].routing.mhLQE = 0x6;
-}
-printf("New LQE = %d\n", network[MAX_NETWORK_ENTRIES-1].routing.mhLQE);
-/*
-   network_insert(&rEntry, ROUTING_ENTRY);
+   network_init(NETWORK_DIVISION_DEFAULT);
+   init_test_table_1();
 
 #ifdef LINUX
-print_entry(network[0], NEIGHBOR_ENTRY);
-print_entry(network[1], ROUTING_ENTRY);
+   printf("N size = 0x%lu, R size = 0x%lu\n", sizeof(struct neighborEntry), sizeof(struct routingEntry));
+   printf("N entries = %d, R entries = %d\n", networkInfo->numberEntries[NEIGHBOR_ENTRY], networkInfo->numberEntries[ROUTING_ENTRY]);
+   printf("Entry division index = %d, max network entries = %d\n", networkInfo->divisionIndex, MAX_NETWORK_ENTRIES);
 #endif
 
-network_insert(&rEntry, ROUTING_ENTRY);
+   network[0].neighbor.shLQE = 1;
+   print_entry(network[0], NEIGHBOR_ENTRY);
 
-#ifdef LINUX
-print_entry(network[0], ROUTING_ENTRY);
-#endif
-*/
+   print_contents();
+
+   printf("Orig LQE = %x\n", network[0].neighbor.shLQE);
+   if(network_has_neighbor(NODE_ID_2, &index, FALSE)){
+      network[index].neighbor.shLQE = 0x5;
+   }
+   printf("New LQE = %x\n", network[0].neighbor.shLQE);
+
+   printf("Orig LQE = %d\n", network[MAX_NETWORK_ENTRIES-1].routing.mhLQE);
+   if(network_has_route(ROOT_NODE, &index, FALSE)){
+      network[index].routing.mhLQE = 0x6;
+   }
+   printf("New LQE = %d\n", network[MAX_NETWORK_ENTRIES-1].routing.mhLQE);
+
+   /* Test 1 - Make sure checking for a masked neighbor returns FALSE */
+   if (network_has_neighbor(NODE_ID_4, &index, FALSE)){
+      printf("Test 1 FAILED. NODE_ID_4 is supposed to be masked\n");
+   }
+   else{
+      printf("Test 1 PASSED. NODE_ID_4 is masked\n");
+   }
+
+   /* Test 2 - Make sure checking for a masked neighbor with includeMasked == TRUE returns TRUE */
+   if (network_has_neighbor(NODE_ID_4, &index, TRUE)){
+      printf("Test 2 PASSED. NODE_ID_4 is masked, and we detected it.\n");
+   }
+   else{
+      printf("Test 2 FAILED. NODE_ID_4 is masked, but we should be able to detect it.\n");
+   }
+
+   init_test_table_2();
+   
+   /* Test 3 - Highest LQE entry is selected from the neighbor table */
+   if (network_has_neighbor(NODE_ID_4, &index, FALSE) && index == 0x3){
+      printf("Test 3 PASSED. Selected last entry in the neighbor table with the highest LQE. \n");
+   }
+   else{
+      printf("Test 3 FAILED. Did not select highest LQE entry.\n");
+   }
+   
+   /* Test 4 - Highest LQE entry is selected from the routing table */
+   if (network_has_route(NODE_ID_7, &index, FALSE) && index == 0x4){
+      printf("Test 4 PASSED. Selected last entry in the routing table with the highest LQE. \n");
+   }
+   else{
+      printf("Test 4 FAILED. Did not select highest LQE entry.\n");
+   }
+
+   /* Test 5 - Network update does not set masked LQEs. */
+   network_update(NODE_ID_4, MASKED_LQE, RADIO_ID_915, NETWORK_ID_0, NEIGHBOR_ENTRY);
+   if(network[3].neighbor.shLQE != MIN_LQE){
+      printf("Test 5 FAILED. Network update set a reserved LQE. \n");
+   }
+   else{
+      printf("Test 5 PASSED. Network update set MIN LQE for a reserved masked LQE. \n");
+   }
+   
+   /* Test 6 - Network update does not set perfect LQEs. */
+   network_update(NODE_ID_4, PERFECT_LQE, RADIO_ID_915, NETWORK_ID_0, NEIGHBOR_ENTRY);
+   if(network[2].neighbor.shLQE != MAX_LQE){
+      printf("Test 6 FAILED. Network update set a reserved LQE. \n");
+   }
+   else{
+      printf("Test 6 PASSED. Network update set MAX LQE for a reserver perfect LQE. \n");
+   }
 }

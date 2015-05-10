@@ -5,7 +5,7 @@
 #include <stdio.h>
 #endif
 
-#ifdef MSP430
+#if defined(MSP430) && (DBG == 1)
 void print_decimal(uint16_t buf, printOptions options)
 {
   if (options == NEWLINE)
@@ -48,6 +48,7 @@ void print_hex(uint16_t buf, printOptions options){}
 #endif
 
 #ifdef MSP430
+#if (DBG == 1)
 void print_packet(dogePacket* packet){
   uint8_t i = 0;
   uint8_t* bytes = (uint8_t*)(packet);
@@ -75,10 +76,12 @@ void print_packet(dogePacket* packet){
   Serial.println("]");
 }
 #else
+void print_packet(dogePacket* packet){}
+#endif
+#else
 void print_packet(dogePacket* packet){
   uint8_t i = 0;
   uint8_t* bytes = (uint8_t*)(packet);
-  
   switch(GET_HEADER_TYPE(packet->hdr.type)){
     case(RAW_PACKET):
       printf("Raw ");
@@ -102,7 +105,7 @@ void print_packet(dogePacket* packet){
 }
 #endif
 
-#ifdef MSP430
+#if defined(MSP430) && (DBG == 1)
 void print_bytes(uint8_t* bytes){
   uint8_t i;
   /* Print 2 bytes */
