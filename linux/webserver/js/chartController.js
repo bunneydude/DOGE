@@ -59,7 +59,8 @@ angular.module('DeviceManager.chartController', []).
     $scope.$on('chartCreated', function(e, chart){    
         $scope.chart=   chart;
     });
-    var socket = io.connect('http://192.168.1.65:3000');         
+    var ipaddr = location.hostname;
+    var socket = io.connect('http://'+ipaddr+':3000');         
     socket.emit('join',{'socketid':'chart'});
 
      socket.on('init', function(data) {

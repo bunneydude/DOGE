@@ -23,7 +23,8 @@ angular.module('DeviceManager.graphController', []).
     var legend_toggle = 1;
     var socket;
  
-    socket = io.connect('http://192.168.1.65:4000');
+    var ipaddr = location.hostname;
+    socket = io.connect('http://'+ipaddr+':4000');
     socket.emit('join',{'socketid':'browsersock'});
     draw(nodes,edges);
 
