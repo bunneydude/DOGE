@@ -112,7 +112,7 @@ uint8_t application_parse_packet(struct Protocol* obj, appPacket* message, appPa
             application_form_packet(response, responseAttr, CMD_NACK, message->addr, ERR_RANGE, NULL);
          }else{
             if(message->addr < MM_PHYSICAL_RW_BAR){ //if trying to write to read-only range
-               application_form_packet(response, responseAttr, CMD_NACK, message->addr, RO_REGISTER);
+               application_form_packet(response, responseAttr, CMD_NACK, message->addr, RO_REGISTER, NULL);
             }else if(message->addr < MM_PHYSICAL_MAX){
                obj->dataRegisters[message->addr] = message->data;
             }else{
