@@ -37,9 +37,10 @@
     <input type="button" value="Cancel" id="cancelButton" ng-click="clearUserBox()" ></input>
   </div>
   <br></br>
-  
   <div id="mynetwork-control" class="center">
-  <input type="button" value="Toggle Routing Path Display" id="toggleRouteButton" class="mynetwork-control-button" ng-click="toggleRouteDisplay()"></input>
+  <input type="button" value="Toggle Node Routes" id="toggleNodeRouteButton" class="mynetwork-control-button" ng-click="toggleNodeRoutes()"></input>
+  <input type="button" value="Toggle Node Edges" id="toggleNodeEdgeButton" class="mynetwork-control-button" ng-click="toggleNodeEdges()"></input>
+  <input type="button" value="Default Edge View" id="defaultEdgeViewButton" class="mynetwork-control-button" ng-click="defaultEdgeView()"></input>
   <input type="button" value="Add Route" id="addRouteButton" class="mynetwork-control-button" ng-click="addRoute()"></input>
   <input type="button" value="Request New Route" id="reqRouteButton" class="mynetwork-control-button" ng-click="reqNewRoute()"></input>
   <input type="button" value="Delete Route"  id="deleteRouteButton"  class="mynetwork-control-button" ng-click="deleteRoute()"></input>
