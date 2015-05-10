@@ -94,10 +94,10 @@ uint8_t application_parse_packet(struct Protocol* obj, appPacket* message, appPa
 
    switch(message->cmd){
       case(CMD_READ_REG): //read_reg
-         if(message->addr >= MM_FUNCTION_MAX){
-            application_form_packet(response, responseAttr, CMD_NACK, 0, ERR_RANGE);
+         if(message->addr >= MM_FUNCTION_MAX){ //if address is beyond entire memory map
+            application_form_packet(response, responseAttr, CMD_NACK, message->addr, ERR_RANGE);
          }else{
-            if(message->addr < MM_PHYSICAL_MAX){
+            if(message->addr < MM_PHYSICAL_MAX){ 
                returnData = obj->dataRegisters[message->addr];
             }else{
                check_mm_space(1, message->addr, &returnData, 0);
@@ -108,12 +108,12 @@ uint8_t application_parse_packet(struct Protocol* obj, appPacket* message, appPa
          break;
 
       case(CMD_WRITE_REG):
-         //Serial.println("Got write_reg");
-
-         if(message->addr >= MM_FUNCTION_MAX){
-            application_form_packet(response, responseAttr, CMD_NACK, 0, ERR_RANGE);
+         if(message->addr >= MM_FUNCTION_MAX){ //if address is beyond entire memory map
+            application_form_packet(response, responseAttr, CMD_NACK, message->addr, ERR_RANGE);
          }else{
-            if(message->addr < MM_PHYSICAL_MAX){
+            if(message->addr < MM_PHYSICAL_RW_BAR){ //if trying to write to read-only range
+               application_form_packet(response, responseAttr, CMD_NACK, message->addr, RO_REGISTER);
+            }else if(message->addr < MM_PHYSICAL_MAX){
                obj->dataRegisters[message->addr] = message->data;
             }else{
                check_mm_space(0, message->addr, &message->data, 0);
@@ -124,29 +124,19 @@ uint8_t application_parse_packet(struct Protocol* obj, appPacket* message, appPa
          break;
 
       case(CMD_ACK): //ack
-         //Serial.println("Got ack");
-         //Serial.print("Addr = ");Serial.println(_remainderBuf[0]);
-         //Serial.print("Data = ");Serial.println(_remainderBuf[1]);
-         //Serial.print("\n");
          returnCode = 0;
          break;
 
       case(CMD_NACK): //nack
-         //Serial.println("Got nack");
-         //Serial.print("Addr = ");Serial.println(_remainderBuf[0]);
-         //Serial.print("Data = ");Serial.println(_remainderBuf[1]);
-         //Serial.print("\n");
          returnCode = 0;
          break;
 
       case(CMD_NOP): //nop
-         //Serial.println("Got nop");
          returnCode = 0;
          break;
 
       default: //unknown command
-         //Serial.println("Got unknown command. Send nack");
-         application_form_packet(response, responseAttr, CMD_NACK, 0, ERR_COMMAND);
+         application_form_packet(response, responseAttr, CMD_NACK, message->cmd, ERR_COMMAND);
          returnCode = 1;
          break;
    }//end switch

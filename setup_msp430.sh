@@ -4,7 +4,8 @@
 # Energia libraries directory.
 
 #Energia libraries directory
-ENERGIA_LIB_DIR=/c/Users/Mario/Documents/Energia/libraries
+ENERGIA_LIB_DIR=/home/bunney/Documents/energia_sketchbook/libraries/
+#/c/Users/Mario/Documents/Energia/libraries
 
 RUNENV=$(uname -o)
 

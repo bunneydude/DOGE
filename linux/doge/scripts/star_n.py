@@ -17,10 +17,15 @@ single_pair = [
              {'node_id': 3, 'mcu_name': 'msp430g2553', 'mm_num': 1},
             ]
 
-config['preset_nte_nodes'] = star_nte #single_pair
+single_node = [
+             {'node_id': 3, 'mcu_name': 'msp430g2553', 'mm_num': 1},
+            ]
 
-config['debug'] = True
-config['debug_test_network'] = True
+
+config['preset_nte_nodes'] = single_node
+
+config['debug'] = False
+config['debug_test_network'] = False
 
 print("In debug mode? {0}".format(config['debug']))
 
