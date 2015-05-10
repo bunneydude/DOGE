@@ -69,7 +69,7 @@ class RoutingProcessor():
    return self.socket
 
  # nodeID is a string
- def mask_node(self, command, nodeID):
+ def mask_node(self, command, nodeID, action):
      data = {'command':'alert','data':'Error: Unhandled execution in mask_node'}
      if int(nodeID) in self.networkNodes:
          node = self.networkNodes[int(nodeID)]
@@ -81,7 +81,7 @@ class RoutingProcessor():
              data = {'command':'alert','data':errorMessage}
          else:
              print "Node {0} has no routes. Allowing masking".format(int(nodeID))
-             node.mask_neighbor() #no id means to mask all neighbor edges
+             node.mask_neighbor(action=action) #no id means to mask all neighbor edges
              data = {'command':command,'data':nodeID}
              print "Sending confirmation: {0}".format(data)
 
@@ -91,14 +91,10 @@ class RoutingProcessor():
          print(errorMessage)
          data = {'command':'alert','data':errorMessage}
      
-     self.socket.emit('confirm',json.dumps(data))
+     return data
  
- def unmask_node(self, command, node_id):
-     data = {'command':command,'data':node_id}
-     print "Sending confirmation: {0}".format(data)
-     self.socket.emit('confirm',json.dumps(data))
  
- def mask_edge(self, command, edge):
+ def mask_edge(self, command, edge, action="mask"):
      foundNode = False
      responseData = {'command':'alert', 'data':'ERROR: Unhandled execution in mask_edge'}
 
@@ -112,7 +108,7 @@ class RoutingProcessor():
          #assert edgeFrom == node.get_nodeID()
          if(node.has_neighbor(edgeTo)):
              foundNode = True
-             node.mask_neighbor(edgeTo)
+             node.mask_neighbor(edgeTo, action)
              responseData = {'command':command,'data':edge}
              print "Sending confirmation: {0}".format(responseData)
          else:
@@ -124,20 +120,8 @@ class RoutingProcessor():
          print(errorMessage)
          responseData = {'command':'alert','data':errorMessage}
               
-     self.socket.emit('confirm',json.dumps(responseData))
+     return responseData
 
- def unmask_edge(self, command, edge):
-     #Edge format is [from,to,id]
-     edge_from =json.loads(edge)[0]
-     edge_to = json.loads(edge)[1]
-     #Loop through NTE list for the source node and change LQE for matching dest node to 0 (unmask value)
-     for nte_arr in self.network_neighbor_tables[int(edge_from)]:
-         if nte_arr[0] == edge_to:
-             nte_arr[1] = 0
-     #print "NTE = {0}".format(self.network_neighbor_tables)
-     data = {'command':command,'data':edge}
-     print "Sending confirmation: {0}".format(data)
-     self.socket.emit('confirm',json.dumps(data))
 
  def processMessage(self,*args):
 
@@ -154,13 +138,20 @@ class RoutingProcessor():
              data  =  m.group(2)
              print "command:{0} data:{1}".format(command,data)
          if (command == 'mask_node'):  
-             self.mask_node(command,data)     
+             response = self.mask_node(command,data,"mask")     
+             self.socket.emit('confirm', json.dumps(response))
+
          elif (command == 'unmask_node'):  
-             self.unmask_node(command,data) 
+             response = self.mask_node(command,data,"unmask") 
+             self.socket.emit('confirm', json.dumps(response))
+
          elif (command == 'mask_physical_edge'):  
-             self.mask_edge(command,data)   	
+             response = self.mask_edge(command,data,"mask")   	
+             self.socket.emit('confirm', json.dumps(response))
+
          elif (command == 'unmask_physical_edge'):  
-             self.unmask_edge(command,data)   	
+             response = self.mask_edge(command,data,"unmask")   	
+             self.socket.emit('confirm', json.dumps(response))
 
   
 

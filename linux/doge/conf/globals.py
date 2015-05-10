@@ -25,7 +25,14 @@ nte_nodes = [
              {'node_id': 8, 'mcu_name': 'msp430g2553', 'mm_num': 1},
              {'node_id': 9, 'mcu_name': 'msp430g2553', 'mm_num': 1},
             ]
+
+demo_routes = [
+               [4, 5],
+              ]
+
+
 config['preset_nte_nodes'] = nte_nodes
+config['preset_routes'] = demo_routes
 
 # Relevant config file location paths
 doge_paths = {

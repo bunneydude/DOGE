@@ -143,6 +143,9 @@ def rp_setup():
             print("Node {0}: neighbors = {1}, routes = {2}".format(node.get_nodeID(), node.get_neighbor_table(), node.get_routing_table()))
             edisonRP.createNetworkVis(nodes, edges, route_edges, node)
 
+    for routePair in config['preset_routes']:
+        root.add_route(routePair[0], routePair[1])
+
     # Create the master node last
     edisonRP.createNetworkVis(nodes, edges, route_edges, root)
     
