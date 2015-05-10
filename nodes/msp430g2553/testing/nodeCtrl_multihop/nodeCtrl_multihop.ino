@@ -174,7 +174,7 @@ void loop()
   txAppPacket = (appPacket*)((uint8_t*)&txPacket + RAW_PACKET_DATA_OFFSET);
   rxAppPacket = (appPacket*)((uint8_t*)&rxPacket + RAW_PACKET_DATA_OFFSET);
   //Form a test packet
-  application_form_packet(txAppPacket, &txAttr, CMD_READ_REG, 55, 0);
+  application_form_packet(txAppPacket, &txAttr, CMD_READ_REG, 55, 0, NULL);
   link_layer_form_packet(&txPacket, &txAttr, RAW_PACKET, ROOT_NODE, NODE_ID_3, ROOT_NODE, NODE_ID_2);
   //Send to destination
   dogeBool success = reliable_transmit();
@@ -188,7 +188,7 @@ void loop()
   txAppPacket = (appPacket*)((uint8_t*)&txPacket + RAW_PACKET_DATA_OFFSET);
   rxAppPacket = (appPacket*)((uint8_t*)&rxPacket + RAW_PACKET_DATA_OFFSET);
   //Form a test packet
-  application_form_packet(txAppPacket, &txAttr, CMD_READ_REG, 55, 0);
+  application_form_packet(txAppPacket, &txAttr, CMD_READ_REG, 55, 0, NULL);
   link_layer_form_packet(&txPacket, &txAttr, RAW_PACKET, ROOT_NODE, NODE_ID_4, ROOT_NODE, NODE_ID_2);
   //Send to destination
   dogeBool success = reliable_transmit();

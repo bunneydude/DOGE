@@ -189,7 +189,7 @@ void loop()
   txAppPacket = (appPacket*)((uint8_t*)&txPacket + RAW_PACKET_DATA_OFFSET);
   rxAppPacket = (appPacket*)((uint8_t*)&rxPacket + RAW_PACKET_DATA_OFFSET);
   //Read first 12 bytes
-  application_form_packet(txAppPacket, &txAttr, CMD_READ_MEM, MM_NETWORK_BASE, MAX_CMD_READ_MEM_DATA_SIZE);
+  application_form_packet(txAppPacket, &txAttr, CMD_READ_MEM, MM_NETWORK_BASE, MAX_CMD_READ_MEM_DATA_SIZE, NULL);
   link_layer_form_packet(&txPacket, &txAttr, RAW_PACKET, ROOT_NODE, NODE_ID_3, ROOT_NODE, NODE_ID_2);
   //Send to destination
   dogeBool success = reliable_transmit();
@@ -200,7 +200,7 @@ void loop()
   }
   print_packet(&rxPacket);
   //Read second 12 bytes
-  application_form_packet(txAppPacket, &txAttr, CMD_READ_MEM, MM_NETWORK_BASE + MAX_CMD_READ_MEM_DATA_SIZE, MAX_CMD_READ_MEM_DATA_SIZE);
+  application_form_packet(txAppPacket, &txAttr, CMD_READ_MEM, MM_NETWORK_BASE + MAX_CMD_READ_MEM_DATA_SIZE, MAX_CMD_READ_MEM_DATA_SIZE, NULL);
   link_layer_form_packet(&txPacket, &txAttr, RAW_PACKET, ROOT_NODE, NODE_ID_3, ROOT_NODE, NODE_ID_2);
   //Send to destination
   success = reliable_transmit();
@@ -210,8 +210,8 @@ void loop()
     return;
   }
   print_packet(&rxPacket);
-  //Read third 12 bytes
-  application_form_packet(txAppPacket, &txAttr, CMD_READ_MEM, MM_NETWORK_BASE + 2*MAX_CMD_READ_MEM_DATA_SIZE, 8);
+  //Read third 8 bytes
+  application_form_packet(txAppPacket, &txAttr, CMD_READ_MEM, MM_NETWORK_BASE + 2*MAX_CMD_READ_MEM_DATA_SIZE, 8, NULL);
   link_layer_form_packet(&txPacket, &txAttr, RAW_PACKET, ROOT_NODE, NODE_ID_3, ROOT_NODE, NODE_ID_2);
   //Send to destination
   success = reliable_transmit();
@@ -225,9 +225,7 @@ void loop()
 #if 0
   //Overwrite last 2 entries in network table
   memset(&txPacket, 0, sizeof(dogePacket));
-  application_form_packet(txAppPacket, &txAttr, CMD_WRITE_MEM, MM_NETWORK_BASE + 2*MAX_CMD_READ_MEM_DATA_SIZE, 2*sizeof(struct routingEntry));
-  copy_bytes(CMD_WRITE_MEM_DATA_ADDRESS(txAppPacket), CMD_READ_MEM_DATA_ADDRESS(rxAppPacket), 2*sizeof(struct routingEntry));
-  memset(CMD_WRITE_MEM_DATA_ADDRESS(txAppPacket), 0, 8);
+  application_form_packet(txAppPacket, &txAttr, CMD_WRITE_MEM, MM_NETWORK_BASE + 2*MAX_CMD_READ_MEM_DATA_SIZE, 2*sizeof(struct routingEntry), CMD_WRITE_MEM_DATA_ADDRESS(txAppPacket));
   link_layer_form_packet(&txPacket, &txAttr, RAW_PACKET, ROOT_NODE, NODE_ID_3, ROOT_NODE, NODE_ID_2);
   print_string("WRITING...", NEWLINE); print_packet(&txPacket);
   //Send to destination
