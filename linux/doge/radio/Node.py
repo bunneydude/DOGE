@@ -380,6 +380,36 @@ class VirtualNode:
         else: #check for a specific nodeID
             if(nodeID not in range(1, 2**16)): raise Exception("The specified nodeID, {0}, must be in the range [1, 65535]".format(nodeID))            
             return(nodeID in self.get_routes())
+    
+    #returns the single-hop node ID to forward a packet
+    # if there is no route possible, returns -1
+    def get_forward_id(self, destID):
+        if(destID not in range(1, 2**16)): raise Exception("The specified destID, {0}, must be in the range [1, 65535]".format(destID))
+
+        forwardOptions = [] #entries are arrays w/ (nodeID, LQE)
+        routingEntries = []
+
+
+        neighborEntry, index = self._networkTable.get_neighbor_entry(nodeID)
+        if(len(neighborEntry) != 0):
+            forwardOptions.append(neighborEntry[0], neighborEntry[2])
+
+
+        for entry in self.get_routing_table():
+            if(entry[0] == destID):
+                nEntry = self.get_neighbor_table()[entry[3]]
+                forwardOptions.append([nEntry[0], nEntry[2]])
+
+        if(len(forwardOptions) == 0):
+            return -1 #no route
+        else:
+            bestOption = list(forwardOptions[0])
+            for pair in forwardOptions[1:]:
+                if(pair[1] > bestOption[1]):
+                    bestOption = list(pair)
+            return bestOption[0]
+        raise Exception("Unhandled execution in get_forward_id for ID {0}".format(destID))
+
         
    
     def mask_neighbor(self, nodeID=None, action="mask"): # TODO pick a better name for the method

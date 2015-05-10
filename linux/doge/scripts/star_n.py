@@ -29,4 +29,5 @@ config['debug_test_network'] = True
 
 print("In debug mode? {0}".format(config['debug']))
 
-rp_run()
+socket, rp, rootNode = rp_setup()
+rp_run(socket, rp)

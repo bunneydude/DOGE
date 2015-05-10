@@ -120,7 +120,7 @@ def load_preset_nte_config(pipe, master):
         networkNodes[nodeInfo['node_id']] = HardwareNode(device, nodeID = nodeInfo['node_id'], pipe = pipe, master = master)
     return networkNodes
 
-def rp_run():
+def rp_setup():
     root,pipe = connect_sketch() #if not already not connected 
     
     #List of network edges,nodes,routing edges. Sent to webserver/browser for vis.js n/w visiualization
@@ -135,11 +135,11 @@ def rp_run():
     edisonRP = RoutingProcessor(4000, networkNodes)
 
     for node in networkNodes.values():
-        # Create Edisons neighbor and routing table entry list
+        # Create Edisons neighbor list
         # Initially, assume master node (Edison) can hear everyone
+        # Edison will start out with no routes initially. The user must provide this in their file using add_route()
         if(node.get_nodeID() != root.get_nodeID()): #TODO might need a better way to avoid the root node
             root.add_neighbor({'shNodeID':node.get_nodeID(), 'shLQE':1, 'radioID':0, 'networkID':1})
-            root.add_route({'mhNodeID':node.get_nodeID(), 'mhLQE':2, 'neighborIndex':1})
             print("Node {0}: neighbors = {1}, routes = {2}".format(node.get_nodeID(), node.get_neighbor_table(), node.get_routing_table()))
             edisonRP.createNetworkVis(nodes, edges, route_edges, node)
 
@@ -160,10 +160,12 @@ def rp_run():
     except:
         print "Error could not send load network message"
 
+    return sock, edisonRP, root
+
     
-    
+def rp_run(socket, routingProcessor):    
     while True:
         #Wait for incoming message targetted to routing processor
-        sock.on('message', edisonRP.processMessage)
-        sock.wait(seconds=1)
+        socket.on('message', routingProcessor.processMessage)
+        socket.wait(seconds=1)
     
