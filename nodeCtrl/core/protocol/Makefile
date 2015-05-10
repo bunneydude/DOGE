@@ -31,7 +31,7 @@ endif
 endif
 
 DEPS = protocol.h
-OBJ = protocol.o packet.o ../memory_map/memory_map.o
+OBJ = protocol.o packet.o ../memory_map/memory_map.o ../network/network.o ../platform/serial_c.o
 OBJ_ASM = $(foreach file, $(OBJ),$(basename $(file))_$(PLATFORM).asm)
 
 TEST = testing/main.o

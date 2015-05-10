@@ -22,8 +22,8 @@ dogePacket rxPacket;
 appPacket* rxAppPacket;
 packetAttr rxAttr;
 
-#define static_assert1(cond) uint8_t static_assert1[((cond) == 1) ? 1 : -1]
-static_assert1(MY_NODE_ID == ROOT_NODE);
+#define static_assert_root(cond) uint8_t static_assert_root[((cond) == 1) ? 1 : -1]
+static_assert_root(MY_NODE_ID == ROOT_NODE);
 
 uint8_t serialBuffer[MAX_DATA_LENGTH + 2]; //+1 for COBS overhead, another +1 for framing byte
 
@@ -102,8 +102,9 @@ void loop(){
   while(serial_receive((uint8_t*)(&rxPacket)) == 0); //wait for data
 
   if(rxPacket.hdr.dst == MY_NODE_ID){ //ACK back same address and data
-    application_form_packet(txAppPacket, &txAttr, CMD_ACK, rxAppPacket->addr, rxAppPacket->data);
+    application_form_packet(txAppPacket, &txAttr, CMD_ACK, rxAppPacket->addr, rxAppPacket->data, NULL);
     link_layer_form_packet(&txPacket, &txAttr, RAW_PACKET, MY_NODE_ID, rxPacket.hdr.src, MY_NODE_ID, rxPacket.hdr.shSrc);  
+    add_packet_crc(&txPacket);
   }
   else{ //forward it
     copy_doge_packet(&txPacket, &rxPacket);
@@ -119,8 +120,9 @@ void loop(){
       digitalWrite(RED_LED, hbt_output ^= 0x1);
     }
     else{ //timeout, send error message
-      application_form_packet(txAppPacket, &txAttr, CMD_NACK, rxAppPacket->addr, ERR_TIMEOUT);
+      application_form_packet(txAppPacket, &txAttr, CMD_NACK, rxAppPacket->addr, ERR_TIMEOUT, NULL);
       link_layer_form_packet(&txPacket, &txAttr, RAW_PACKET, MY_NODE_ID, rxPacket.hdr.src, MY_NODE_ID, rxPacket.hdr.shSrc); 
+      add_packet_crc(&txPacket);
     }
   }//end forward
   serial_transmit((uint8_t*)(&txPacket), RAW_PACKET_TOTAL_SIZE(&txPacket), 1);

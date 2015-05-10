@@ -39,17 +39,15 @@ class RadioInterface():
       else:
          print("In debug mode the sketch is not connected")
 
-   def proxy_send(self, destination, command, address, payload, singleHopDest=None):
+   def proxy_send(self, destination, command, address, payload, singleHopDest=None, cbytes=None):
       if(singleHopDest is None): singleHopDest = self._nodeID
       if(destination not in range(0, 2**16)): raise Exception("The destination, {0}, must be in the range [0,65535]".format(destination))
       if(singleHopDest not in range(0, 2**16)): raise Exception("The single-hop destination, {0}, must be in the range [0,65535]".format(singleHopDest))
 
-      self.txData = Protocol.form_packet(type=1, srcID=self._nodeID, dstID=destination, shSrcID=self._nodeID, shDstID=singleHopDest, cmd=command, addr=address, data=payload, enc='bytes')
-      #TODO need to import a constants file of sorts so we can use 'RAW_PACKET' instead of '1' for type, etc
+      self.txData = Protocol.form_packet(type=ProtocolDefs.RAW_PACKET, srcID=self._nodeID, dstID=destination, shSrcID=self._nodeID, shDstID=singleHopDest, cmd=command, addr=address, data=payload, bytes=cbytes, enc='bytes')
       if self._logLevel >= 2: #print("   About to send: {0}".format(list(ord(x) for x in self.txData)))
          txPacket = Protocol.parse_packet(self.txData)
          #print("About to send: [header: [{0}], size = {1}, data = {2}]".format(ProtocolDefs.print_structure(txPacket.hdr), txPacket.size, list(i for i in txPacket.data)))
-
 
       encData = cobs.encode(''.join(self.txData))
 #      print("   Encoded: {0}".format(list(encData)))
