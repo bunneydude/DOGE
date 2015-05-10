@@ -30,19 +30,23 @@ class RoutingProcessor():
    self.network_routing_tables = {}
    self.networkNodes = initialNetwork.copy()
  
- def createNetworkVis(self,nodes, edges, route_edges, nodeID, neighborTable, routingTable): #TODO collapse nodeID and tables into just a Node object
+ def createNetworkVis(self,nodes, edges, route_edges, node):
+   nodeID = node.get_nodeID()
+   neighborTable = node.get_neighbor_table()
+   routingTable = node.get_routing_table()
+   radioName = node.get_radio()
+
    #Build lists of entire network neighbor table and routing table entries
    self.network_neighbor_tables[nodeID] = neighborTable
    self.network_routing_tables[nodeID] = routingTable
   
-   radioGroup = (neighborTable[0][3] >> 4) & 0x3
-
    #Add node to list of network nodes for webserver
-   nodes.append({'id':nodeID,'label':nodeID,'group':self.radio_group[radioGroup]})
+   nodes.append({'id':nodeID,'label':nodeID,'group':radioName})
 
    #Go through Neighbor Table Entry list and add edges
    for entry in neighborTable:
-      edges.append({'id':self.edge_id, 'from':nodeID, 'to': entry[self.NTE_ID],'label':entry[self.NTE_LQE],'radio':entry[self.NTE_RADIO]})
+      radioNumber = (entry[3] >> 4) & 0x3
+      edges.append({'id':self.edge_id, 'from':nodeID, 'to': entry[self.NTE_ID],'label':entry[self.NTE_LQE],'radio':radioNumber})
       self.edge_id += 1
      
    #Go through Routing Table Entry list and add edges

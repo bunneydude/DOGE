@@ -77,11 +77,12 @@ class HardwareNode:
     _stateFields = ['all'] + _hardwareState.keys()
     _validSources = ['state', 'hardware']
 
-    def __init__(self, device, nodeID, pipe):
+    def __init__(self, device, nodeID, pipe, master):
         print "Device={0}, pipe={1}".format(device,pipe)
         if(not isinstance(device, Device)): raise Exception("The device argument must be an instance of Node.Device.")
         if(nodeID not in range(1, 2**16)): raise Exception("The nodeID, {0}, must be in the range [1, 65535]".format(nodeID))
         if(not isinstance(pipe, RadioInterface.RadioInterface)): raise Exception("The device argument must be an instance of Node.Device.")
+        if(not isinstance(master, VirtualNode)): raise Exception("The master node must be an instance of VirtualNode.")
 
         self._device = device
         self._nodeID = nodeID
@@ -90,6 +91,7 @@ class HardwareNode:
         self._inputs = {}
         self._outputs = []
         self._networkTable = None
+        self._masterNode = master
         narray = []
         rarray = []
 
@@ -97,6 +99,14 @@ class HardwareNode:
         self.add_sensor("routeCount", "device", 1)
         self.add_sensor("divisionIndex", "device", 2)
         self.add_sensor("networkConfig", "device", 3)
+
+        #TODO determine this from reading a TBD field in memory map
+        if(self._device._deviceName.lower() == 'msp430g2553'):
+            self._primaryRadio = '915mhz'
+        elif(self._device._deviceName.lower() == 'lpc812'):
+            self._primaryRadio = '2.4ghz'
+        else:
+            self._primaryRadio = 'edison'
 
         if(True == config['debug'] == config['debug_test_network']):
             print("Use preloaded network")
@@ -138,6 +148,9 @@ class HardwareNode:
 
     def get_nodeID(self):
         return self._nodeID
+
+    def get_radio(self):
+        return self._primaryRadio
 
     # field - which state to commit
     # force - if False, first check to see if the state needs to be updated. Otherwise always update
@@ -319,14 +332,17 @@ class VirtualNode:
  
         self._name = name + '-' + str(nodeID)
         self._nodeID = nodeID
+        self._primaryRadio = 'edison'
         
-        narray = [] #self.load_preset_nte_config()
+        narray = []
         rarray = [] 
         self._networkTable = NetworkTable(narray, rarray, maxNetworkSize=255, maxNeighbors=128, maxRoutes=128) #virtual nodes have 'infinite' memory for now
    
     def get_nodeID(self):
         return self._nodeID
  
+    def get_radio(self):
+        return self._primaryRadio
 
     def get_neighbors(self):
         nodeIDs = []

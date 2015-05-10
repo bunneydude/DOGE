@@ -22,10 +22,10 @@ single_node = [
             ]
 
 
-config['preset_nte_nodes'] = single_node
+config['preset_nte_nodes'] = star_nte
 
-config['debug'] = False
-config['debug_test_network'] = False
+config['debug'] = True
+config['debug_test_network'] = True
 
 print("In debug mode? {0}".format(config['debug']))
 

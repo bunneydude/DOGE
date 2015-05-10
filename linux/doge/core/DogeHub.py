@@ -106,18 +106,18 @@ def connect_sketch():
     pipe = RadioInterface("edison", rootID, config['debug'])
     pipe.connect_sketch()
     
-    root = VirtualNode(rootID,"Edison")
+    root = VirtualNode(rootID, "Edison")
     return (root,pipe)
 
 def find_neighbors(nids):
     pass
 
 
-def load_preset_nte_config(pipe):
+def load_preset_nte_config(pipe, master):
     networkNodes = {}
     for nodeInfo in config['preset_nte_nodes']:
         device = Device(deviceName=nodeInfo['mcu_name'], memoryMapFile=config['config_file_paths']['mm_map_default_profile'])
-        networkNodes[nodeInfo['node_id']] = HardwareNode(device, nodeID = nodeInfo['node_id'], pipe = pipe)
+        networkNodes[nodeInfo['node_id']] = HardwareNode(device, nodeID = nodeInfo['node_id'], pipe = pipe, master = master)
     return networkNodes
 
 def rp_run():
@@ -129,7 +129,7 @@ def rp_run():
     route_edges = []
    
     # Create list of HardwareNodes 
-    networkNodes = load_preset_nte_config(pipe)
+    networkNodes = load_preset_nte_config(pipe, root)
     networkNodes[root.get_nodeID()] = root
 
     edisonRP = RoutingProcessor(4000, networkNodes)
@@ -141,10 +141,10 @@ def rp_run():
             root.add_neighbor({'shNodeID':node.get_nodeID(), 'shLQE':1, 'radioID':0, 'networkID':1})
             root.add_route({'mhNodeID':node.get_nodeID(), 'mhLQE':2, 'neighborIndex':1})
             print("Node {0}: neighbors = {1}, routes = {2}".format(node.get_nodeID(), node.get_neighbor_table(), node.get_routing_table()))
-            edisonRP.createNetworkVis(nodes,edges,route_edges, node.get_nodeID(), node.get_neighbor_table(), node.get_routing_table())
+            edisonRP.createNetworkVis(nodes, edges, route_edges, node)
 
     # Create the master node last
-    edisonRP.createNetworkVis(nodes,edges,route_edges, root.get_nodeID(), root.get_neighbor_table(), root.get_routing_table())
+    edisonRP.createNetworkVis(nodes, edges, route_edges, root)
     
     nodes_json = json.dumps(nodes)
     edges_json = json.dumps(edges)
