@@ -104,6 +104,7 @@ void loop(){
   if(rxPacket.hdr.dst == MY_NODE_ID){ //ACK back same address and data
     application_form_packet(txAppPacket, &txAttr, CMD_ACK, rxAppPacket->addr, rxAppPacket->data, NULL);
     link_layer_form_packet(&txPacket, &txAttr, RAW_PACKET, MY_NODE_ID, rxPacket.hdr.src, MY_NODE_ID, rxPacket.hdr.shSrc);  
+    add_packet_crc(&txPacket);
   }
   else{ //forward it
     copy_doge_packet(&txPacket, &rxPacket);
@@ -121,6 +122,7 @@ void loop(){
     else{ //timeout, send error message
       application_form_packet(txAppPacket, &txAttr, CMD_NACK, rxAppPacket->addr, ERR_TIMEOUT, NULL);
       link_layer_form_packet(&txPacket, &txAttr, RAW_PACKET, MY_NODE_ID, rxPacket.hdr.src, MY_NODE_ID, rxPacket.hdr.shSrc); 
+      add_packet_crc(&txPacket);
     }
   }//end forward
   serial_transmit((uint8_t*)(&txPacket), RAW_PACKET_TOTAL_SIZE(&txPacket), 1);
