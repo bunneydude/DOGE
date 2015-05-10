@@ -93,10 +93,10 @@ class HardwareNode:
         narray = []
         rarray = []
 
-        self.add_sensor("configReg", "device", 0)
-        self.add_sensor("neighborCount", "device", 1)
-        self.add_sensor("routeCount", "device", 2)
-        self.add_sensor("divisionIndex", "device", 3)
+        self.add_sensor("neighborCount", "device", 0)
+        self.add_sensor("routeCount", "device", 1)
+        self.add_sensor("divisionIndex", "device", 2)
+        self.add_sensor("networkConfig", "device", 3)
 
         if(True == config['debug'] == config['debug_test_network']):
             print("Use preloaded network")
@@ -128,7 +128,7 @@ class HardwareNode:
             else:
                 raise Exception("Unexpected node ID: {0}".format(self._nodeID))
         else: #read info from node
-            narray, rarry, maxNetworkSize, maxNeighbors, maxRoutes = self.read_network_state()
+            narray, rarray, maxNetworkSize, maxNeighbors, maxRoutes = self.read_network_state()
       
         print("Created node {0} with neighbor array {1}, routing array {2}".format(self._nodeID, narray, rarray)) 
         self._networkTable = NetworkTable(narray, rarray, maxNetworkSize, maxNeighbors, maxRoutes)
@@ -261,7 +261,7 @@ class HardwareNode:
         maxNetworkSize = size/4
         print("Node {0}: max network size = {1}".format(self._nodeID, maxNetworkSize))
 
-        networkState = {"neighborCount":0, "routeCount":0, "divisionIndex":maxNetworkSize/2}
+	networkState = {"neighborCount":0, "routeCount":0, "divisionIndex":maxNetworkSize/2, "networkConfig":0}
         for field in networkState.keys():
             size, data = self.pull(field)
             if((data[0] == 3) and (size != 0)):
@@ -270,7 +270,6 @@ class HardwareNode:
             else:
                 print("   Node {0}: error reading field {1}: size = {2}, data = {3}".format(self._nodeID, field, size, data))
         
-	networkState = {"neighborCount":2, "routeCount":0, "divisionIndex":maxNetworkSize/2}
         #determine max number of entry types
         maxNeighbors = networkState["divisionIndex"]
         maxRoutes = maxNetworkSize - networkState["divisionIndex"]
@@ -303,8 +302,6 @@ class HardwareNode:
             routingArray.append(entry)
 
         print("   Node {0}: neighbors = {1}, routes = {2}".format(self._nodeID, neighborArray, routingArray))
-#        neighborArray = [[1, 40 + self._nodeID, 2, 1]]
-#        routingArray = []
         return neighborArray, routingArray, maxNetworkSize, maxNeighbors, maxRoutes
 
     def get_rssi(self):
