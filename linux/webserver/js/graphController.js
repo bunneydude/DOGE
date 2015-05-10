@@ -112,6 +112,10 @@ angular.module('DeviceManager.graphController', []).
        else if (node_group == '433mhz') {
          node_color = 'tomato';
        }
+       else if (node_group == 'edison') {
+         node_color = 'gold';
+       }
+       else { node_color = 'lightgreen'}
 
        return node_color;
     }
@@ -159,6 +163,7 @@ angular.module('DeviceManager.graphController', []).
       nodes_legend.add({id: 1002, x:-3300,y:0,label: '915MHz', group: '915mhz'});
       nodes_legend.add({id: 1003, x:-3200,y:0,label: '2.4GHz', group: '2.4ghz'});
       nodes_legend.add({id: 1004, x:-3080,y:0,label: 'Masked Node', color: 'gray'});
+      nodes_legend.add({id: 1005, x:-2925,y:0,label: 'Hidden Edges', color:{background: 'lightgreen', border:'red'}});
       var data = {
        nodes: nodes_legend,
       };
@@ -175,35 +180,43 @@ angular.module('DeviceManager.graphController', []).
     }
 
 
-    
-    $scope.toggleNodeEdges = function () {
+     $scope.toggleNodeRoutes = function () {
 
        //Clear any previous use cases
       $scope.clearUserBox();
  
+      document.getElementById('instructions').innerHTML =  'Select source or destination node for which you want to show/hide the routing edges';
      
-      document.getElementById('instructions').innerHTML =  'Select node edges to hide/un-hide';
  
       //Make user confirmation buttons visible
       var div = document.getElementById('user-confirm');
       div.style.display = 'block';
 
       network.on('select',function(params) {
-       //Check for a selection with both nodes and edges selected - This is hide edges case
-        if (params['nodes'] != "" && params['edges'] != "") {  
-              mode = 'hide-edges';
-              document.getElementById('route').innerHTML = 'Selected Nodes:'+params.nodes + " Selected Edge Id\'s:"+params.edges;
+              mode = 'toggle-routes';
+              document.getElementById('route').innerHTML = 'Selected Nodes:'+params.nodes;
               userEdge = params.edges;
               userNode = parseInt(params.nodes);
-              
-        }
-        //Check for a selection with only nodes selected - This is show edges case
-        else if (params['nodes'] != "" && params['edges'] == "") {  
-              mode = 'show-edges';
-              document.getElementById('route').innerHTML = 'Selected Nodes:'+params.nodes ;
-              userNode = parseInt(params.nodes);
-        }
+      });
+   }
+ 
+    $scope.toggleNodeEdges = function () {
 
+       //Clear any previous use cases
+      $scope.clearUserBox();
+ 
+     
+      document.getElementById('instructions').innerHTML =  'Select node for which you want to show/hide neighbor edges';
+ 
+      //Make user confirmation buttons visible
+      var div = document.getElementById('user-confirm');
+      div.style.display = 'block';
+
+      network.on('select',function(params) {
+              mode = 'toggle-edges';
+              document.getElementById('route').innerHTML = 'Selected Nodes:'+params.nodes;
+              userEdge = params.edges;
+              userNode = parseInt(params.nodes);
       });
    }
 
@@ -213,7 +226,35 @@ angular.module('DeviceManager.graphController', []).
       return JSON.stringify(obj); 
     }
 
+  
+    $scope.defaultEdgeView = function () {
 
+      var edgeObj;
+      
+      //Un-hide all hidden neighbor edges
+      for (var i = 0; i < hidden_edges.length; i++) {
+        edgeObj = hidden_edges[i];
+        edges.add(edgeObj);
+      }
+       
+      hidden_edges = [];
+
+      //Change all node borders that were red back to blue
+      var nodeArr = nodes.get();
+      for( var i=0; i< nodeArr.length; i++ ) {
+        var node_color = getNodeColor(nodeArr[i].group);
+        nodes.update({id: nodeArr[i].id,color:{background:node_color, border:'blue'}});
+      }        
+
+      //Hide all route edges
+      routing_edges.forEach( function(edgeObj) {
+              edges.remove(edgeObj.id);
+      })
+
+
+
+    }
+    
     $scope.addRoute = function () {
      
       //Clear any previous use cases
@@ -236,7 +277,8 @@ angular.module('DeviceManager.graphController', []).
         }
        });
      }
-    
+   
+     
     $scope.reqNewRoute = function() {
       
       //Clear any previous use cases
@@ -495,55 +537,100 @@ angular.module('DeviceManager.graphController', []).
 
       }
       
-      else if (mode == 'hide-edges'  ) {
+      else if (mode == 'toggle-edges'  ) {
           var id;
-
-          //Hide all edges for this node and add it to the hidden edges array
+	  var edge_view = "show-edges";
+          
+          //If user selected edges only has routes - this is the case where edges are hidden. 
+          //So unhide edges now
           if (userEdge.length > 1) {
             userEdge.forEach( function(id) {
-              id = parseInt(id);
-              var addHiddenEdge = 1;
- 
-              //Only add to hidden edges if it  previously didnt exist
-              for (var i = 0; i < hidden_edges.length; i++) {
-	        if (parseInt(hidden_edges[i].id) === id) {
+              if (edges.get(id).color != 'gold') 
+               {
+                 edge_view = "hide-edges";
+                }
+            });    
+          }
+          else {
+            edge_view = "show-edges";
+          }             
+         
+
+          if (edge_view == 'hide-edges') {
+          
+            //Hide all edges for this node and add it to the hidden edges array
+            if (userEdge.length > 1) {
+              userEdge.forEach( function(id) {
+                id = parseInt(id);
+                var addHiddenEdge = 1;
+                //Only add to hidden edges if it  previously didnt exist
+                for (var i = 0; i < hidden_edges.length; i++) {
+	          if (parseInt(hidden_edges[i].id) === id) {
+                    addHiddenEdge = 0;
+                  }
+                }
+
+                //Do not hide routes in this mode. This is only for neighbor edges
+                if (edges.get(id).color === 'gold') {
                   addHiddenEdge = 0;
                 }
-              }
-
-              if (addHiddenEdge) {
-                hidden_edges.push (edges.get(id));
-              }
-              edges.remove(id);
-            });
-            console.log (hidden_edges);
-          } 
+                if (addHiddenEdge) {
+                  hidden_edges.push (edges.get(id));
+                  edges.remove(id);
+                }
+              });
+            } 
+          
           //Get original color of the node
           var node_group = nodes.get(userNode).group;
           var node_color = getNodeColor(node_group);
 
           //Add red border to indicate hidden edges
           nodes.update({id:userNode,color:{background: node_color, border:'red'}});
-      }
+
+          }
       
-      else if (mode == 'show-edges'  ) {
-          var edgeObj;
-          hidden_edges.forEach( function(edgeObj) {
+          else if (edge_view == 'show-edges'  ) {
+      
+            //Go through all elements of hidden edge array and check for edges which have user selected node
+            //If edge found, add edge to network view and remove the edge from the hidden edge array. 
+            for (var i = hidden_edges.length-1; i >= 0 ; i--){ 
+              edgeObj = hidden_edges[i];
               if ( parseInt(edgeObj.from) == userNode || parseInt(edgeObj.to) == userNode) {
-                 var add_edge = {'from':edgeObj.from,'to':edgeObj.to,'label':edgeObj.label,'id':edgeObj.id,'style':'arrow','arrowScaleFactor': .5,};
-                 edges.add(add_edge);
+                //Add to network view
+                edges.add(edgeObj);
+                //Remove edge from the array
+                hidden_edges.splice(i, 1);
               }
-          })
+            }
 
-           //Get original color of the node
-          var node_group = nodes.get(userNode).group;
-          var node_color = getNodeColor(node_group);
+            //Get original color of the node
+            var node_group = nodes.get(userNode).group;
+            var node_color = getNodeColor(node_group);
 
-          //Add red border to indicate hidden edges
-          nodes.update({id:userNode,color:{background: node_color, border:'blue'}});
-
+            //Add red border to indicate hidden edges
+            nodes.update({id:userNode,color:{background: node_color, border:'blue'}});
+          }
       }
 
+      else if (mode == 'toggle-routes'  ) {
+
+
+        //Go through all route edges 
+        routing_edges.forEach( function(edgeObj) {
+          //Check if user selected node is part of to/from of current route edge
+          if ( parseInt(edgeObj.from) == userNode || parseInt(edgeObj.to) == userNode) {
+            
+            //If routing edge isnt already visible - add it to the view
+            if ( edges.get(edgeObj.id) == null) {
+              edges.add(edgeObj);
+            }
+            else {
+              edges.remove(edgeObj);
+            }
+          }
+        })
+      }
 
       
       
@@ -628,7 +715,6 @@ angular.module('DeviceManager.graphController', []).
      widthSelectionMultiplier: 2,
      fontFace: 'verdana',
      fontSize: 14,
-     inheritColor: true,
      color : {
       highlight: 'blue',
       color: 'black',
