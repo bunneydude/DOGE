@@ -12,7 +12,7 @@ void network_init(uint8_t division)
 	networkInfo->numberEntries[NEIGHBOR_ENTRY] = 0;
 	networkInfo->numberEntries[ROUTING_ENTRY] = 0;
 	networkInfo->divisionIndex = division;
-   networkInfo->networkConfig = 0;
+   networkInfo->networkConfig = LQE_UPDATE;
 }
 
 uint8_t network_room_check(enum networkEntryType type)
@@ -81,7 +81,9 @@ uint8_t network_update(uint16_t id, uint8_t LQE, uint8_t radioId, uint8_t networ
   if (type == NEIGHBOR_ENTRY){
     //check if this is a new neighbor
     if (network_has_neighbor(id, &index)){
-      network[index].neighbor.shLQE = 0xFF & LQE;
+      if( (networkInfo->networkConfig) & LQE_UPDATE){
+         network[index].neighbor.shLQE = 0xFF & LQE;
+      }
 #ifdef MSP430
       print_string("Neighbor: ", NONE); print_decimal(id, NEWLINE);
       print_string(", RSSI 0x", NONE); print_hex(network[index].neighbor.shLQE, NEWLINE);

@@ -37,7 +37,7 @@ enum mm_bases{
 	MM_DEVICE_BASE  = MM_PHYSICAL_BAR,
 
 	MM_NETWORK_BASE = MM_DEVICE_BASE + MM_DEVICE_SIZE,
-   MM_PHYSICAL_RW_BAR = MM_NETWORK_BASE,
+   MM_PHYSICAL_RW_BAR = MM_NETWORK_BASE - 1,//last byte in MM_DEVICE is networkConfig...need to reorganize table some so this is more clear
 	MM_PHYSICAL_MAX = MM_NETWORK_BASE + MM_NETWORK_SIZE,
 
 	MM_FUNCTION_BAR = MM_PHYSICAL_MAX, //start of memory-mapped functions
