@@ -77,7 +77,7 @@ class HardwareNode:
     _stateFields = ['all'] + _hardwareState.keys()
     _validSources = ['state', 'hardware']
 
-    def __init__(self, device, nodeID, pipe, master):
+    def __init__(self, device, nodeID, pipe, master, load=True):
         print "Device={0}, pipe={1}".format(device,pipe)
         if(not isinstance(device, Device)): raise Exception("The device argument must be an instance of Node.Device.")
         if(nodeID not in range(1, 2**16)): raise Exception("The nodeID, {0}, must be in the range [1, 65535]".format(nodeID))
@@ -92,8 +92,7 @@ class HardwareNode:
         self._outputs = []
         self._networkTable = None
         self._masterNode = master
-        narray = []
-        rarray = []
+        self._loaded = False
 
         self.add_sensor("neighborCount", "device", 0)
         self.add_sensor("routeCount", "device", 1)
@@ -108,6 +107,13 @@ class HardwareNode:
         else:
             self._primaryRadio = 'edison'
 
+        if(load == True): load_state()
+
+
+    def load_state(self):
+        self._loaded = True
+        narray = []
+        rarray = []
         if(True == config['debug'] == config['debug_test_network']):
             print("Use preloaded network")
             maxNetworkSize = 8
@@ -182,6 +188,7 @@ class HardwareNode:
 
 
     def pull(self, sensorName):
+        if(not self._loaded): raise Exception("Node {0} has not been loaded. Call load_state() on it first".format(self._nodeID))
         if(sensorName.lower() not in self._inputs.keys()): raise Exception("Unknown sensor: {0}. Current sensor list: {1}".format(sensorName.lower(), self._inputs.keys()))
         shID = self._masterNode.get_forward_id(self._nodeID)
         if(shID == -1): raise Exception("Node {0}: No route possible".format(self._nodeID))
@@ -196,6 +203,7 @@ class HardwareNode:
         return self._pipe.rxPacket.size, list(self._pipe.rxPacket.data)
 
     def push(self, sensorName, data):
+        if(not self._loaded): raise Exception("Node {0} has not been loaded. Call load_state() on it first".format(self._nodeID))
         if(sensorName.lower() not in self._inputs.keys()): raise Exception("Unknown sensor: {0}. Current sensor list: {1}".format(sensorName.lower(), self._inputs.keys()))       
         
         shID = self._masterNode.get_forward_id(self._nodeID)
@@ -210,11 +218,13 @@ class HardwareNode:
         return self._pipe.rxPacket.size, list(self._pipe.rxPacket.data)
 
     def get_neighbor_table(self, source='state'):
+        if(not self._loaded): raise Exception("Node {0} has not been loaded. Call load_state() on it first".format(self._nodeID))
         if(source not in self._validSources): raise Exception("The source {0}, must be one of {1}".format(self._validSources))
         return (self._networkTable.get_neighbor_list())
  
     # return an array of node IDs corresponding to single-hop neighbors 
     def get_neighbors(self):
+        if(not self._loaded): raise Exception("Node {0} has not been loaded. Call load_state() on it first".format(self._nodeID))
         nodeIDs = []
         neighborTable = self._networkTable.get_neighbor_list()
         for entry in neighborTable:
@@ -222,6 +232,7 @@ class HardwareNode:
         return(nodeIDs)
 
     def get_routes(self):
+        if(not self._loaded): raise Exception("Node {0} has not been loaded. Call load_state() on it first".format(self._nodeID))
         nodeIDs = []
         routingTable = self._networkTable.get_routing_list()
         for entry in routingTable:
@@ -229,13 +240,16 @@ class HardwareNode:
         return(nodeIDs)
 
     def get_routing_table(self, source='state'):
+        if(not self._loaded): raise Exception("Node {0} has not been loaded. Call load_state() on it first".format(self._nodeID))
         if(source not in self._validSources): raise Exception("The source {0}, must be one of {1}".format(self._validSources))
         return (self._networkTable.get_route_list())
   
     def add_neighbor(self, args={}):
+        if(not self._loaded): raise Exception("Node {0} has not been loaded. Call load_state() on it first".format(self._nodeID))
         self._networkTable._neighborArray.append([args['shNodeID'], args['shLQE'], args['radioID'], args['networkID']])
 
     def add_route(self, destID, shID):
+        if(not self._loaded): raise Exception("Node {0} has not been loaded. Call load_state() on it first".format(self._nodeID))
         print("Error - add_route for HardwareNode not yet implemented")
         return -1
 
@@ -251,10 +265,12 @@ class HardwareNode:
             return 1
 
     def has_neighbor(self, nodeID):
+        if(not self._loaded): raise Exception("Node {0} has not been loaded. Call load_state() on it first".format(self._nodeID))
         neighbors = self.get_neighbors()
         return(nodeID in neighbors)
 
     def has_route(self, nodeID=None):
+        if(not self._loaded): raise Exception("Node {0} has not been loaded. Call load_state() on it first".format(self._nodeID))
         if(nodeID is None): #return True if there's any route, False otherwise
             return (len(self._networkTable._routingArray) > 0)
         else: #check for a specific nodeID
@@ -262,6 +278,7 @@ class HardwareNode:
             return(nodeID in self.get_routes())
 
     def mask_neighbor(self, nodeID=None, action="mask"): # TODO pick a better name for the method
+        if(not self._loaded): raise Exception("Node {0} has not been loaded. Call load_state() on it first".format(self._nodeID))
         maskValues = {'mask':0, 'unmask':254, 'force':255}
         if(action not in maskValues.keys()): raise Exception("The action, {0}, must be one of {1}".format(action, maskValues.keys()))
 
@@ -282,6 +299,7 @@ class HardwareNode:
                 self.update_neighbor_LQE(entry, index)
 
     def update_neighbor_LQE(self, entry, index):
+        if(not self._loaded): raise Exception("Node {0} has not been loaded. Call load_state() on it first".format(self._nodeID))
         print("   Node {0}: update neighbor entry at index {1} to {2}".format(self._nodeID, index, entry))
         self.push("n{0}_{1}".format(index, 2), entry[1])
 

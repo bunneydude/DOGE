@@ -117,7 +117,7 @@ def load_preset_nte_config(pipe, master):
     networkNodes = {}
     for nodeInfo in config['preset_nte_nodes']:
         device = Device(deviceName=nodeInfo['mcu_name'], memoryMapFile=config['config_file_paths']['mm_map_default_profile'])
-        networkNodes[nodeInfo['node_id']] = HardwareNode(device, nodeID = nodeInfo['node_id'], pipe = pipe, master = master)
+        networkNodes[nodeInfo['node_id']] = HardwareNode(device, nodeID = nodeInfo['node_id'], pipe = pipe, master = master, load=False)
     return networkNodes
 
 def rp_setup():
@@ -140,6 +140,7 @@ def rp_setup():
         # Edison will start out with no routes initially. The user must provide this in their file using add_route()
         if(node.get_nodeID() != root.get_nodeID()): #TODO might need a better way to avoid the root node
             root.add_neighbor({'shNodeID':node.get_nodeID(), 'shLQE':1, 'radioID':0, 'networkID':1})
+            node.load_state()
             print("Node {0}: neighbors = {1}, routes = {2}".format(node.get_nodeID(), node.get_neighbor_table(), node.get_routing_table()))
             edisonRP.createNetworkVis(nodes, edges, route_edges, node)
 
