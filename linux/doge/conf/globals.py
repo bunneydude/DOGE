@@ -19,11 +19,11 @@ nte_nodes = [
              {'node_id': 3, 'mcu_name': 'lpc812',      'mm_num': 1},
              {'node_id': 4, 'mcu_name': 'msp430g2553', 'mm_num': 1},
              {'node_id': 5, 'mcu_name': 'msp430g2553', 'mm_num': 1},
-             {'node_id': 6, 'mcu_name': 'msp430g2553', 'mm_num': 1},
-             {'node_id': 7, 'mcu_name': 'lpc812',      'mm_num': 1},
-             {'node_id': 8, 'mcu_name': 'msp430g2553', 'mm_num': 1},
-             {'node_id': 9, 'mcu_name': 'msp430g2553', 'mm_num': 1},
-             {'node_id': 10, 'mcu_name': 'msp430g2553', 'mm_num': 1},
+           #  {'node_id': 6, 'mcu_name': 'msp430g2553', 'mm_num': 1},
+             #{'node_id': 7, 'mcu_name': 'lpc812',      'mm_num': 1},
+             #{'node_id': 8, 'mcu_name': 'msp430g2553', 'mm_num': 1},
+             #{'node_id': 9, 'mcu_name': 'msp430g2553', 'mm_num': 1},
+             #{'node_id': 10, 'mcu_name': 'msp430g2553', 'mm_num': 1},
             ]
 config['preset_nte_nodes'] = nte_nodes
 
