@@ -8,7 +8,7 @@
 #ifndef MAIN_H_
 #define MAIN_H_
 
-#define DOGE_PAYLOAD 7
+#define DOGE_PAYLOAD 32
 
 #define NRF_CE 14
 #define NRF_CSN 7

@@ -1,11 +1,10 @@
+#include <nrf24.h>
 #include <stdint.h>
 #include "proxy_nodeCtrl.h"
 #include <SPI.h>
 #include <AIR430BoostFCC.h>
-//#include <nrf24.h>
-//#include <nRF24L01.h>
+#include <nRF24L01.h>
 #include <protocol.h>
-/*#include <MyRingBuffer.h>*/
 #include <cobs.h>
 #include <platform.h>
 
@@ -37,9 +36,10 @@ uint8_t i = 1;
 uint8_t hbt_output = 0x1;
 uint8_t sendResponse = 0;
 uint16_t e2eSrcID = 0;
+uint8_t radioType=1;
 // -----------------------------------------------------------------------------
 //functions for nRF
-/*
+
 void nrf24_ce_digitalWrite(uint8_t state){
   digitalWrite(RADIO_NRF_CE,state);
 }
@@ -55,17 +55,9 @@ uint8_t spi_transfer(uint8_t tx)
   return rx;
 }
 
-uint8_t nrf_read_timeout(uint16_t timeout){
-  while(timeout-- > 0){
-    delay(1);
-    if(nrf24_dataReady() != 0){
-      return 1;
-    }
-  }
-  return 0;    
-}
-*/
 // Main example
+
+struct radioMethods dogeRadios[MAX_RADIO_NUMBER];
 
 void setup()
 {
@@ -76,6 +68,10 @@ void setup()
   digitalWrite(RADIO_NRF_CSN, HIGH); 
 
   Radio.begin(MY_NODE_ID, CHANNEL_1, POWER_MAX);
+
+  dogeRadios[2].sending = nrf24_isSending;
+  dogeRadios[2].get_data = nrf24_timeoutRead;
+  dogeRadios[2].send_data = nrf24_send;
 
 /*
 #ifdef DUAL_RADIO
@@ -108,20 +104,20 @@ void loop(){
   }
   else{ //forward it
     //This is a hack - if there's time we can make this proper
-    if((rxPacket.hdr.shDst == 7) || (rxPacket.hdr.sdDst >= 9)){
+    if((rxPacket.hdr.shDst == 7) || (rxPacket.hdr.shDst >= 9)){
        radioType = 2; //#TODO change to RADIO_ID_2400 after merge
     }else{
        radioType = 1; //TODO change to RADIO_ID_915
     }
   
     copy_doge_packet(&txPacket, &rxPacket);
-    reliable_transmit();
+    reliable_transmit(radioType);
 
     //Make sure radio is ready to receive
     while (Radio.busy());
 
     // Turn on the receiver and listen for incoming data. Timeout after 1 seconds.
-    if (reliable_receive(TIMEOUT_1000_MS))
+    if (reliable_receive(TIMEOUT_1000_MS, radioType))
     {
       copy_doge_packet(&txPacket, &rxPacket);
       digitalWrite(RED_LED, hbt_output ^= 0x1);

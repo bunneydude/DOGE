@@ -4,6 +4,8 @@
 #include "../protocol/type.h"
 #include "../protocol/protocol.h"
 #include "../packet.h"
+#include "../radios/radios.h"
+#include "../platform/doge_timers.h"
 #ifdef MSP430
 #include <SPI.h>
 #include <AIR430BoostFCC.h>
@@ -25,7 +27,7 @@
 #define RADIO_RX_TIMEOUT (20) //20ms
 #endif
 
-dogeBool reliable_transmit();
-dogeBool reliable_receive(uint16_t timeout);
+dogeBool reliable_transmit(uint8_t radioID);
+dogeBool reliable_receive(uint16_t timeout, uint8_t radioID);
 
 #endif

@@ -45,6 +45,7 @@
 #include "./protocol/protocol.h"
 #include "pwm.h"
 #include "./platform/doge_timers.h"
+#include "./radios/radios.h"
 
 #if defined(__CODE_RED)
 #include <cr_section_macros.h>
@@ -140,7 +141,7 @@ uint8_t spi_transfer(uint8_t tx, uint8_t send_eot)
 }
 
 uint8_t rxData[DOGE_PAYLOAD];
-uint8_t txData[DOGE_PAYLOAD] = {95, 96, 97, 98, 99, 100, 101};
+uint8_t txData[DOGE_PAYLOAD];
 uint8_t nrfAddress[5] = {0xD7,0xD7,0xD7,0xD7,0xD7};
 
 struct Protocol spiProtocol;
@@ -194,6 +195,7 @@ void char_to_RGB(uint8_t input, uint8_t* red, uint8_t* green, uint8_t* blue){
 	}
 }
 
+struct radioMethods dogeRadios[MAX_RADIO_NUMBER];
 
 int main(void)
 {
@@ -234,8 +236,12 @@ int main(void)
 	nrf24_tx_address(nrfAddress);
 	nrf24_rx_address(nrfAddress);
 
+	dogeRadios[2].sending = nrf24_isSending;
+	dogeRadios[2].get_data = nrf24_timeoutRead;
+	dogeRadios[2].send_data = nrf24_send;
+
 	uint8_t hbtState = 0;
-	//uint8_t nodeID = 0x2;
+	uint8_t nodeID = 0x7;
 
 	Protocol_init(&spiProtocol);
 
@@ -255,100 +261,32 @@ uint8_t rtCount = 0;
 
 	gpioSetValue(0, LED_LOCATION, hbtState ^= 0x1);
 	mrtDelay(500);
-	gpioSetValue(0, LED_LOCATION, hbtState ^= 0x1);
-	mrtDelay(500);
-	gpioSetValue(0, LED_LOCATION, hbtState ^= 0x1);
-	mrtDelay(500);
-	gpioSetValue(0, LED_LOCATION, hbtState ^= 0x1);
-	mrtDelay(500);
-	gpioSetValue(0, LED_LOCATION, hbtState ^= 0x1);
-	mrtDelay(500);
-	gpioSetValue(0, LED_LOCATION, hbtState ^= 0x1);
-	mrtDelay(500);
 
-	dogeTimer txTimer         = {0};
 
+	dogeTimer hbtTimer = {0};
+uint8_t i = 0;
 	printf("DOGE node online");
 	while(1)
 	{
-		timer_init(&txTimer, 500);
-		while(!timer_expired(&txTimer));
-		gpioSetValue(0, LED_LOCATION, hbtState ^= 0x1);
-		/*
-		//test code
-		while(!nrf24_dataReady()); //TODO replace w/ IRQ and interrupt handler
-		//nrf24_getData(rxData);
-		gpioSetValue(0, LED_LOCATION, hbtState ^= 0x1);// Toggle heartbeat LED
-		mrtDelay(1);
-		//print_nrf_regs();
-		nrf24_send(txData); //to root node at address 0x1
-		while(nrf24_isSending());
-		nrf24_powerUpRx(); //done transmitting, set back to rx mode
-		rtCount = nrf24_retransmissionCount();
-		mrtDelay(1000);
-		*/
+//		timer_init(&hbtTimer, 500);
+//		while(!timer_expired(&hbtTimer));
+//		gpioSetValue(0, LED_LOCATION, hbtState ^= 0x1);
 
-		/*
-		while(!nrf24_dataReady()); //TODO replace w/ IRQ and interrupt handler
-		nrf24_getData(rxData);
-
-		if(rxData[1] == nodeID){//process packet
-			//gpioSetValue(0, LED_LOCATION, hbtState ^= 0x1);// Toggle heartbeat LED
-
-			//update radio info
-			spiProtocol.dataRegisters[SREG_RSSI] = 0;
-
-			//parse message
-			sendResponse = Protocol_parse_packet(&spiProtocol, &rxData[2], &txData[2]);
-
-
-			if(sendResponse == 1){	//send reply
-				txData[0] = nodeID;
-				txData[1] = rxData[0];
-
-				//send reply
-				nrf24_send(txData); //to root node at address 0x1
-				while(nrf24_isSending());
-
-				nrf24_powerUpRx(); //done transmitting, set back to rx mode
-
-				spiProtocol.dataRegisters[SREG_TEMPERATURE]++;
-				printf("tx0: %d\r\n", txData[0]);
-				printf("tx1: %d\r\n", txData[1]);
-				printf("tx2: %d\r\n", txData[2]);
-				printf("tx3: %d\r\n", txData[3]);
-				printf("tx4: %d\r\n", txData[4]);
-				printf("tx5: %d\r\n", txData[5]);
-				printf("tx6: %d\r\n", txData[6]);
+		if(dogeRadios[2].get_data(rxData, 32, 1000) > 0){
+			gpioSetValue(0, LED_LOCATION, hbtState ^= 0x1);// Toggle heartbeat LED
+			printf("Got:");
+			for(i=0; i<DOGE_PAYLOAD; i++){
+				printf("%d", rxData[i]);
 			}
-
-			printf("resp: %d\r\n\r\n", sendResponse);
-			printf("rx0: %d", rxData[0]);
-			printf("rx1: %d", rxData[1]);
-			printf("rx2: %d", rxData[2]);
-			printf("rx3: %d", rxData[3]);
-			printf("rx4: %d", rxData[4]);
-			printf("rx5: %d", rxData[5]);
-			printf("rx6: %d", rxData[6]);
-
-
-			tempPercent = ((uint32_t)spiProtocol.dataRegisters[SREG_TEMPERATURE] / 255.0)*100;
-			char_to_RGB(tempPercent, &redValue, &greenValue, &blueValue);
-
-			pwm_write(RED_CH, redValue);
-			pwm_write(GREEN_CH, greenValue);
-			pwm_write(BLUE_CH, blueValue);
-
-			printf("T: %d, P: %d ", spiProtocol.dataRegisters[SREG_TEMPERATURE], tempPercent);
-
-			//Update settings
-			//TODO, channel, power, nodeID
-		}else{//else ignore packet; TODO possible routing
-			printf("ID %d\r\n\r\n", rxData[1]);
+			mrtDelay(1);
+			//dogeRadios[2].send_data(DOGE_BROADCAST, txData, DOGE_PAYLOAD);
+			//while(nrf24_isSending());
+			//nrf24_powerUpRx(); //done transmitting, set back to rx mode
+			//rtCount = nrf24_retransmissionCount();
 		}
-		 */
-
-	}//end while(1)
+		mrtDelay(1000);
+	//}
+	}
 }//end main()
 
 void print_nrf_regs(){
