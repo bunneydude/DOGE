@@ -61,10 +61,10 @@ angular.module('DeviceManager.graphController', []).
        var node_y = 0;
        
        //This is Edison  
-       var node = {'group':nodesJsonObj[0].group,'id':JSON.stringify(nodesJsonObj[0].id),'label':JSON.stringify(nodesJsonObj[0].label),'x':200,'y':70};
+       var node = {'group':nodesJsonObj[nodesArrayLength-1].group,'id':JSON.stringify(nodesJsonObj[nodesArrayLength-1].id),'label':JSON.stringify(nodesJsonObj[nodesArrayLength-1].label),'x':200,'y':70};
        nodes.add(node);
  
-       for (var i=1;i < nodesArrayLength; i++){
+       for (var i=0;i < nodesArrayLength-1; i++){
           node = {'group':nodesJsonObj[i].group,'id':JSON.stringify(nodesJsonObj[i].id),'label':JSON.stringify(nodesJsonObj[i].label),'x':node_x,'y':node_y};
          node_x += 200;
          if (node_x == 600) {
