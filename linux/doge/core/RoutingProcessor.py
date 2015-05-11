@@ -28,7 +28,7 @@ class RoutingProcessor():
    self.socket = self.createSocket(port);
    self.network_neighbor_tables = {}
    self.network_routing_tables = {}
-   self.networkNodes = initialNetwork.copy()
+   self.networkNodes = initialNetwork
  
  def createNetworkVis(self,nodes, edges, route_edges, node):
    nodeID = node.get_nodeID()

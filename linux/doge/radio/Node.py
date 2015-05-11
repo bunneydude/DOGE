@@ -183,11 +183,13 @@ class HardwareNode:
 
     def pull(self, sensorName):
         if(sensorName.lower() not in self._inputs.keys()): raise Exception("Unknown sensor: {0}. Current sensor list: {1}".format(sensorName.lower(), self._inputs.keys()))
-       
+        shID = self._masterNode.get_forward_id(self._nodeID)
+        if(shID == -1): raise Exception("Node {0}: No route possible".format(self._nodeID))
+
         returnData = {}
         address = self._device.address(self._inputs[sensorName.lower()]["space"], self._inputs[sensorName.lower()]["offset"])
 
-        self._pipe.proxy_send(destination=self._nodeID, command=ProtocolDefs.CMD_READ_REG, address=address, payload=0, singleHopDest=2)
+        self._pipe.proxy_send(destination=self._nodeID, command=ProtocolDefs.CMD_READ_REG, address=address, payload=0, singleHopDest=shID)
         self._pipe.proxy_receive()
         #print("Pull complete. Got: [header: [{0}], size = {1}, data = {2}]".format(ProtocolDefs.print_structure(self._pipe.rxPacket.hdr), self._pipe.rxPacket.size, list(i for i in self._pipe.rxPacket.data)))
 
@@ -195,10 +197,14 @@ class HardwareNode:
 
     def push(self, sensorName, data):
         if(sensorName.lower() not in self._inputs.keys()): raise Exception("Unknown sensor: {0}. Current sensor list: {1}".format(sensorName.lower(), self._inputs.keys()))       
+        
+        shID = self._masterNode.get_forward_id(self._nodeID)
+        if(shID == -1): raise Exception("Node {0}: No route possible".format(self._nodeID))
+
         returnData = {}
         address = self._device.address(self._inputs[sensorName.lower()]["space"], self._inputs[sensorName.lower()]["offset"])
 
-        self._pipe.proxy_send(destination=self._nodeID, command=ProtocolDefs.CMD_WRITE_REG, address=address, payload=data, singleHopDest=2)
+        self._pipe.proxy_send(destination=self._nodeID, command=ProtocolDefs.CMD_WRITE_REG, address=address, payload=data, singleHopDest=shID)
         self._pipe.proxy_receive()
 
         return self._pipe.rxPacket.size, list(self._pipe.rxPacket.data)
@@ -414,11 +420,10 @@ class VirtualNode:
         neighborEntry, index = self._networkTable.get_neighbor_entry(destID)
         if(len(neighborEntry) != 0):
             if(neighborEntry[1] != 0): return neighborEntry[0] #ignore masked edges
-
         for entry in self.get_routing_table():
             if(entry[0] == destID):
                 nEntry = self.get_neighbor_table()[entry[2]]
-                print("Try to forward through {0}".format(nEntry))
+#                print("Try to forward through {0}, LQE = {1}".format(nEntry, nEntry[1]))
                 if(nEntry[1] != 0): forwardOptions.append([nEntry[0], nEntry[1]]) #ignore masked edges
 
         if(len(forwardOptions) == 0):
@@ -428,6 +433,7 @@ class VirtualNode:
             for pair in forwardOptions[1:]:
                 if(pair[1] > bestOption[1]):
                     bestOption = list(pair)
+#            print("Best option = {0}".format(bestOption[0]))
             return bestOption[0]
         raise Exception("Unhandled execution in get_forward_id for ID {0}".format(destID))
 
