@@ -2,8 +2,8 @@
 #include "../packet.h"
 #include <stddef.h>
 #include "../nodeCtrl.h"
-#include <type.h>
 #include "../platform/serial_c.h"
+#include "type.h"
 
 void copy_bytes(uint8_t* dst, uint8_t* src, uint8_t size)
 {
