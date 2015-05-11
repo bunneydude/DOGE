@@ -10,7 +10,8 @@ src/main.o src/main.d: ../src/main.c \
  ../src/./protocol/../memory_map/memory_map.h \
  ../src/./protocol/../memory_map/../nodeCtrl_errno.h \
  ../src/./protocol/../nodeCtrl_errno.h ../src/./protocol/../packet.h \
- ../src/./protocol/type.h ../src/pwm.h
+ ../src/./protocol/type.h ../src/pwm.h ../src/./platform/doge_timers.h \
+ ../src/./platform/../protocol/type.h ../src/./platform/../mrt.h
 
 /home/bunney/Documents/repos/DOGE/nodes/lpc812/lpc812_nodeCtrl/cmsis/LPC8xx.h:
 
@@ -53,3 +54,9 @@ src/main.o src/main.d: ../src/main.c \
 ../src/./protocol/type.h:
 
 ../src/pwm.h:
+
+../src/./platform/doge_timers.h:
+
+../src/./platform/../protocol/type.h:
+
+../src/./platform/../mrt.h:

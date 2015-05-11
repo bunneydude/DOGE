@@ -10,6 +10,7 @@ RM := rm -rf
 -include sources.mk
 -include src/task/subdir.mk
 -include src/protocol/subdir.mk
+-include src/platform/subdir.mk
 -include src/nrf24/subdir.mk
 -include src/network/subdir.mk
 -include src/memory_map/subdir.mk

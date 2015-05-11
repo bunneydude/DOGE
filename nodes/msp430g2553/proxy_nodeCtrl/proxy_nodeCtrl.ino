@@ -107,6 +107,13 @@ void loop(){
     add_packet_crc(&txPacket);
   }
   else{ //forward it
+    //This is a hack - if there's time we can make this proper
+    if((rxPacket.hdr.shDst == 7) || (rxPacket.hdr.sdDst >= 9)){
+       radioType = 2; //#TODO change to RADIO_ID_2400 after merge
+    }else{
+       radioType = 1; //TODO change to RADIO_ID_915
+    }
+  
     copy_doge_packet(&txPacket, &rxPacket);
     reliable_transmit();
 

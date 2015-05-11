@@ -50,4 +50,7 @@ void MRT_IRQHandler(void);
 void mrtInit(uint32_t delay);
 void mrtDelay(uint32_t ticks);
 
+volatile uint32_t mrt_counter;
+volatile uint32_t doge_counter;
+
 #endif

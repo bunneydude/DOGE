@@ -20,13 +20,17 @@ dogeBool reliable_transmit()
       transmit = FALSE;
       SET_TXINFO_PACKET_ID(txPacket.hdr.txInfo, nextPacketId);
       add_packet_crc(&txPacket);
-      /*print_packet(&txPacket);*/
+#ifdef MSP430
       Radio.transmit(ADDRESS_BROADCAST, (uint8_t*)(&txPacket), RAW_PACKET_TOTAL_SIZE(&txPacket));
       while (Radio.busy());
+#endif
       timer_init(&retryTimer, RETRY_TIMER_INTERVAL);
     }
+#ifdef MSP430
     else if (Radio.receiverOn((uint8_t*)(&rxPacket), MAX_DATA_LENGTH, RADIO_RX_TIMEOUT) > 0){
-      /*print_string("Received packet: ", NONE);*/
+#endif
+    else if (1 > 0){
+    	/*print_string("Received packet: ", NONE);*/
       /*print_packet(&rxPacket);*/
       if (IS_HEADER_TYPE_ACK(rxPacket.hdr.type) &&
           HEADER_TYPE_EQUALS(rxPacket.hdr.type, LINK_LAYER_PACKET) &&

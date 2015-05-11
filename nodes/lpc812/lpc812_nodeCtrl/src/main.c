@@ -44,6 +44,7 @@
 #include "lpc_type.h"
 #include "./protocol/protocol.h"
 #include "pwm.h"
+#include "./platform/doge_timers.h"
 
 #if defined(__CODE_RED)
 #include <cr_section_macros.h>
@@ -265,9 +266,15 @@ uint8_t rtCount = 0;
 	gpioSetValue(0, LED_LOCATION, hbtState ^= 0x1);
 	mrtDelay(500);
 
+	dogeTimer txTimer         = {0};
+
 	printf("DOGE node online");
 	while(1)
 	{
+		timer_init(&txTimer, 500);
+		while(!timer_expired(&txTimer));
+		gpioSetValue(0, LED_LOCATION, hbtState ^= 0x1);
+		/*
 		//test code
 		while(!nrf24_dataReady()); //TODO replace w/ IRQ and interrupt handler
 		//nrf24_getData(rxData);
@@ -277,14 +284,9 @@ uint8_t rtCount = 0;
 		nrf24_send(txData); //to root node at address 0x1
 		while(nrf24_isSending());
 		nrf24_powerUpRx(); //done transmitting, set back to rx mode
-		txData[0]++;
-		txData[6]++;
 		rtCount = nrf24_retransmissionCount();
-		if(rtCount > 0){
-			printf("RT: %d\n\r", rtCount);
-		}
 		mrtDelay(1000);
-
+		*/
 
 		/*
 		while(!nrf24_dataReady()); //TODO replace w/ IRQ and interrupt handler

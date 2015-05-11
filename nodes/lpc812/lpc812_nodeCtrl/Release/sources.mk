@@ -17,6 +17,7 @@ SUBDIRS := \
 src \
 src/task \
 src/protocol \
+src/platform \
 src/nrf24 \
 src/network \
 src/memory_map \
