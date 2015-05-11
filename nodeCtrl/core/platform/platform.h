@@ -38,10 +38,14 @@
 /**@brief Maximum Radio Packet Length */
 #define MAX_DATA_LENGTH 32
 
+/**@brief 433MHz Radio ID */
+#define RADIO_ID_433 (0x0)
 /**@brief 915MHz Radio ID */
 #define RADIO_ID_915 (0x1)
 /**@brief 2.4GHz Radio ID */
 #define RADIO_ID_2400 (0x2)
+/**@brief Radio ID for all frequency bands */
+#define RADIO_ID_ALL (0x4)
 /**@brief Network ID 0 */
 #define NETWORK_ID_0  (0x0)
 /**@brief Network ID 1 */
@@ -55,7 +59,9 @@
 
 #ifdef MSP430
 #include "doge_timers.h"
+#ifdef __cplusplus
 #include "reliable_channel.h"
+#endif /* __cplusplus */
 #endif
 #include "serial_c.h"
 #endif

@@ -2,6 +2,7 @@
 #include <string.h>
 #include "network.h"
 #include "../protocol/type.h"
+#include "../platform/platform.h"
 
 union networkEntry* network;
 struct networkControl* networkInfo;
@@ -34,15 +35,18 @@ dogeBool network_room_check(enum networkEntryType type)
  * @brief Searches the neighbor table for the requested node ID.
  * @param id Node ID to search.
  * @param index Index in the network table if Node ID is found.
+ * @param radioID Radio ID to search.
  * @param includeMasked Include hidden neighbors in the search.
  * @return TRUE for success, FALSE otherwise
  */
-dogeBool network_has_neighbor(uint16_t id, uint8_t* index, dogeBool includeMasked)
+dogeBool network_has_neighbor(uint16_t id, uint8_t* index, uint8_t radioID, dogeBool includeMasked)
 {
    uint8_t i = 0;
    int8_t match = -1;
    for (i = 0; i < networkInfo->numberEntries[NEIGHBOR_ENTRY]; i++){
-      if (id == network[i].neighbor.shNodeID && (includeMasked || network[i].neighbor.shLQE != MASKED_LQE)){
+      if ((id == network[i].neighbor.shNodeID) &&
+          (radioID == RADIO_ID_ALL || network[i].neighbor.radioID == radioID) &&
+          (includeMasked || network[i].neighbor.shLQE != MASKED_LQE)){
          if (match == -1 || (network[i].neighbor.shLQE > network[match].neighbor.shLQE)){
             match = i;
          }
@@ -61,10 +65,11 @@ dogeBool network_has_neighbor(uint16_t id, uint8_t* index, dogeBool includeMaske
  * @brief Searches the routing table for a route to the destination node.
  * @param id Destination Node ID to search.
  * @param index Index in the network table if Node ID is found.
+ * @param radioID Radio ID to search.
  * @param includeMasked Include hidden routes in the search.
  * @return TRUE for success, FALSE otherwise
  */
-dogeBool network_has_route(uint16_t id, uint8_t* index, dogeBool includeMasked)
+dogeBool network_has_route(uint16_t id, uint8_t* index, uint8_t radioID, dogeBool includeMasked)
 {
    uint8_t i = 0;
    uint8_t routeIndex = 0;
@@ -75,11 +80,13 @@ dogeBool network_has_route(uint16_t id, uint8_t* index, dogeBool includeMasked)
       routeIndex = MAX_NETWORK_ENTRIES - 1 - i;
       if (id == network[routeIndex].routing.mhNodeID){
          currNeighborIndex = network[routeIndex].routing.neighborIndex;
-         if(network[currNeighborIndex].neighbor.shLQE == MASKED_LQE && !includeMasked){
+         if((network[currNeighborIndex].neighbor.shLQE == MASKED_LQE && !includeMasked) ||
+            (network[currNeighborIndex].neighbor.radioID != radioID && radioID != RADIO_ID_ALL)){
             continue;
          }
-         if (match == -1)
+         if (match == -1){
             match = routeIndex;
+         }
          else{
             prevNeighborIndex = network[match].routing.neighborIndex;
             if(network[currNeighborIndex].neighbor.shLQE > network[prevNeighborIndex].neighbor.shLQE){
@@ -125,14 +132,14 @@ dogeBool network_insert(union networkEntry* entry, enum networkEntryType type)
    return TRUE;
 }
 
-uint8_t network_update(uint16_t id, uint8_t LQE, uint8_t radioId, uint8_t networkId, enum networkEntryType type)
+uint8_t network_update(uint16_t id, uint8_t LQE, uint8_t radioID, uint8_t networkID, enum networkEntryType type)
 {
    uint8_t index = 0;
    union networkEntry entry;
    uint8_t returnData = 0;
    if (type == NEIGHBOR_ENTRY){
       //check if this is a new neighbor
-      if (network_has_neighbor(id, &index, FALSE)){
+      if (network_has_neighbor(id, &index, radioID, FALSE)){
          if ((networkInfo->networkConfig) & LQE_UPDATE){
             if (LQE == PERFECT_LQE){
                LQE = MAX_LQE;
@@ -147,8 +154,8 @@ uint8_t network_update(uint16_t id, uint8_t LQE, uint8_t radioId, uint8_t networ
       }else{ //make a new entry
          entry.neighbor.shNodeID = id;
          entry.neighbor.shLQE = 0xFF & LQE;
-         entry.neighbor.radioID = radioId;
-         entry.neighbor.networkID = networkId;
+         entry.neighbor.radioID = radioID;
+         entry.neighbor.networkID = networkID;
          returnData = network_insert(&entry, NEIGHBOR_ENTRY); 
          if (returnData == 1){
             print_string("Added neighbor: ", NONE); 

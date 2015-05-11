@@ -79,7 +79,7 @@ void setup()
     NODE_ID_2, TEST_SH_LQE, RADIO_ID_915, NETWORK_ID_0  };
   network_insert((union networkEntry*)&neighborEntry1, NEIGHBOR_ENTRY);
   //Routing Table
-  network_has_neighbor(NODE_ID_2, &index, FALSE); 
+  network_has_neighbor(NODE_ID_2, &index, RADIO_ID_915, FALSE); 
   struct routingEntry routingEntry1 = {
     NODE_ID_3, TEST_MH_LQE, index  };
   network_insert((union networkEntry*)&routingEntry1, ROUTING_ENTRY);
@@ -99,7 +99,7 @@ void setup()
     NODE_ID_2, TEST_SH_LQE, RADIO_ID_915, NETWORK_ID_0  };
   network_insert((union networkEntry*)&neighborEntry1, NEIGHBOR_ENTRY);
   //Routing Table
-  network_has_neighbor(NODE_ID_2, &index, FALSE);
+  network_has_neighbor(NODE_ID_2, &index, RADIO_ID_915, FALSE);
   struct routingEntry routingEntry1 = {
     ROOT_NODE, TEST_MH_LQE, index  };
   network_insert((union networkEntry*)&routingEntry1, ROUTING_ENTRY);
@@ -112,7 +112,7 @@ void setup()
     NODE_ID_2, TEST_SH_LQE, RADIO_ID_915, NETWORK_ID_0  };
   network_insert((union networkEntry*)&neighborEntry1, NEIGHBOR_ENTRY);
   //Routing Table
-  network_has_neighbor(NODE_ID_2, &index, FALSE);
+  network_has_neighbor(NODE_ID_2, &index, RADIO_ID_915, FALSE);
   struct routingEntry routingEntry1 = {
     NODE_ID_3, TEST_MH_LQE, index  };
   struct routingEntry routingEntry2 = {
@@ -128,7 +128,7 @@ void setup()
   network_insert((union networkEntry*)&neighborEntry1, NEIGHBOR_ENTRY);
   network_insert((union networkEntry*)&neighborEntry2, NEIGHBOR_ENTRY);
   //Routing Table
-  network_has_neighbor(NODE_ID_3, &index, FALSE);
+  network_has_neighbor(NODE_ID_3, &index, RADIO_ID_915, FALSE);
   struct routingEntry routingEntry1 = {
     NODE_ID_4, TEST_MH_LQE, index  };
   network_insert((union networkEntry*)&routingEntry1, ROUTING_ENTRY);
@@ -141,7 +141,7 @@ void setup()
   network_insert((union networkEntry*)&neighborEntry1, NEIGHBOR_ENTRY);
   network_insert((union networkEntry*)&neighborEntry2, NEIGHBOR_ENTRY);
   //Routing Table
-  network_has_neighbor(NODE_ID_2, &index, FALSE);
+  network_has_neighbor(NODE_ID_2, &index, RADIO_ID_915, FALSE);
   struct routingEntry routingEntry1 = {
     ROOT_NODE, TEST_MH_LQE, index  };
   network_insert((union networkEntry*)&routingEntry1, ROUTING_ENTRY);
@@ -152,7 +152,7 @@ void setup()
     NODE_ID_3, TEST_SH_LQE, RADIO_ID_915, NETWORK_ID_0  };
   network_insert((union networkEntry*)&neighborEntry1, NEIGHBOR_ENTRY);
   //Routing Table
-  network_has_neighbor(NODE_ID_3, &index, FALSE);
+  network_has_neighbor(NODE_ID_3, &index, RADIO_ID_915, FALSE);
   struct routingEntry routingEntry1 = {
     ROOT_NODE, TEST_MH_LQE, index  };
   struct routingEntry routingEntry2 = {
@@ -218,7 +218,7 @@ void loop()
       else if (MY_NODE_ID == rxPacket.hdr.shDst && MY_NODE_ID != rxPacket.hdr.dst){ //forward message --- This is done by node 2
         //      print_string("Forwarding attempt...", NONE);
         //      print_packet(&rxPacket);
-        if(network_has_neighbor(rxPacket.hdr.dst, &tempIndex, FALSE)){
+        if(network_has_neighbor(rxPacket.hdr.dst, &tempIndex, RADIO_ID_915, FALSE)){
           if (HEADER_TYPE_EQUALS(rxPacket.hdr.type, RAW_PACKET)){
             txAttr.ack = GET_HEADER_TYPE_ACK(rxPacket.hdr.type);
             txAttr.size = RAW_PACKET_DATA_SIZE(&rxPacket);
@@ -231,7 +231,7 @@ void loop()
             //          print_packet(&txPacket);
           }
         }
-        else if (network_has_route(rxPacket.hdr.dst, &tempIndex, FALSE)){
+        else if (network_has_route(rxPacket.hdr.dst, &tempIndex, RADIO_ID_915, FALSE)){
           if (HEADER_TYPE_EQUALS(rxPacket.hdr.type, RAW_PACKET)){
             txAttr.ack = GET_HEADER_TYPE_ACK(rxPacket.hdr.type);
             txAttr.size = RAW_PACKET_DATA_SIZE(&rxPacket);

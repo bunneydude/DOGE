@@ -67,16 +67,16 @@ void init_test_table_1()
    network_insert((union networkEntry*)&neighborEntry3, NEIGHBOR_ENTRY);
    network_insert((union networkEntry*)&neighborEntry4, NEIGHBOR_ENTRY);
    //Routing Table
-   network_has_neighbor(NODE_ID_2, &index, TRUE);
+   network_has_neighbor(NODE_ID_2, &index, RADIO_ID_ALL, TRUE);
    struct routingEntry routingEntry1 = {
       ROOT_NODE, 0x0, index };
-   network_has_neighbor(NODE_ID_5, &index, TRUE);
+   network_has_neighbor(NODE_ID_5, &index, RADIO_ID_ALL, TRUE);
    struct routingEntry routingEntry2 = {
       NODE_ID_4, 0x0, index };
-   network_has_neighbor(NODE_ID_5, &index, TRUE);
+   network_has_neighbor(NODE_ID_5, &index, RADIO_ID_ALL, TRUE);
    struct routingEntry routingEntry3 = {
       NODE_ID_7, 0x0, index };
-   network_has_neighbor(NODE_ID_4, &index, TRUE);
+   network_has_neighbor(NODE_ID_4, &index, RADIO_ID_ALL, TRUE);
    struct routingEntry routingEntry4 = {
       NODE_ID_7, 0x0, index };
    network_insert((union networkEntry*)&routingEntry1, ROUTING_ENTRY);
@@ -94,10 +94,10 @@ void init_test_table_2()
    * neighbor = {shNodeID = 0x4, shLQE = 0xe7, radioID = 0x2, networkID = 0x1},
    * routing = {mhNodeID = 0x7, mhLQE = 0x0, neighborIndex = 0x3},
    * routing = {mhNodeID = 0x7, mhLQE = 0x0, neighborIndex = 0x2},
-   * routing = {mhNodeID = 0x7, mhLQE = 0x0, neighborIndex = 0x0},
-   * routing = {mhNodeID = 0x7, mhLQE = 0x0, neighborIndex = 0x0}
+   * routing = {mhNodeID = 0x7, mhLQE = 0x0, neighborIndex = 0x1},
+   * routing = {mhNodeID = 0x7, mhLQE = 0x0, neighborIndex = 0x0}}
    */
-   uint8_t index;
+   int8_t index;
    network_init(NETWORK_DIVISION_DEFAULT);
    //Neighbor Table
    struct neighborEntry neighborEntry1 = {
@@ -113,20 +113,20 @@ void init_test_table_2()
    //Insert the other neighbors later...
 
    //Routing Table (insert neighbors gradually to get different routes)
-   network_has_neighbor(NODE_ID_4, &index, TRUE);
+   network_has_neighbor(NODE_ID_4, &index, RADIO_ID_915, TRUE);
    struct routingEntry routingEntry1 = {
       NODE_ID_7, 0x0, index };
-   network_has_neighbor(NODE_ID_4, &index, TRUE);
+   network_has_neighbor(NODE_ID_4, &index, RADIO_ID_2400, TRUE);
    struct routingEntry routingEntry2 = {
       NODE_ID_7, 0x0, index };
    network_insert((union networkEntry*)&neighborEntry3, NEIGHBOR_ENTRY);
 
-   network_has_neighbor(NODE_ID_4, &index, TRUE);
+   network_has_neighbor(NODE_ID_4, &index, RADIO_ID_915, TRUE);
    struct routingEntry routingEntry3 = {
       NODE_ID_7, 0x0, index };
    network_insert((union networkEntry*)&neighborEntry4, NEIGHBOR_ENTRY);
 
-   network_has_neighbor(NODE_ID_4, &index, TRUE);
+   network_has_neighbor(NODE_ID_4, &index, RADIO_ID_2400, TRUE);
    struct routingEntry routingEntry4 = {
       NODE_ID_7, 0x0, index };
 
@@ -155,19 +155,19 @@ void main(){
    print_contents();
 
    printf("Orig LQE = %x\n", network[0].neighbor.shLQE);
-   if(network_has_neighbor(NODE_ID_2, &index, FALSE)){
+   if(network_has_neighbor(NODE_ID_2, &index, RADIO_ID_ALL, FALSE)){
       network[index].neighbor.shLQE = 0x5;
    }
    printf("New LQE = %x\n", network[0].neighbor.shLQE);
 
    printf("Orig LQE = %d\n", network[MAX_NETWORK_ENTRIES-1].routing.mhLQE);
-   if(network_has_route(ROOT_NODE, &index, FALSE)){
+   if(network_has_route(ROOT_NODE, &index, RADIO_ID_ALL, FALSE)){
       network[index].routing.mhLQE = 0x6;
    }
    printf("New LQE = %d\n", network[MAX_NETWORK_ENTRIES-1].routing.mhLQE);
 
    /* Test 1 - Make sure checking for a masked neighbor returns FALSE */
-   if (network_has_neighbor(NODE_ID_4, &index, FALSE)){
+   if (network_has_neighbor(NODE_ID_4, &index, RADIO_ID_ALL, FALSE)){
       printf("Test 1 FAILED. NODE_ID_4 is supposed to be masked\n");
    }
    else{
@@ -175,7 +175,7 @@ void main(){
    }
 
    /* Test 2 - Make sure checking for a masked neighbor with includeMasked == TRUE returns TRUE */
-   if (network_has_neighbor(NODE_ID_4, &index, TRUE)){
+   if (network_has_neighbor(NODE_ID_4, &index, RADIO_ID_ALL, TRUE)){
       printf("Test 2 PASSED. NODE_ID_4 is masked, and we detected it.\n");
    }
    else{
@@ -185,7 +185,7 @@ void main(){
    init_test_table_2();
    
    /* Test 3 - Highest LQE entry is selected from the neighbor table */
-   if (network_has_neighbor(NODE_ID_4, &index, FALSE) && index == 0x3){
+   if (network_has_neighbor(NODE_ID_4, &index, RADIO_ID_ALL, FALSE) && index == 0x3){
       printf("Test 3 PASSED. Selected last entry in the neighbor table with the highest LQE. \n");
    }
    else{
@@ -193,7 +193,7 @@ void main(){
    }
    
    /* Test 4 - Highest LQE entry is selected from the routing table */
-   if (network_has_route(NODE_ID_7, &index, FALSE) && index == 0x4){
+   if (network_has_route(NODE_ID_7, &index, RADIO_ID_ALL, FALSE) && index == 0x4){
       printf("Test 4 PASSED. Selected last entry in the routing table with the highest LQE. \n");
    }
    else{
@@ -202,7 +202,7 @@ void main(){
 
    /* Test 5 - Network update does not set masked LQEs. */
    network_update(NODE_ID_4, MASKED_LQE, RADIO_ID_915, NETWORK_ID_0, NEIGHBOR_ENTRY);
-   if(network[3].neighbor.shLQE != MIN_LQE){
+   if(network[2].neighbor.shLQE != MIN_LQE){
       printf("Test 5 FAILED. Network update set a reserved LQE. \n");
    }
    else{
@@ -211,10 +211,26 @@ void main(){
    
    /* Test 6 - Network update does not set perfect LQEs. */
    network_update(NODE_ID_4, PERFECT_LQE, RADIO_ID_915, NETWORK_ID_0, NEIGHBOR_ENTRY);
-   if(network[2].neighbor.shLQE != MAX_LQE){
+   if(network[0].neighbor.shLQE != MAX_LQE){
       printf("Test 6 FAILED. Network update set a reserved LQE. \n");
    }
    else{
       printf("Test 6 PASSED. Network update set MAX LQE for a reserver perfect LQE. \n");
+   }
+
+   /* Test 7 - Network has neighbor returns FALSE for a neighbor on a specific frequency. */
+   if (!network_has_neighbor(NODE_ID_4, &index, RADIO_ID_433, FALSE)){
+      printf("Test 7 PASSED. Network does not have a neighbor on this frequency. \n");
+   }
+   else{
+      printf("Test 7 FAILED. Network should not have a neighbor on this frequency. \n");
+   }
+   
+   /* Test 8 - Network has route returns FALSE for a route on a specific frequency. */
+   if (!network_has_neighbor(NODE_ID_7, &index, RADIO_ID_433, FALSE)){
+      printf("Test 8 PASSED. Network does not have a route on this frequency. \n");
+   }
+   else{
+      printf("Test 8 FAILED. Network should not have a route on this frequency. \n");
    }
 }

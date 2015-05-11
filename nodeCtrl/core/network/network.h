@@ -70,8 +70,8 @@ extern struct networkControl* networkInfo;
 //functions
 
 void network_init(uint8_t division);
-dogeBool network_has_neighbor(uint16_t id, uint8_t* index, dogeBool includeMasked);
-dogeBool network_has_route(uint16_t id, uint8_t* index, dogeBool includeMasked);
+dogeBool network_has_neighbor(uint16_t id, uint8_t* index, uint8_t radioID, dogeBool includeMasked);
+dogeBool network_has_route(uint16_t id, uint8_t* index, uint8_t radioID, dogeBool includeMasked);
 
 //add an entry to network array
 dogeBool network_insert(union networkEntry* entry, enum networkEntryType type);
