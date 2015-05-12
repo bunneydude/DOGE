@@ -51,7 +51,7 @@ uint8_t nrf24_getStatus();
 uint8_t nrf24_rxFifoEmpty();
 
 /* core TX / RX functions */
-uint8_t    nrf24_send(uint8_t channel, uint8_t* value, uint8_t size);
+void    nrf24_send(uint8_t channel, uint8_t* value, uint8_t size);
 void    nrf24_getData(uint8_t* data);
 uint8_t nrf24_timeoutRead(uint8_t* data, uint8_t depSize, uint16_t timeout);
 

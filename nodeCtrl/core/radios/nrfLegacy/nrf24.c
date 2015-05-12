@@ -177,7 +177,7 @@ uint8_t nrf24_retransmissionCount()
 
 // Sends a data package to the default address. Be sure to send the correct
 // amount of bytes as configured as payload on the receiver.
-uint8_t nrf24_send(uint8_t channel, uint8_t* value, uint8_t size)
+void nrf24_send(uint8_t channel, uint8_t* value, uint8_t size)
 {
     /* Go to Standby-I first */
     nrf24_ce_digitalWrite(LOW);
@@ -211,7 +211,7 @@ uint8_t nrf24_send(uint8_t channel, uint8_t* value, uint8_t size)
 
     /* Start the transmission */
     nrf24_ce_digitalWrite(HIGH);
-    return 1;
+
 }
 
 uint8_t nrf24_isSending()
