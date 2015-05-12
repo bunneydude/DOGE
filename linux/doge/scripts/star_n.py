@@ -12,6 +12,18 @@ star_nte = [
              {'node_id': 5, 'mcu_name': 'msp430g2553', 'mm_num': 1},
             ]
 
+demo_nte = [
+             {'node_id': 2, 'mcu_name': 'msp430g2553', 'mm_num': 1},
+             {'node_id': 3, 'mcu_name': 'msp430g2553', 'mm_num': 1},
+             {'node_id': 4, 'mcu_name': 'msp430g2553', 'mm_num': 1},
+             {'node_id': 5, 'mcu_name': 'msp430g2553', 'mm_num': 1},
+             {'node_id': 6, 'mcu_name': 'msp430g2553', 'mm_num': 1},
+             {'node_id': 7, 'mcu_name': 'msp430g2553', 'mm_num': 1},
+             {'node_id': 8, 'mcu_name': 'msp430g2553', 'mm_num': 1},
+             {'node_id': 9, 'mcu_name': 'msp430g2553', 'mm_num': 1},
+             {'node_id': 10, 'mcu_name': 'msp430g2553', 'mm_num': 1},
+	   ]
+
 single_pair = [
              {'node_id': 2, 'mcu_name': 'msp430g2553', 'mm_num': 1},
              {'node_id': 3, 'mcu_name': 'msp430g2553', 'mm_num': 1},
@@ -22,10 +34,10 @@ single_node = [
             ]
 
 
-config['preset_nte_nodes'] = single_node
+config['preset_nte_nodes'] = demo_nte
 
-config['debug'] = False
-config['debug_test_network'] = False
+config['debug'] = True
+config['debug_test_network'] = True
 
 print("In debug mode? {0}".format(config['debug']))
 
