@@ -22,6 +22,9 @@
 //extern "C" {
 //#endif /* __cplusplus */
 
+//Already defined in Energia.h
+#undef LOW 
+#undef HIGH
 #define LOW 0
 #define HIGH 1
 
@@ -30,6 +33,10 @@
 
 #define NRF24_TRANSMISSON_OK 0
 #define NRF24_MESSAGE_LOST   1
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
 
 /* adjustment functions */
 void    nrf24_init();
@@ -63,8 +70,18 @@ void    nrf24_powerUpRx();
 void    nrf24_powerUpTx();
 void    nrf24_powerDown();
 
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
 /* low level interface ... */
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
 uint8_t spi_transfer(uint8_t tx, uint8_t send_eot);
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 void    nrf24_transmitSync(uint8_t* dataout,uint8_t len);
 void    nrf24_transferSync(uint8_t* dataout,uint8_t* datain,uint8_t len);
 void    nrf24_configRegister(uint8_t reg, uint8_t value);
@@ -90,14 +107,27 @@ void    nrf24_writeRegister(uint8_t reg, uint8_t* value, uint8_t len);
  *    - state:1 => Pin HIGH
  *    - state:0 => Pin LOW     */
 /* -------------------------------------------------------------------------- */
-extern void nrf24_ce_digitalWrite(uint8_t state);
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+void nrf24_ce_digitalWrite(uint8_t state);
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 /* -------------------------------------------------------------------------- */
 /* nrf24 CE pin control function
  *    - state:1 => Pin HIGH
  *    - state:0 => Pin LOW     */
 /* -------------------------------------------------------------------------- */
-extern void nrf24_csn_digitalWrite(uint8_t state);
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+void nrf24_csn_digitalWrite(uint8_t state);
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 /* -------------------------------------------------------------------------- */
 /* nrf24 SCK pin control function
@@ -119,8 +149,5 @@ extern void nrf24_csn_digitalWrite(uint8_t state);
 // --------------------------------------------------------------------------
 //extern uint8_t nrf24_miso_digitalRead();
 
-//#ifdef __cplusplus
-//}
-//#endif /* __cplusplus */
 #endif
 
