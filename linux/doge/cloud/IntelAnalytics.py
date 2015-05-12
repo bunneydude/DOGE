@@ -381,4 +381,14 @@ class IntelAnalytics():
     #Submit observation to the cloud
     self.create_observations(g_aid, self.device_id, cid, data,val)
 
+ def pull (self,dataFilter,iotkitJson):
+    # refresh the activation code. It can be used any number of times
+    # in the next 60 minutes to activate devices.
+    ac = self.generate_activation_code(g_aid)
+    component_type = iotkitJson['component_type']
+    component_name =  str(dataFilter['network'])+"-node:"+str(dataFilter['id'])+"-"+component_type
+    cid = self.get_cid(iotkitJson,component_name)
+    
+    #Submit request for [filtered] observations from the cloud
+    return self.get_observations(g_aid, self.device_id, cid)
 

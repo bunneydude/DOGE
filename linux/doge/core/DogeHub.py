@@ -36,6 +36,10 @@ def getLatestNodeData(stream, dataFilter):
 #    return _rawData
     return {}
 
+def getAllNodeData(stream):
+    _rawData = stream.pull('json')
+    return _rawData
+
 '''
 Connect to a data stream from a specified cloud server
    
