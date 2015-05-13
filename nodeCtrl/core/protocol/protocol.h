@@ -5,7 +5,7 @@
 #include "../memory_map/memory_map.h"
 #include "../nodeCtrl_errno.h"
 #include "../packet.h"
-#include <type.h>
+#include "type.h"
 
 #ifdef __cplusplus
 extern "C" {

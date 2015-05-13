@@ -72,6 +72,25 @@ timerType current_time()
    }
    return sample2;
 #endif
+#ifdef __LPC8XX__
+   //test
+   timerType sample1 = doge_counter;
+   timerType sample2 = 0;
+   while(1)
+   {
+      sample2 = sample1;
+      sample1 = doge_counter;
+      if ((sample1 > sample2) && (sample1 - sample2 < THRESHOLD))
+      {
+         break;
+      }
+      else if ((sample2 > sample1) && (sample2-sample1 < THRESHOLD))
+      {
+         break;
+      }
+   }
+   return sample2;
+#endif
 }
 
 void timer_init(dogeTimer* timer, timerType duration)

@@ -4,8 +4,12 @@
 #include "../protocol/type.h"
 #include "../protocol/protocol.h"
 #include "../packet.h"
+#include "../radios/radios.h"
+#include "../platform/doge_timers.h"
+#ifdef MSP430
 #include <SPI.h>
 #include <AIR430BoostFCC.h>
+#endif
 
 #define TIMEOUT_500_MS (12000/2)
 #define TIMEOUT_1000_MS (12000)

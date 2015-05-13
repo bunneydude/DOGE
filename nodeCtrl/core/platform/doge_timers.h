@@ -9,6 +9,9 @@
 #ifdef MSP430
 #include <msp430g2553.h>
 #endif
+#ifdef __LPC8XX__
+#include "../mrt.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -19,7 +22,12 @@ extern "C" {
 #define TIMER_BEGIN(timer)  (((timer)->end)-((timer)->duration))
 #define TIMER_END(timer)    ((timer)->end)
 
+#ifdef MSP430
 typedef uint16_t timerType;
+#endif
+#ifdef __LPC8XX__
+typedef uint32_t timerType;
+#endif
 
 typedef struct
 {
