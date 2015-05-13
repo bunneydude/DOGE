@@ -9,6 +9,8 @@
 #define MAIN_H_
 
 #define DOGE_PAYLOAD 32
+#define MY_NODE_ID 11
+
 
 #define NRF_CE 14
 #define NRF_CSN 7

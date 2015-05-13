@@ -46,6 +46,7 @@ uint8_t nrf_address[5] = {
   0xD7,0xD7,0xD7,0xD7,0xD7};
 uint8_t nrfRXAttempts = 0;
 uint8_t nrfCounter = 0;
+uint8_t ledValue = 0;
 
 struct Protocol spiProtocol;
 uint8_t sendResponse = 0;
@@ -243,15 +244,15 @@ void loop()
     //Make sure radio is ready to receive
     while (Radio.busy());
 #ifdef DUAL_RADIO
-if(nrfCounter > 5){
+if(nrfCounter > 0){
   nrfCounter = 0;
   memset(&txPacket, 0, sizeof(dogePacket));
   memset(&rxPacket, 0, sizeof(dogePacket));
   txAppPacket = (appPacket*)((uint8_t*)&txPacket + RAW_PACKET_DATA_OFFSET);
   rxAppPacket = (appPacket*)((uint8_t*)&rxPacket + RAW_PACKET_DATA_OFFSET);
   //Form a test packet
-  application_form_packet(txAppPacket, &txAttr, CMD_READ_REG, 42, 0, NULL);
-  link_layer_form_packet(&txPacket, &txAttr, RAW_PACKET, MY_NODE_ID, 77, MY_NODE_ID, 77);  
+  application_form_packet(txAppPacket, &txAttr, CMD_WRITE_REG, 4, ledValue++, NULL);
+  link_layer_form_packet(&txPacket, &txAttr, RAW_PACKET, MY_NODE_ID, 11, MY_NODE_ID, 11);  
 
   SPI.begin();
   nrf24_send(0, (uint8_t*)(&txPacket), MAX_DATA_LENGTH);
