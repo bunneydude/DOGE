@@ -35,6 +35,9 @@ typedef struct
 #define PWM_PERIOD (F_CPU)/490 // F_CPU/490
 #define PWM_DUTY(x) ( (unsigned long)x*PWM_PERIOD / (unsigned long)ANALOG_RES )
 
+#define TIMEOUT_500_MS (12000/2)
+#define TIMEOUT_1000_MS (12000)
+
 void setup_timer_hw();
 timerType current_time();
 void timer_init(dogeTimer* timer, timerType duration);

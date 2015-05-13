@@ -55,10 +55,11 @@
 
 // -----------------------------------------------------------------------------
 
-#define MY_NODE_ID NODE_ID_1
+#define MY_NODE_ID NODE_ID_4
 
 #ifdef MSP430
 #include "doge_timers.h"
+#include "doge_gpio.h"
 #ifdef __cplusplus
 #include "reliable_channel.h"
 #endif /* __cplusplus */
