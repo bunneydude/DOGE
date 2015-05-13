@@ -44,7 +44,7 @@
 #define NETWORK_ID_0 (0x0)
 // -----------------------------------------------------------------------------
 
-#define MY_NODE_ID NODE_ID_3
+#define MY_NODE_ID NODE_ID_1
 
 #ifdef MSP430
 #include "doge_timers.h"

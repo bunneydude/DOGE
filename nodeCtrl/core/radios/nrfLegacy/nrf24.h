@@ -16,7 +16,6 @@
 
 #include "nRF24L01.h"
 #include <stdint.h>
-#include <Energia.h>
 
 //#ifdef __cplusplus
 //extern "C" {
