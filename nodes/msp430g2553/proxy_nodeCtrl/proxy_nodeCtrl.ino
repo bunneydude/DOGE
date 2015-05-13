@@ -1,9 +1,11 @@
-#include <nrf24.h>
 #include <stdint.h>
 #include "proxy_nodeCtrl.h"
 #include <SPI.h>
 #include <AIR430BoostFCC.h>
+//#include <nrf24.h>
+//#include <nRF24L01.h>
 #include <protocol.h>
+/*#include <MyRingBuffer.h>*/
 #include <cobs.h>
 #include <platform.h>
 
@@ -35,11 +37,9 @@ uint8_t i = 1;
 uint8_t hbt_output = 0x1;
 uint8_t sendResponse = 0;
 uint16_t e2eSrcID = 0;
-uint8_t radioType=1;
-uint8_t flipAddress = 7;
 // -----------------------------------------------------------------------------
 //functions for nRF
-
+/*
 void nrf24_ce_digitalWrite(uint8_t state){
   digitalWrite(RADIO_NRF_CE,state);
 }
@@ -48,16 +48,24 @@ void nrf24_csn_digitalWrite(uint8_t state){
   digitalWrite(RADIO_NRF_CSN,state);
 }
 
-uint8_t spi_transfer(uint8_t tx, uint8_t send_eot)
+uint8_t spi_transfer(uint8_t tx)
 {
   uint8_t rx = 0;    
   rx = SPI.transfer(tx);
   return rx;
 }
 
+uint8_t nrf_read_timeout(uint16_t timeout){
+  while(timeout-- > 0){
+    delay(1);
+    if(nrf24_dataReady() != 0){
+      return 1;
+    }
+  }
+  return 0;    
+}
+*/
 // Main example
-
-struct radioMethods dogeRadios[MAX_RADIO_NUMBER];
 
 void setup()
 {
@@ -69,30 +77,15 @@ void setup()
 
   Radio.begin(MY_NODE_ID, CHANNEL_1, POWER_MAX);
 
-  dogeRadios[0].sending = Radio.busy;
-  dogeRadios[0].get_data = Radio.receiverOn;
-  dogeRadios[0].send_data = Radio.transmit;
-
-  dogeRadios[1].sending = Radio.busy;
-  dogeRadios[1].get_data = Radio.receiverOn;
-  dogeRadios[1].send_data = Radio.transmit;
-
-  dogeRadios[2].sending = nrf24_isSending;
-  dogeRadios[2].get_data = nrf24_timeoutRead;
-  dogeRadios[2].send_data = nrf24_send;
-
-  dogeRadios[3].sending = Radio.busy;
-  dogeRadios[3].get_data = Radio.receiverOn;
-  dogeRadios[3].send_data = Radio.transmit;
-  
+/*
 #ifdef DUAL_RADIO
   SPI.begin(); 
   nrf24_init();
-  nrf24_config(2, MAX_DATA_LENGTH);
+  nrf24_config(2, DATA_LENGTH);
   nrf24_tx_address(nrf_address);
   nrf24_rx_address(nrf_address);  
 #endif
-
+*/
   Serial.begin(9600);
 
   pinMode(RED_LED, OUTPUT);
@@ -106,34 +99,22 @@ void setup()
 
 void loop(){
 
-//  while(serial_receive((uint8_t*)(&rxPacket)) == 0); //wait for data
-  application_form_packet(rxAppPacket, &rxAttr, CMD_ACK, 42, 89, NULL);
-  link_layer_form_packet(&rxPacket, &rxAttr, RAW_PACKET, MY_NODE_ID, flipAddress, MY_NODE_ID, flipAddress); 
-  add_packet_crc(&rxPacket);
-      
+  while(serial_receive((uint8_t*)(&rxPacket)) == 0); //wait for data
+
   if(rxPacket.hdr.dst == MY_NODE_ID){ //ACK back same address and data
     application_form_packet(txAppPacket, &txAttr, CMD_ACK, rxAppPacket->addr, rxAppPacket->data, NULL);
     link_layer_form_packet(&txPacket, &txAttr, RAW_PACKET, MY_NODE_ID, rxPacket.hdr.src, MY_NODE_ID, rxPacket.hdr.shSrc);  
     add_packet_crc(&txPacket);
   }
   else{ //forward it
-    //This is a hack - if there's time we can make this proper
-    if((rxPacket.hdr.shDst == 7) || (rxPacket.hdr.shDst >= 9)){
-       radioType = 2; //#TODO change to RADIO_ID_2400 after merge
-       flipAddress = 3;
-    }else{
-       radioType = 1; //TODO change to RADIO_ID_915
-       flipAddress = 7;
-    }
-  
     copy_doge_packet(&txPacket, &rxPacket);
-    reliable_transmit(radioType);
+    reliable_transmit();
 
     //Make sure radio is ready to receive
-    while (dogeRadios[radioType].sending());
+    while (Radio.busy());
 
     // Turn on the receiver and listen for incoming data. Timeout after 1 seconds.
-    if (reliable_receive(TIMEOUT_1000_MS, radioType))
+    if (reliable_receive(TIMEOUT_1000_MS))
     {
       copy_doge_packet(&txPacket, &rxPacket);
       digitalWrite(RED_LED, hbt_output ^= 0x1);
@@ -144,8 +125,7 @@ void loop(){
       add_packet_crc(&txPacket);
     }
   }//end forward
-//  serial_transmit((uint8_t*)(&txPacket), RAW_PACKET_TOTAL_SIZE(&txPacket), 1);
-delay(1000);
+  serial_transmit((uint8_t*)(&txPacket), RAW_PACKET_TOTAL_SIZE(&txPacket), 1);
 }//end main loop
 
 
