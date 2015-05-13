@@ -11,7 +11,7 @@ class RadioInterface():
    _nodeID = 1
    _logLevel = 1
 
-   def __init__(self, name, nodeID, debug=False, logLevel=1):
+   def __init__(self, name, nodeID, debug=False, logLevel=2):
       if(not isinstance(name, str)): raise Exception("The name must be a string")
       if(nodeID < 0 or nodeID > 255): raise Exception("The nodeID, {0}, must be in the range [0,255]".format(nodeID))
       if(logLevel not in range(1,4)): raise Exception("The log level must be in the range [1,3]")
@@ -47,7 +47,7 @@ class RadioInterface():
       self.txData = Protocol.form_packet(type=ProtocolDefs.RAW_PACKET, srcID=self._nodeID, dstID=destination, shSrcID=self._nodeID, shDstID=singleHopDest, cmd=command, addr=address, data=payload, bytes=cbytes, enc='bytes')
       if self._logLevel >= 2: #print("   About to send: {0}".format(list(ord(x) for x in self.txData)))
          txPacket = Protocol.parse_packet(self.txData)
-         #print("About to send: [header: [{0}], size = {1}, data = {2}]".format(ProtocolDefs.print_structure(txPacket.hdr), txPacket.size, list(i for i in txPacket.data)))
+         print("About to send: [header: [{0}], size = {1}, data = {2}]".format(ProtocolDefs.print_structure(txPacket.hdr), txPacket.size, list(i for i in txPacket.data)))
 
       encData = cobs.encode(''.join(self.txData))
 #      print("   Encoded: {0}".format(list(encData)))

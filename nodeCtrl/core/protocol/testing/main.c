@@ -24,9 +24,6 @@
 #define TEST_PACKET_DATA    0xDA
 #define TEST_HEADER_TYPE RAW_PACKET
 
-#define RADIO_ID_915 (0x1)
-#define NETWORK_ID_0 (0x0)
-
 #define TEST_CMD_READ_REG_ADDR 0x2
 
 static void test_raw_packet();

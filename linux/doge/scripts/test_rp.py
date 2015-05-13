@@ -1,6 +1,7 @@
 from doge.core.RoutingProcessor import RoutingProcessor
 import json
 
+raise Exception("This file is now incompatible with createNetworkVis. star_n.py or demo_grid.py might be more suitable")
 
 edges =[]
 nodes =[]

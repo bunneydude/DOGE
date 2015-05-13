@@ -4,8 +4,8 @@
 # Energia libraries directory.
 
 #Energia libraries directory
-ENERGIA_LIB_DIR=/home/bunney/Documents/energia_sketchbook/libraries/
-#/c/Users/Mario/Documents/Energia/libraries
+ENERGIA_LIB_DIR=/c/Users/Mario/Documents/Energia/libraries
+
 
 RUNENV=$(uname -o)
 
@@ -13,6 +13,12 @@ if [[ $RUNENV == "Cygwin" ]]
   then
     echo "Please make sure this cygwin shell is run with administrator privileges."
     export CYGWIN=winsymlinks:native
+fi
+
+if [[ ! -e "$ENERGIA_LIB_DIR" ]]
+  then
+    echo "ERROR: ENERGIA_LIB_DIR does not exist"
+    exit 1
 fi
 
 if [[ "$1" == "clean" ]]
@@ -92,6 +98,8 @@ ln -s $PWD/nodeCtrl/core/platform/serial_c.h                 $ENERGIA_LIB_DIR/pl
 ln -s $PWD/nodeCtrl/core/platform/serial_c.cpp               $ENERGIA_LIB_DIR/platform/serial_c.cpp
 ln -s $PWD/nodeCtrl/core/platform/reliable_channel.h         $ENERGIA_LIB_DIR/platform/reliable_channel.h
 ln -s $PWD/nodeCtrl/core/platform/reliable_channel.cpp       $ENERGIA_LIB_DIR/platform/reliable_channel.cpp
+ln -s $PWD/nodeCtrl/core/platform/doge_gpio.h                $ENERGIA_LIB_DIR/platform/doge_gpio.h
+ln -s $PWD/nodeCtrl/core/platform/doge_gpio.cpp              $ENERGIA_LIB_DIR/platform/doge_gpio.cpp
 ln -s $PWD/nodeCtrl/core/platform/doge_timers.h              $ENERGIA_LIB_DIR/platform/doge_timers.h
 ln -s $PWD/nodeCtrl/core/platform/doge_timers.c              $ENERGIA_LIB_DIR/platform/doge_timers.c
 ln -s $PWD/nodeCtrl/core/platform/platform.h                 $ENERGIA_LIB_DIR/platform/platform.h

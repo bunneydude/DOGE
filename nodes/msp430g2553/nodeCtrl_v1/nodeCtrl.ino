@@ -57,14 +57,15 @@ void setup()
 
 void loop()
 {  
+    toggle_led(FALSE);
+
   //Make sure radio is ready to receive
   while (Radio.busy());
 
-  // Turn on the receiver and listen for incoming data. Timeout after 1000ms.
-  if (reliable_receive(TIMEOUT_1000_MS)){
+    // Turn on the receiver and listen for incoming data. Timeout after 500ms.
+    if (reliable_receive(TIMEOUT_500_MS)){
     if(MY_NODE_ID == rxPacket.hdr.dst && MY_NODE_ID == rxPacket.hdr.shDst){ //parse message
-      digitalWrite(RED_LED, hbt_output ^= 0x1);
-      //parse message
+      toggle_led(TRUE);
       sendResponse = link_layer_parse_packet(&spiProtocol, &rxPacket, &txPacket);
       //update neighbor table
       network_update(rxPacket.hdr.shSrc, Radio.getRssi(), RADIO_ID_915, NETWORK_ID_0, NEIGHBOR_ENTRY);
@@ -75,8 +76,9 @@ void loop()
       }
     }
     else if (MY_NODE_ID == rxPacket.hdr.shDst && MY_NODE_ID != rxPacket.hdr.dst){
-      if(network_has_neighbor(rxPacket.hdr.dst, &tempIndex)){
+      if(network_has_neighbor(rxPacket.hdr.dst, &tempIndex, RADIO_ID_915, FALSE)){
         if (HEADER_TYPE_EQUALS(rxPacket.hdr.type, RAW_PACKET)){
+          toggle_led(TRUE);
           txAttr.ack = GET_HEADER_TYPE_ACK(rxPacket.hdr.type);
           txAttr.size = RAW_PACKET_DATA_SIZE(&rxPacket);
           copy_raw_packet_data((rawPacket*)&txPacket, (rawPacket*)&rxPacket);
@@ -86,8 +88,9 @@ void loop()
           reliable_transmit();
         }
       }
-      else if (network_has_route(rxPacket.hdr.dst, &tempIndex)){
+      else if (network_has_route(rxPacket.hdr.dst, &tempIndex, RADIO_ID_915, FALSE)){
         if (HEADER_TYPE_EQUALS(rxPacket.hdr.type, RAW_PACKET)){
+          toggle_led(TRUE);
           txAttr.ack = GET_HEADER_TYPE_ACK(rxPacket.hdr.type);
           txAttr.size = RAW_PACKET_DATA_SIZE(&rxPacket);
           copy_raw_packet_data((rawPacket*)&txPacket, (rawPacket*)&rxPacket);

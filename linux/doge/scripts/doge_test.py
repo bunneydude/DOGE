@@ -7,7 +7,8 @@ import sys
 #Returns virtual node 
 #edison_root = connect_sketch()
 
-rp_run()
+socket, rp, rootNode = rp_setup()
+rp_run(socket, rp)
 
 #neighbors = edison.get_neighbors(0)
 #neighbor_table_array = edison.get_neighbor_table(0)

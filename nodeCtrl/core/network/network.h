@@ -6,6 +6,7 @@
 #include "../routing/routing.h"
 #include "../memory_map/memory_map.h"
 #include "../platform/serial_c.h"
+#include "../protocol/type.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -16,22 +17,27 @@ extern "C" {
 //neighbor entries allowed in range [0, division)
 //routing entries allowed in range [division, MAX_NETWORK_ENTRIES)
 
+#define MASKED_LQE (0x00)
+#define PERFECT_LQE (0xFF)
+#define MAX_LQE (PERFECT_LQE - 1)
+#define MIN_LQE (MASKED_LQE + 1)
+
 //TODO add preprocessor check for <255
 
 enum networkEntryType{
-	NEIGHBOR_ENTRY = 0,
-	ROUTING_ENTRY = 1,
+   NEIGHBOR_ENTRY = 0,
+   ROUTING_ENTRY = 1,
 };
 
 union networkEntry{
-	struct neighborEntry neighbor;
-	struct routingEntry routing;
+   struct neighborEntry neighbor;
+   struct routingEntry routing;
 };
 
 //Stores the current number of neighbor entries and routing entries in the network array
 struct networkControl{
-	uint8_t numberEntries[2]; //0 is neighbors, 1 is routing
-	uint8_t divisionIndex; //a neighbor entry can't be inserted at or above this index; a routing entry can't be inserted lower than this index
+   uint8_t numberEntries[2]; //0 is neighbors, 1 is routing
+   uint8_t divisionIndex; //a neighbor entry can't be inserted at or above this index; a routing entry can't be inserted lower than this index
    uint8_t networkConfig;
 };
 
@@ -64,11 +70,11 @@ extern struct networkControl* networkInfo;
 //functions
 
 void network_init(uint8_t division);
-uint8_t network_has_neighbor(uint16_t id, uint8_t* index);
-uint8_t network_has_route(uint16_t id, uint8_t* index);
+dogeBool network_has_neighbor(uint16_t id, uint8_t* index, uint8_t radioID, dogeBool includeMasked);
+dogeBool network_has_route(uint16_t id, uint8_t* index, uint8_t radioID, dogeBool includeMasked);
 
 //add an entry to network array
-uint8_t network_insert(union networkEntry* entry, enum networkEntryType type);
+dogeBool network_insert(union networkEntry* entry, enum networkEntryType type);
 uint8_t network_update(uint16_t id, uint8_t LQE, uint8_t radioId, uint8_t networkId, enum networkEntryType type);
 
 //remove entry

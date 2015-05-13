@@ -77,11 +77,12 @@ class HardwareNode:
     _stateFields = ['all'] + _hardwareState.keys()
     _validSources = ['state', 'hardware']
 
-    def __init__(self, device, nodeID, pipe):
+    def __init__(self, device, nodeID, pipe, master, load=True):
         print "Device={0}, pipe={1}".format(device,pipe)
         if(not isinstance(device, Device)): raise Exception("The device argument must be an instance of Node.Device.")
         if(nodeID not in range(1, 2**16)): raise Exception("The nodeID, {0}, must be in the range [1, 65535]".format(nodeID))
         if(not isinstance(pipe, RadioInterface.RadioInterface)): raise Exception("The device argument must be an instance of Node.Device.")
+        if(not isinstance(master, VirtualNode)): raise Exception("The master node must be an instance of VirtualNode.")
 
         self._device = device
         self._nodeID = nodeID
@@ -90,14 +91,29 @@ class HardwareNode:
         self._inputs = {}
         self._outputs = []
         self._networkTable = None
-        narray = []
-        rarray = []
+        self._masterNode = master
+        self._loaded = False
 
         self.add_sensor("neighborCount", "device", 0)
         self.add_sensor("routeCount", "device", 1)
         self.add_sensor("divisionIndex", "device", 2)
         self.add_sensor("networkConfig", "device", 3)
 
+        #TODO determine this from reading a TBD field in memory map
+        if(self._device._deviceName.lower() == 'msp430g2553'):
+            self._primaryRadio = '915mhz'
+        elif(self._device._deviceName.lower() == 'lpc812'):
+            self._primaryRadio = '2.4ghz'
+        else:
+            self._primaryRadio = 'edison'
+
+        if(load == True): load_state()
+
+
+    def load_state(self):
+        self._loaded = True
+        narray = []
+        rarray = []
         if(True == config['debug'] == config['debug_test_network']):
             print("Use preloaded network")
             maxNetworkSize = 8
@@ -166,6 +182,9 @@ class HardwareNode:
     def get_nodeID(self):
         return self._nodeID
 
+    def get_radio(self):
+        return self._primaryRadio
+
     # field - which state to commit
     # force - if False, first check to see if the state needs to be updated. Otherwise always update
     def commit(self, field='all', force=False):
@@ -196,33 +215,43 @@ class HardwareNode:
 
 
     def pull(self, sensorName):
+        if(not self._loaded): raise Exception("Node {0} has not been loaded. Call load_state() on it first".format(self._nodeID))
         if(sensorName.lower() not in self._inputs.keys()): raise Exception("Unknown sensor: {0}. Current sensor list: {1}".format(sensorName.lower(), self._inputs.keys()))
-       
+        shID = self._masterNode.get_forward_id(self._nodeID)
+        if(shID == -1): raise Exception("Node {0}: No route possible".format(self._nodeID))
+
         returnData = {}
         address = self._device.address(self._inputs[sensorName.lower()]["space"], self._inputs[sensorName.lower()]["offset"])
 
-        self._pipe.proxy_send(destination=self._nodeID, command=ProtocolDefs.CMD_READ_REG, address=address, payload=0, singleHopDest=2)
+        self._pipe.proxy_send(destination=self._nodeID, command=ProtocolDefs.CMD_READ_REG, address=address, payload=0, singleHopDest=shID)
         self._pipe.proxy_receive()
         #print("Pull complete. Got: [header: [{0}], size = {1}, data = {2}]".format(ProtocolDefs.print_structure(self._pipe.rxPacket.hdr), self._pipe.rxPacket.size, list(i for i in self._pipe.rxPacket.data)))
 
         return self._pipe.rxPacket.size, list(self._pipe.rxPacket.data)
 
     def push(self, sensorName, data):
+        if(not self._loaded): raise Exception("Node {0} has not been loaded. Call load_state() on it first".format(self._nodeID))
         if(sensorName.lower() not in self._inputs.keys()): raise Exception("Unknown sensor: {0}. Current sensor list: {1}".format(sensorName.lower(), self._inputs.keys()))       
+        
+        shID = self._masterNode.get_forward_id(self._nodeID)
+        if(shID == -1): raise Exception("Node {0}: No route possible".format(self._nodeID))
+
         returnData = {}
         address = self._device.address(self._inputs[sensorName.lower()]["space"], self._inputs[sensorName.lower()]["offset"])
 
-        self._pipe.proxy_send(destination=self._nodeID, command=ProtocolDefs.CMD_WRITE_REG, address=address, payload=data, singleHopDest=2)
+        self._pipe.proxy_send(destination=self._nodeID, command=ProtocolDefs.CMD_WRITE_REG, address=address, payload=data, singleHopDest=shID)
         self._pipe.proxy_receive()
 
         return self._pipe.rxPacket.size, list(self._pipe.rxPacket.data)
 
     def get_neighbor_table(self, source='state'):
+        if(not self._loaded): raise Exception("Node {0} has not been loaded. Call load_state() on it first".format(self._nodeID))
         if(source not in self._validSources): raise Exception("The source {0}, must be one of {1}".format(self._validSources))
         return (self._networkTable.get_neighbor_list())
  
     # return an array of node IDs corresponding to single-hop neighbors 
     def get_neighbors(self):
+        if(not self._loaded): raise Exception("Node {0} has not been loaded. Call load_state() on it first".format(self._nodeID))
         nodeIDs = []
         neighborTable = self._networkTable.get_neighbor_list()
         for entry in neighborTable:
@@ -230,6 +259,7 @@ class HardwareNode:
         return(nodeIDs)
 
     def get_routes(self):
+        if(not self._loaded): raise Exception("Node {0} has not been loaded. Call load_state() on it first".format(self._nodeID))
         nodeIDs = []
         routingTable = self._networkTable.get_routing_list()
         for entry in routingTable:
@@ -237,20 +267,37 @@ class HardwareNode:
         return(nodeIDs)
 
     def get_routing_table(self, source='state'):
+        if(not self._loaded): raise Exception("Node {0} has not been loaded. Call load_state() on it first".format(self._nodeID))
         if(source not in self._validSources): raise Exception("The source {0}, must be one of {1}".format(self._validSources))
         return (self._networkTable.get_route_list())
   
     def add_neighbor(self, args={}):
+        if(not self._loaded): raise Exception("Node {0} has not been loaded. Call load_state() on it first".format(self._nodeID))
         self._networkTable._neighborArray.append([args['shNodeID'], args['shLQE'], args['radioID'], args['networkID']])
 
-    def add_route(self, args={}):
-        self._networkTable._routingArray.append([args['mhNodeID'], args['mhLQE'], args['neighborIndex']])
+    def add_route(self, destID, shID):
+        if(not self._loaded): raise Exception("Node {0} has not been loaded. Call load_state() on it first".format(self._nodeID))
+        print("Error - add_route for HardwareNode not yet implemented")
+        return -1
+
+        if(destID not in range(1, 2**16)): raise Exception("The specified destID, {0}, must be in the range [1, 65535]".format(destID))
+        if(shID not in range(1, 2**16)): raise Exception("The specified shID, {0}, must be in the range [1, 65535]".format(shID))
+      
+        entry, index = self._networkTable.get_neighbor_entry(shID)
+        if(len(entry) == 0):
+            print("Error - Node {0}: Tried to add route to node {1}, but single-hop node {2} isn't a neighbor".format(self._nodeID, destID, shID))
+            return -1
+        else:
+            self._networkTable._routingArray.append([destID, 254, index])
+            return 1
 
     def has_neighbor(self, nodeID):
+        if(not self._loaded): raise Exception("Node {0} has not been loaded. Call load_state() on it first".format(self._nodeID))
         neighbors = self.get_neighbors()
         return(nodeID in neighbors)
 
     def has_route(self, nodeID=None):
+        if(not self._loaded): raise Exception("Node {0} has not been loaded. Call load_state() on it first".format(self._nodeID))
         if(nodeID is None): #return True if there's any route, False otherwise
             return (len(self._networkTable._routingArray) > 0)
         else: #check for a specific nodeID
@@ -258,14 +305,15 @@ class HardwareNode:
             return(nodeID in self.get_routes())
 
     def mask_neighbor(self, nodeID=None, action="mask"): # TODO pick a better name for the method
-        maskValues = {'mask':255, 'unmask':1}
-        if(action not in ["mask", "unmask"]): raise Exception("The action, {0}, must be either 'mask' or 'unmask'".format(action))
+        if(not self._loaded): raise Exception("Node {0} has not been loaded. Call load_state() on it first".format(self._nodeID))
+        maskValues = {'mask':0, 'unmask':254, 'force':255}
+        if(action not in maskValues.keys()): raise Exception("The action, {0}, must be one of {1}".format(action, maskValues.keys()))
 
-        if nodeID is None: #mask all entries
+        if nodeID is None: # operate on all entries
             for entry in self._networkTable._neighborArray: #FIXME breaking abstraction/protection rules here...
-                print("   Masked edge from node {0} to node {1}".format(self._nodeID, entry[0]))
+                print("   Set LQE in edge from node {0} to node {1}".format(self._nodeID, entry[0]))
                 entry[1] = maskValues[action]
-                self.update_neighbor_entry(entry, self._networkTable._neighborArray.index(entry))
+                self.update_neighbor_LQE(entry, self._networkTable._neighborArray.index(entry))
         else:
             if(nodeID not in range(1, 2**16)): raise Exception("The specified nodeID, {0}, must be in the range [1, 65535]".format(nodeID))
             entry, index = self._networkTable.get_neighbor_entry(nodeID)
@@ -273,13 +321,14 @@ class HardwareNode:
                 print("Error: could not find node {0} in node {1}'s neighbor table.".format(nodeID, self._nodeID))
                 print("   Neighbor table = {0}".format(self._networkTable.get_neighbor_list()))
             else:
-                print("   Masked the edge from node {0} to node {1}".format(self._nodeID, nodeID))
+                print("   Set LQE in edge from node {0} to node {1}".format(self._nodeID, nodeID))
                 entry[1] = maskValues[action]
-                self.update_neighbor_entry(entry, index)
+                self.update_neighbor_LQE(entry, index)
 
-    def update_neighbor_entry(self, entry, index):
+    def update_neighbor_LQE(self, entry, index):
+        if(not self._loaded): raise Exception("Node {0} has not been loaded. Call load_state() on it first".format(self._nodeID))
         print("   Node {0}: update neighbor entry at index {1} to {2}".format(self._nodeID, index, entry))
-        self.push("n{0}_{1}".format(index, 2), 255)
+        self.push("n{0}_{1}".format(index, 2), entry[1])
 
     # returns neighborArray, routingArray, max network size, max neighbors, max routes
     def read_network_state(self):        
@@ -288,7 +337,7 @@ class HardwareNode:
         maxNetworkSize = size/4
         print("Node {0}: max network size = {1}".format(self._nodeID, maxNetworkSize))
 
-	networkState = {"neighborCount":0, "routeCount":0, "divisionIndex":maxNetworkSize/2, "networkConfig":0}
+        networkState = {"neighborCount":0, "routeCount":0, "divisionIndex":maxNetworkSize/2, "networkConfig":0}
         for field in networkState.keys():
             size, data = self.pull(field)
             if((data[0] == 3) and (size != 0)):
@@ -314,7 +363,7 @@ class HardwareNode:
                 if((data[0] == 3) and (size != 0)):
                     entry.append(data[2])
                 else:
-                    entry.append(255)
+                    entry.append(0)
             neighborArray.append(entry)
 
         for index in range(0, networkState["routeCount"]):
@@ -325,7 +374,7 @@ class HardwareNode:
                 if((data[0] == 3) and (size != 0)):
                     entry.append(data[2])
                 else:
-                    entry.append(255)
+                    entry.append(0)
             routingArray.append(entry)
 
         print("   Node {0}: neighbors = {1}, routes = {2}".format(self._nodeID, neighborArray, routingArray))
@@ -346,14 +395,17 @@ class VirtualNode:
  
         self._name = name + '-' + str(nodeID)
         self._nodeID = nodeID
+        self._primaryRadio = 'edison'
         
-        narray = [] #self.load_preset_nte_config()
+        narray = []
         rarray = [] 
         self._networkTable = NetworkTable(narray, rarray, maxNetworkSize=255, maxNeighbors=128, maxRoutes=128) #virtual nodes have 'infinite' memory for now
    
     def get_nodeID(self):
         return self._nodeID
  
+    def get_radio(self):
+        return self._primaryRadio
 
     def get_neighbors(self):
         nodeIDs = []
@@ -378,8 +430,17 @@ class VirtualNode:
     def add_neighbor(self, args={}):
         self._networkTable._neighborArray.append([args['shNodeID'], args['shLQE'], args['radioID'], args['networkID']])
 
-    def add_route(self, args={}):
-        self._networkTable._routingArray.append([args['mhNodeID'], args['mhLQE'], args['neighborIndex']])
+    def add_route(self, destID, shID):
+        if(destID not in range(1, 2**16)): raise Exception("The specified destID, {0}, must be in the range [1, 65535]".format(destID))
+        if(shID not in range(1, 2**16)): raise Exception("The specified shID, {0}, must be in the range [1, 65535]".format(shID))
+      
+        entry, index = self._networkTable.get_neighbor_entry(shID)
+        if(len(entry) == 0):
+            print("Error - Node {0}: Tried to add route to node {1}, but single-hop node {2} isn't a neighbor".format(self._nodeID, destID, shID))
+            return -1
+        else:
+            self._networkTable._routingArray.append([destID, 254, index])
+            return 1
    
     def has_neighbor(self, nodeID):
         if(nodeID not in range(1, 2**16)): raise Exception("The specified nodeID, {0}, must be in the range [1, 65535]".format(nodeID))
@@ -391,11 +452,41 @@ class VirtualNode:
         else: #check for a specific nodeID
             if(nodeID not in range(1, 2**16)): raise Exception("The specified nodeID, {0}, must be in the range [1, 65535]".format(nodeID))            
             return(nodeID in self.get_routes())
+    
+    #returns the single-hop node ID to forward a packet
+    # if there is no route possible, returns -1
+    # assuming no reserved LQEs, a neighbor entry beats a routing entry
+    def get_forward_id(self, destID):
+        if(destID not in range(1, 2**16)): raise Exception("The specified destID, {0}, must be in the range [1, 65535]".format(destID))
+
+        forwardOptions = [] #entries are arrays w/ (nodeID, LQE)
+        routingEntries = []
+
+        neighborEntry, index = self._networkTable.get_neighbor_entry(destID)
+        if(len(neighborEntry) != 0):
+            if(neighborEntry[1] != 0): return neighborEntry[0] #ignore masked edges
+        for entry in self.get_routing_table():
+            if(entry[0] == destID):
+                nEntry = self.get_neighbor_table()[entry[2]]
+#                print("Try to forward through {0}, LQE = {1}".format(nEntry, nEntry[1]))
+                if(nEntry[1] != 0): forwardOptions.append([nEntry[0], nEntry[1]]) #ignore masked edges
+
+        if(len(forwardOptions) == 0):
+            return -1 #no route found
+        else:
+            bestOption = list(forwardOptions[0])
+            for pair in forwardOptions[1:]:
+                if(pair[1] > bestOption[1]):
+                    bestOption = list(pair)
+#            print("Best option = {0}".format(bestOption[0]))
+            return bestOption[0]
+        raise Exception("Unhandled execution in get_forward_id for ID {0}".format(destID))
+
         
    
     def mask_neighbor(self, nodeID=None, action="mask"): # TODO pick a better name for the method
-        maskValues = {'mask':255, 'unmask':1}
-        if(action not in ["mask", "unmask"]): raise Exception("The action, {0}, must be either 'mask' or 'unmask'".format(action))
+        maskValues = {'mask':0, 'unmask':254, 'force':255}
+        if(action not in maskValues.keys()): raise Exception("The action, {0}, must be one of {1}".format(action, maskValues.keys()))
 
         if nodeID is None: #mask all entries
             for entry in self._networkTable._neighborArray: #FIXME breaking abstraction/protection rules here...
@@ -410,9 +501,9 @@ class VirtualNode:
             else:
                 print("   Masked the edge from node {0} to node {1}".format(self._nodeID, nodeID))
                 entry[1] = maskValues[action]
-                self.update_neighbor_entry(entry, index)
+                self.update_neighbor_LQE(entry, index)
 
-    def update_neighbor_entry(self, entry, index): #nothing to do for a virtual node
+    def update_neighbor_LQE(self, entry, index): #nothing to do for a virtual node
         print("   Node {0}: update neighbor entry at index {1} to {2}".format(self._nodeID, index, entry))
 #End of VirtualNode
  
@@ -423,7 +514,7 @@ class NetworkTable:
    _maxNetworkSize = None
    _maxNeighbors = 1
    _maxRoutes = 0
-
+   
 
    def __init__(self, neighborArray, routingArray, maxNetworkSize, maxNeighbors, maxRoutes):
       if(maxNetworkSize not in range(1, (2**8)+1)): raise Exception("The specified max network size, {0}, must be in the range [1, 256]".format(maxNetworkSize))
