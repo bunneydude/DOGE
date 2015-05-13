@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include "dual_multihop.h"
 #include <memory_map.h>
 #include <network.h>
 #include <protocol.h>
@@ -11,6 +12,7 @@
 #include <AIR430BoostFCC.h>
 #include <dsp.h>
 #include <platform.h>
+#include <nrf24.h>
 
 /*******************************************************************************
  * Test 1
@@ -29,17 +31,21 @@
 
 uint8_t rx_loop = 4;
 
-// Data to write to radio TX FIFO (60 bytes MAX.)
-//unsigned char txData[DATA_LENGTH];    
+// Data to write to radio TX FIFO (915 60 bytes MAX, nrf 32)  
 dogePacket txPacket;
 appPacket* txAppPacket;
 packetAttr txAttr;
 
-// Data to read from radio RX FIFO (60 bytes MAX.)
-//unsigned char rxData[DATA_LENGTH];
+// Data to read from radio RX FIFO (915 60 bytes MAX, nrf 32.)
 dogePacket rxPacket;
 appPacket* rxAppPacket;
 packetAttr rxAttr;
+
+//nRF address
+uint8_t nrf_address[5] = {
+  0xD7,0xD7,0xD7,0xD7,0xD7};
+uint8_t nrfRXAttempts = 0;
+uint8_t nrfCounter = 0;
 
 struct Protocol spiProtocol;
 uint8_t sendResponse = 0;
@@ -51,10 +57,27 @@ uint8_t rawADC = 0;
 uint8_t tempIndex;
 union networkEntry tempEntry;
 
+//functions for nRF
+
+void nrf24_ce_digitalWrite(uint8_t state){
+  digitalWrite(RADIO_NRF_CE,state);
+}
+
+void nrf24_csn_digitalWrite(uint8_t state){
+  digitalWrite(RADIO_NRF_CSN,state);
+}
+
+uint8_t spi_transfer(uint8_t tx, uint8_t send_eot)
+{
+  uint8_t rx = 0;    
+  rx = SPI.transfer(tx);
+  return rx;
+}
+
 void setup()
 {
   print_string("START",NEWLINE);
-  setup_timer_hw();
+  setup_timer_hw();  
   Protocol_init(&spiProtocol);
   network_init(NETWORK_DIVISION_DEFAULT);
   dsp_init(5,0);
@@ -63,9 +86,28 @@ void setup()
 
   Serial.begin(9600);
 
-  // The radio library uses the SPI library internally, this call initializes
-  // SPI/CSn and GDO0 lines. Also setup initial address, channel, and TX power.
+//set up radios
+
+//nRF24L01P - 2.4GHz
+#ifdef DUAL_RADIO
+  pinMode(RADIO_NRF_CE, OUTPUT);
+  digitalWrite(RADIO_NRF_CE, LOW);     
+  pinMode(RADIO_NRF_CSN, OUTPUT);
+  digitalWrite(RADIO_NRF_CSN, HIGH); 
+#endif
+
+//CC1101L - 915MHz
   Radio.begin(ADDRESS_BROADCAST, CHANNEL_1, POWER_MAX); 
+
+//config nRF
+#ifdef DUAL_RADIO
+  SPI.begin(); 
+  nrf24_init();
+  nrf24_config(2, MAX_DATA_LENGTH);
+  nrf24_tx_address(nrf_address);
+  nrf24_rx_address(nrf_address);  
+#endif
+
 
   pinMode(RED_LED, OUTPUT);
   digitalWrite(RED_LED, hbt_output);   // set the LED on
@@ -79,7 +121,7 @@ void setup()
     NODE_ID_2, TEST_SH_LQE, RADIO_ID_915, NETWORK_ID_0  };
   network_insert((union networkEntry*)&neighborEntry1, NEIGHBOR_ENTRY);
   //Routing Table
-  network_has_neighbor(NODE_ID_2, &index); 
+  network_has_neighbor(NODE_ID_2, &index, RADIO_ID_915, FALSE); 
   struct routingEntry routingEntry1 = {
     NODE_ID_3, TEST_MH_LQE, index  };
   network_insert((union networkEntry*)&routingEntry1, ROUTING_ENTRY);
@@ -99,7 +141,7 @@ void setup()
     NODE_ID_2, TEST_SH_LQE, RADIO_ID_915, NETWORK_ID_0  };
   network_insert((union networkEntry*)&neighborEntry1, NEIGHBOR_ENTRY);
   //Routing Table
-  network_has_neighbor(NODE_ID_2, &index); 
+  network_has_neighbor(NODE_ID_2, &index, RADIO_ID_915, FALSE); 
   struct routingEntry routingEntry1 = {
     ROOT_NODE, TEST_MH_LQE, index  };
   network_insert((union networkEntry*)&routingEntry1, ROUTING_ENTRY);
@@ -141,7 +183,7 @@ void setup()
   network_insert((union networkEntry*)&neighborEntry1, NEIGHBOR_ENTRY);
   network_insert((union networkEntry*)&neighborEntry2, NEIGHBOR_ENTRY);
   //Routing Table
-  network_has_neighbor(NODE_ID_2, &index); 
+  network_has_neighbor(NODE_ID_2, &index, ); 
   struct routingEntry routingEntry1 = {
     ROOT_NODE, TEST_MH_LQE, index  };
   network_insert((union networkEntry*)&routingEntry1, ROUTING_ENTRY);
@@ -200,9 +242,25 @@ void loop()
   //for(i=0; i<rx_loop; i++){
     //Make sure radio is ready to receive
     while (Radio.busy());
+#ifdef DUAL_RADIO
+if(nrfCounter > 5){
+  nrfCounter = 0;
+  memset(&txPacket, 0, sizeof(dogePacket));
+  memset(&rxPacket, 0, sizeof(dogePacket));
+  txAppPacket = (appPacket*)((uint8_t*)&txPacket + RAW_PACKET_DATA_OFFSET);
+  rxAppPacket = (appPacket*)((uint8_t*)&rxPacket + RAW_PACKET_DATA_OFFSET);
+  //Form a test packet
+  application_form_packet(txAppPacket, &txAttr, CMD_READ_REG, 42, 0, NULL);
+  link_layer_form_packet(&txPacket, &txAttr, RAW_PACKET, MY_NODE_ID, 77, MY_NODE_ID, 77);  
 
+  SPI.begin();
+  nrf24_send(0, (uint8_t*)(&txPacket), MAX_DATA_LENGTH);
+  while(nrf24_isSending());
+}
+#endif
   // Turn on the receiver and listen for incoming data. Timeout after 1000ms.
   if (reliable_receive(TIMEOUT_1000_MS)){
+    nrfCounter++;
       if(MY_NODE_ID == rxPacket.hdr.dst && MY_NODE_ID == rxPacket.hdr.shDst){ //parse message   
         digitalWrite(RED_LED, hbt_output ^= 0x1);
         //parse message
@@ -215,10 +273,10 @@ void loop()
           }
         }
       }
-      else if (MY_NODE_ID == rxPacket.hdr.shDst && MY_NODE_ID != rxPacket.hdr.dst){ //forward message --- This is done by node 2
+      else if (MY_NODE_ID == rxPacket.hdr.shDst && MY_NODE_ID != rxPacket.hdr.dst){ //forward message
         //      print_string("Forwarding attempt...", NONE);
         //      print_packet(&rxPacket);
-        if(network_has_neighbor(rxPacket.hdr.dst, &tempIndex)){
+        if(network_has_neighbor(rxPacket.hdr.dst, &tempIndex, RADIO_ID_915, FALSE)){
           if (HEADER_TYPE_EQUALS(rxPacket.hdr.type, RAW_PACKET)){
             txAttr.ack = GET_HEADER_TYPE_ACK(rxPacket.hdr.type);
             txAttr.size = RAW_PACKET_DATA_SIZE(&rxPacket);
@@ -231,7 +289,7 @@ void loop()
             //          print_packet(&txPacket);
           }
         }
-        else if (network_has_route(rxPacket.hdr.dst, &tempIndex)){
+        else if (network_has_route(rxPacket.hdr.dst, &tempIndex, RADIO_ID_915, FALSE)){
           if (HEADER_TYPE_EQUALS(rxPacket.hdr.type, RAW_PACKET)){
             txAttr.ack = GET_HEADER_TYPE_ACK(rxPacket.hdr.type);
             txAttr.size = RAW_PACKET_DATA_SIZE(&rxPacket);
