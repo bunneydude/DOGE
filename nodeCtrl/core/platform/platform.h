@@ -58,7 +58,13 @@
 // -----------------------------------------------------------------------------
 
 #define DEMO_GRID 1
-#define MY_NODE_ID NODE_ID_4
+#define MY_NODE_ID NODE_ID_1
+//#define DUAL_RADIO
+
+
+#define RADIO_NRF_CE P2_3
+#define RADIO_NRF_CSN P2_1
+
 
 #ifdef MSP430
 #include "doge_timers.h"

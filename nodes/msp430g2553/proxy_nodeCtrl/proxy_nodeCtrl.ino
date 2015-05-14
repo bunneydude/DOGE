@@ -2,12 +2,10 @@
 #include "proxy_nodeCtrl.h"
 #include <SPI.h>
 #include <AIR430BoostFCC.h>
-//#include <nrf24.h>
-//#include <nRF24L01.h>
 #include <protocol.h>
-/*#include <MyRingBuffer.h>*/
 #include <cobs.h>
 #include <platform.h>
+#include <nrfLegacy.h>
 
 // -----------------------------------------------------------------------------
 /**
@@ -15,11 +13,11 @@
  */
 
 dogePacket txPacket;
-appPacket* txAppPacket;
+appPacket* const txAppPacket = (appPacket*)(&((rawPacket*)(&txPacket))->data);
 packetAttr txAttr;
 
 dogePacket rxPacket;
-appPacket* rxAppPacket;
+appPacket* const rxAppPacket = (appPacket*)(&((rawPacket*)(&rxPacket))->data);
 packetAttr rxAttr;
 
 #define static_assert_root(cond) uint8_t static_assert_root[((cond) == 1) ? 1 : -1]
@@ -93,8 +91,8 @@ void setup()
 
   memset(&txPacket, 0, sizeof(dogePacket));
   memset(&rxPacket, 0, sizeof(dogePacket));  
-  txAppPacket = (appPacket*)((uint8_t*)&txPacket + RAW_PACKET_DATA_OFFSET);
-  rxAppPacket = (appPacket*)((uint8_t*)&rxPacket + RAW_PACKET_DATA_OFFSET);
+//  txAppPacket = (appPacket*)((uint8_t*)&txPacket + RAW_PACKET_DATA_OFFSET);
+//  rxAppPacket = (appPacket*)((uint8_t*)&rxPacket + RAW_PACKET_DATA_OFFSET);
 }
 
 void loop(){

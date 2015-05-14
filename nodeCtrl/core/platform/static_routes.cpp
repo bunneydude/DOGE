@@ -43,7 +43,10 @@ uint8_t static_route_mm_handler(uint8_t rw, uint8_t addr, uint8_t* data, uint8_t
    link_layer_form_packet(&txPacket, &txAttr, RAW_PACKET, MY_NODE_ID, NRF24_NODE_OFFSET_TO_ID(addr), MY_NODE_ID, NRF24_NODE_OFFSET_TO_ID(addr));
    add_packet_crc(&txPacket);
    //print_packet(&txPacket);
+#ifdef DUAL_RADIO
+   SPI.begin();
    nrf24_send(0, (uint8_t*)(&txPacket), MAX_DATA_LENGTH);
    while(nrf24_isSending());
+#endif
    return 0;
 }
