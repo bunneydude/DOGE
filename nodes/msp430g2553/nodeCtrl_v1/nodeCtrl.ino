@@ -14,15 +14,13 @@
 #include <nrfLegacy.h>
 
 // Data to write to radio TX FIFO (60 bytes MAX.)
-//unsigned char txData[DATA_LENGTH];    
 dogePacket txPacket;
-appPacket* txAppPacket;
+appPacket* const txAppPacket = (appPacket*)(&((rawPacket*)(&txPacket))->data);
 packetAttr txAttr;
 
 // Data to read from radio RX FIFO (60 bytes MAX.)
-//unsigned char rxData[DATA_LENGTH];
 dogePacket rxPacket;
-appPacket* rxAppPacket;
+appPacket* const rxAppPacket = (appPacket*)(&((rawPacket*)(&rxPacket))->data);
 packetAttr rxAttr;
 
 struct Protocol spiProtocol;
