@@ -16,18 +16,25 @@ config['debug_test_network'] = False #Use a preset network for neighbor/routing 
 # Preset Neighbor Table Nodes
 nte_nodes = [
              {'node_id': 2, 'mcu_name': 'msp430g2553', 'mm_num': 1},
-             {'node_id': 3, 'mcu_name': 'lpc812',      'mm_num': 1},
+             {'node_id': 3, 'mcu_name': 'msp430g2553', 'mm_num': 1},
              {'node_id': 4, 'mcu_name': 'msp430g2553', 'mm_num': 1},
              {'node_id': 5, 'mcu_name': 'msp430g2553', 'mm_num': 1},
-           #  {'node_id': 6, 'mcu_name': 'msp430g2553', 'mm_num': 1},
-             #{'node_id': 7, 'mcu_name': 'lpc812',      'mm_num': 1},
-             #{'node_id': 8, 'mcu_name': 'msp430g2553', 'mm_num': 1},
-             #{'node_id': 9, 'mcu_name': 'msp430g2553', 'mm_num': 1},
-             #{'node_id': 10, 'mcu_name': 'msp430g2553', 'mm_num': 1},
+             {'node_id': 6, 'mcu_name': 'msp430g2553', 'mm_num': 1},
+             {'node_id': 7, 'mcu_name': 'msp430g2553', 'mm_num': 1},
+             {'node_id': 8, 'mcu_name': 'msp430g2553', 'mm_num': 1},
+             {'node_id': 9, 'mcu_name': 'msp430g2553', 'mm_num': 1},
+             {'node_id': 10, 'mcu_name': 'msp430g2553', 'mm_num': 1}
             ]
 
 demo_routes = [
-               [4, 5],
+               [3, 2],
+               [4, 2],
+               [5, 2],
+               [6, 2],
+               [7, 3],
+               [8, 2],
+               [9, 2],
+               [10,3],
               ]
 
 
