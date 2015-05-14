@@ -9,7 +9,7 @@ config = defaultdict()
 
 # Debug Flag (project-wide)
 config['debug'] = True
-config['debug_no_sketch'] = True #Don't send data to sketch via IPCBuffer
+config['debug_no_sketch'] = False #Don't send data to sketch via IPCBuffer
 config['debug_test_network'] = False #Use a preset network for neighbor/routing edges
 
 
@@ -27,7 +27,14 @@ nte_nodes = [
             ]
 
 demo_routes = [
-               [4, 5],
+               [10,2],
+               [9,2],
+               [8,2],
+               [7,2],
+               [6,2],
+               [5,2],
+               [4,2],
+               [3,2],
               ]
 
 dual_box = {2:{"narray":[[1,2,2,1], [3,2,2,1], [5,2,2,1], [6,2,2,1]], "rarray":[[10, 2, 1], [10, 2, 2], [10, 2, 3]]},

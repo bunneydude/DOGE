@@ -446,7 +446,7 @@ class VirtualNode:
 
         if nodeID is None: #mask all entries
             for entry in self._networkTable._neighborArray: #FIXME breaking abstraction/protection rules here...
-                print("   Masked edge from node {0} to node {1}".format(self._nodeID, entry[0]))
+                print("   {0} edge from node {1} to node {2}".format(action, self._nodeID, entry[0]))
                 entry[1] = maskValues[action]
         else:
             if(nodeID not in range(1, 2**16)): raise Exception("The specified nodeID, {0}, must be in the range [1, 65535]".format(nodeID))
@@ -455,7 +455,7 @@ class VirtualNode:
                 print("Error: could not find node {0} in node {1}'s neighbor table.".format(nodeID, self._nodeID))
                 print("   Neighbor table = {0}".format(self._networkTable.get_neighbor_list()))
             else:
-                print("   Masked the edge from node {0} to node {1}".format(self._nodeID, nodeID))
+                print("   {0} the edge from node {1} to node {2}".format(action, self._nodeID, nodeID))
                 entry[1] = maskValues[action]
                 self.update_neighbor_LQE(entry, index)
 

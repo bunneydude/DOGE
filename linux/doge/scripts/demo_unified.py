@@ -13,18 +13,14 @@ networkSocket, routingProcessor, rootNode = rp_setup()
 plotSocket = plot_setup()
 
 #get node objects
-node4 = routingProcessor.networkNodes[4]
-node5 = routingProcessor.networkNodes[5]
+for node in routingProcessor.networkNodes:
+   print("Have node {0}".format(routingProcessor.networkNodes[node].get_nodeID()))
 
-print("Node 4 = {0}".format(node4.get_nodeID()))
-print("Node 5 = {0}".format(node5.get_nodeID()))
-
-#check routes for edison
-print("Root ID {0}: neighbors = {1}, routes = {2}".format(rootNode.get_nodeID(), rootNode.get_neighbor_table(), rootNode.get_routing_table()))
-
-node4.pull("networkConfig")
-rootNode.mask_neighbor(nodeID=4)
-node4.pull("networkConfig")
+node10 = routingProcessor.networkNodes[10]
+node10.to_s()
+node10.pull("networkConfig")
+rootNode.mask_neighbor()
+rootNode.mask_neighbor(nodeID=2, action="unmask")
 
 plotData = []
 
@@ -33,9 +29,8 @@ while True:
    handle_rp_request(networkSocket, routingProcessor)
 
    plotData = []
-   timestamp = time.time()
-   node4.get_rssi()
-   plotData.append([int(time.time()), node4.get_rssi()])
+   plotData.append([int(time.time()), 1])#node10.get_rssi()])
    print "Send to plot"
    plotSocket.emit('update', json.dumps(plotData))
    time.sleep(1)
+   node10.pull("networkConfig")
