@@ -107,7 +107,7 @@ class HardwareNode:
         else:
             self._primaryRadio = 'edison'
 
-        if(load == True): load_state()
+        if(load == True): self.load_state()
 
 
     def load_state(self):
