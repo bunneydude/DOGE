@@ -143,6 +143,7 @@ void setup()
    insert_neighbor(NODE_ID_8, MAX_LQE);
    insert_neighbor(NODE_ID_10, MAX_LQE);
    //Routing Table
+   insert_route(NODE_ID_10, NODE_ID_6, MAX_LQE);
    insert_route(ROOT_NODE, NODE_ID_8, MAX_LQE);
 #elif (MY_NODE_ID == NODE_ID_10)
    //Neighbor Table
