@@ -46,6 +46,10 @@ def find(name, path):
 
 class IntelAnalytics():
 
+ iotkitJsonRssi =  {'component_type':'temperature','component_version':"1.0",'component_format':'float','component_measureunit':'Degrees Farenheit'}
+ iotkitJsonTemp =  {'component_type':'rssi','component_version':"1.0",'component_format':'float','component_measureunit':'Strength'}
+ sensor = {'rssi':iotkitJsonRssi, 'temperature':iotkitJsonTemp}
+
  #####################################
  # Set these values first
  #####################################
@@ -366,7 +370,18 @@ class IntelAnalytics():
 
 
 
- def push (self,data,iotkitJson,val):
+ def push (self,data):
+    iotkitJson = {}
+    val = ''
+    data['network'] = 'IoT-Demo'
+    if 'temperature' in data:
+        iotkitJson = self.sensor['temperature']
+        val = 'temperature'
+    elif 'rssi' in data:
+        iotkitJson = self.sensor['rssi']
+        val = 'rssi'
+    else:
+        return
 
     # refresh the activation code. It can be used any number of times
     # in the next 60 minutes to activate devices.
@@ -381,7 +396,11 @@ class IntelAnalytics():
     #Submit observation to the cloud
     self.create_observations(g_aid, self.device_id, cid, data,val)
 
- def pull (self,dataFilter,iotkitJson):
+ def pull (self,dataFilter):
+    iotkitJson = self.sensor[dataFilter['sensor']]
+
+    if 'network' not in dataFilter:
+        dataFilter['network'] = 'IoT-Demo'
     # refresh the activation code. It can be used any number of times
     # in the next 60 minutes to activate devices.
     ac = self.generate_activation_code(g_aid)
@@ -391,4 +410,5 @@ class IntelAnalytics():
     
     #Submit request for [filtered] observations from the cloud
     return self.get_observations(g_aid, self.device_id, cid)
+
 
