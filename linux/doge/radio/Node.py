@@ -119,57 +119,13 @@ class HardwareNode:
             maxNetworkSize = 8
             maxNeighbors = 4
             maxRoutes = 4
+            
+            narray = config['preset_node_tables'][self._nodeID]["narray"]
+            rarray = config['preset_node_tables'][self._nodeID]["rarray"]
+            for byte in range(0,4):
+                for index in range(0,len(narray)):
+                    self.add_sensor("n{0}_{1}".format(index, byte), "network", index*4 + byte)
 
-            if(self._nodeID == 2 ):
-                narray =  [[1,74,2,1]]
-                for byte in range(0,4):
-                    self.add_sensor("n0_{0}".format(byte), "network", 0*4 + byte)
-                rarray = []
-            elif(self._nodeID == 3 ):
-                narray =  [[1,44,2,1]]
-                for byte in range(0,4):
-                    self.add_sensor("n0_{0}".format(byte), "network", 0*4 + byte)
-                rarray = []
-            elif(self._nodeID == 4 ):
-                narray =  [[1,66,2,1]]
-                for byte in range(0,4):
-                    self.add_sensor("n0_{0}".format(byte), "network", 0*4 + byte)
-                rarray = []
-            elif(self._nodeID == 5 ):
-                narray =  [[1,96,2,1], [4,33,2,1]]
-                for byte in range(0,4):
-                    self.add_sensor("n0_{0}".format(byte), "network", 0*4 + byte)
-                    self.add_sensor("n1_{0}".format(byte), "network", 1*4 + byte)
-                rarray = []
-            elif(self._nodeID == 6 ):
-                narray =  [[1,74,2,1]]
-                for byte in range(0,4):
-                    self.add_sensor("n0_{0}".format(byte), "network", 0*4 + byte)
-                rarray = []
-            elif(self._nodeID == 7 ):
-                narray =  [[1,44,2,1]]
-                for byte in range(0,4):
-                    self.add_sensor("n0_{0}".format(byte), "network", 0*4 + byte)
-                rarray = []
-            elif(self._nodeID == 8 ):
-                narray =  [[1,66,2,1]]
-                for byte in range(0,4):
-                    self.add_sensor("n0_{0}".format(byte), "network", 0*4 + byte)
-                rarray = []
-            elif(self._nodeID == 9 ):
-                narray =  [[10,96,2,1], [4,33,2,1]]
-                for byte in range(0,4):
-                    self.add_sensor("n0_{0}".format(byte), "network", 0*4 + byte)
-                    self.add_sensor("n1_{0}".format(byte), "network", 1*4 + byte)
-                rarray = []
-	    elif(self._nodeID == 10 ):
-                narray =  [[9,96,2,1], [4,33,2,1]]
-                for byte in range(0,4):
-                    self.add_sensor("n0_{0}".format(byte), "network", 0*4 + byte)
-                    self.add_sensor("n1_{0}".format(byte), "network", 1*4 + byte)
-                rarray = []
-	    else:
-                raise Exception("Unexpected node ID: {0}".format(self._nodeID))
         else: #read info from node
             narray, rarray, maxNetworkSize, maxNeighbors, maxRoutes = self.read_network_state()
       

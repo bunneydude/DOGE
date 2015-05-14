@@ -37,7 +37,7 @@ while True:
     for node_id in range (0,9):
         rssi = networkNodes[node_id].get_rssi()
         #print "node id={0} rssi={1}".format(nodes[node_id],rssi)
-        data.append([int(timestamp),40])#rssi])
+        data.append([int(timestamp),rssi])
     dataJson  = json.dumps(data)
     print "Sending data over socket"
     #print "Sending Socket data = {0}".format(dataJson)

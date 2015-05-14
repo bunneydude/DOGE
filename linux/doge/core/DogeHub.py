@@ -5,6 +5,7 @@ from collections import defaultdict
 from doge.radio.RadioInterface import RadioInterface
 from doge.radio.Node import HardwareNode, VirtualNode, Device
 from doge.core.RoutingProcessor import RoutingProcessor
+from socketIO_client import SocketIO
 from doge.conf.globals import config
 
 # TODO: Create inner class definition for operation on RP calls via private methods post-sketch connection
@@ -120,6 +121,13 @@ def load_preset_nte_config(pipe, master):
         networkNodes[nodeInfo['node_id']] = HardwareNode(device, nodeID = nodeInfo['node_id'], pipe = pipe, master = master, load=False)
     return networkNodes
 
+def plot_setup():
+    port = 3000
+    socket = SocketIO('localhost', port)
+
+    return socket
+
+
 def rp_setup():
     root,pipe = connect_sketch() #if not already not connected 
     
@@ -173,3 +181,7 @@ def rp_run(socket, routingProcessor):
         socket.on('message', routingProcessor.processMessage)
         socket.wait(seconds=1)
     
+def handle_rp_request(socket, routingProcessor):    
+    #Wait for incoming message targetted to routing processor
+    socket.on('message', routingProcessor.processMessage)
+    socket.wait(seconds=1)
