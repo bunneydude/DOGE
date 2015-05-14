@@ -23,8 +23,8 @@ cloudStream.push({'id':node, 'rssi':avgRssi})
 #pull data from cloud
 #dataFilterJson = {'location':location,'network':network,'id':node}
 dataJson = cloudStream.pull({'id':node, 'sensor':'temperature'})
-pprint(dataJson)
+print('temperature='+dataJson['temperature'])
 
 dataJson = cloudStream.pull({'id':node, 'sensor':'rssi'})
-pprint(dataJson)
+print('rssi='+dataJson['rssi'])
 

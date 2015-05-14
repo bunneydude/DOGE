@@ -409,6 +409,8 @@ class IntelAnalytics():
     cid = self.get_cid(iotkitJson,component_name)
     
     #Submit request for [filtered] observations from the cloud
-    return self.get_observations(g_aid, self.device_id, cid)
+    dataset = self.get_observations(g_aid, self.device_id, cid)
+    dataJson = {dataFilter['sensor']: dataset['series'][0]['points'][-1]['value']}
+    return dataJson
 
 
