@@ -61,7 +61,7 @@ if [[ "$1" == "clean" ]]
 fi
 
 mkdir -p $ENERGIA_LIB_DIR/../nodeCtrl
-mkdir -p $ENERGIA_LIB_DIR/nrf24
+mkdir -p $ENERGIA_LIB_DIR/nrfLegacy
 mkdir -p $ENERGIA_LIB_DIR/adc
 mkdir -p $ENERGIA_LIB_DIR/neighbor
 mkdir -p $ENERGIA_LIB_DIR/protocol
@@ -76,6 +76,7 @@ mkdir -p $ENERGIA_LIB_DIR/cobs
 mkdir -p $ENERGIA_LIB_DIR/radios
 
 ln -s $PWD/nodes/msp430g2553/nodeCtrl_v1/nodeCtrl.ino        $ENERGIA_LIB_DIR/../nodeCtrl/nodeCtrl.ino
+ln -s $PWD/nodes/msp430g2553/proxy_nodeCtrl/proxy_nodeCtrl.h $ENERGIA_LIB_DIR/proxy_nodeCtrl.h
 ln -s $PWD/nodeCtrl/core/adc/adc.h                           $ENERGIA_LIB_DIR/adc/adc.h
 ln -s $PWD/nodeCtrl/core/adc/adc.c                           $ENERGIA_LIB_DIR/adc/adc.c
 ln -s $PWD/nodeCtrl/core/neighbor/neighbor-config.h          $ENERGIA_LIB_DIR/neighbor/neighbor-config.h
@@ -85,9 +86,10 @@ ln -s $PWD/nodeCtrl/core/protocol/protocol.h                 $ENERGIA_LIB_DIR/pr
 ln -s $PWD/nodeCtrl/core/protocol/protocol.c                 $ENERGIA_LIB_DIR/protocol/protocol.c
 ln -s $PWD/nodeCtrl/core/protocol/packet.c                   $ENERGIA_LIB_DIR/protocol/packet.c
 ln -s $PWD/nodeCtrl/core/protocol/type.h                     $ENERGIA_LIB_DIR/protocol/type.h
-ln -s $PWD/nodeCtrl/core/radios/nrfLegacy/nRF24L01.h         $ENERGIA_LIB_DIR/nrf24/nRF24L01.h
-ln -s $PWD/nodeCtrl/core/radios/nrfLegacy/nrf24.c            $ENERGIA_LIB_DIR/nrf24/nrf24.c
-ln -s $PWD/nodeCtrl/core/radios/nrfLegacy/nrf24.h            $ENERGIA_LIB_DIR/nrf24/nrf24.h
+ln -s $PWD/nodeCtrl/core/radios/nrfLegacy/nRF24L01.h         $ENERGIA_LIB_DIR/nrfLegacy/nRF24L01.h
+ln -s $PWD/nodeCtrl/core/radios/nrfLegacy/nrf24.c            $ENERGIA_LIB_DIR/nrfLegacy/nrf24.c
+ln -s $PWD/nodeCtrl/core/radios/nrfLegacy/nrf24.h            $ENERGIA_LIB_DIR/nrfLegacy/nrf24.h
+ln -s $PWD/nodeCtrl/core/radios/nrfLegacy/nrfLegacy.h        $ENERGIA_LIB_DIR/nrfLegacy/nrfLegacy.h
 ln -s $PWD/nodeCtrl/core/radios/radios.h                     $ENERGIA_LIB_DIR/radios/radios.h
 ln -s $PWD/nodeCtrl/core/gpio/msp430_gpio.h                  $ENERGIA_LIB_DIR/gpio/msp430_gpio.h
 ln -s $PWD/nodeCtrl/core/gpio/gpio.c                         $ENERGIA_LIB_DIR/gpio/gpio.c
@@ -111,6 +113,9 @@ ln -s $PWD/nodeCtrl/core/platform/doge_gpio.h                $ENERGIA_LIB_DIR/pl
 ln -s $PWD/nodeCtrl/core/platform/doge_gpio.cpp              $ENERGIA_LIB_DIR/platform/doge_gpio.cpp
 ln -s $PWD/nodeCtrl/core/platform/doge_timers.h              $ENERGIA_LIB_DIR/platform/doge_timers.h
 ln -s $PWD/nodeCtrl/core/platform/doge_timers.c              $ENERGIA_LIB_DIR/platform/doge_timers.c
+ln -s $PWD/nodeCtrl/core/platform/static_routes.cpp          $ENERGIA_LIB_DIR/platform/static_routes.cpp
+ln -s $PWD/nodeCtrl/core/platform/static_routes.h            $ENERGIA_LIB_DIR/platform/static_routes.h
+ln -s $PWD/nodeCtrl/core/platform/nrf24_wrappers.cpp         $ENERGIA_LIB_DIR/platform/nrf24_wrappers.cpp
 ln -s $PWD/nodeCtrl/core/platform/platform.h                 $ENERGIA_LIB_DIR/platform/platform.h
 ln -s $PWD/nodeCtrl/core/cobs/cobs.c                         $ENERGIA_LIB_DIR/cobs/cobs.cpp
 ln -s $PWD/nodeCtrl/core/cobs/cobs.h                         $ENERGIA_LIB_DIR/cobs/cobs.h

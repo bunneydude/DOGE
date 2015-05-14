@@ -29,8 +29,9 @@ uint8_t check_mm_space(uint8_t rw, uint8_t addr, uint8_t* data, uint8_t mask)
 	}else if( (addr >= MM_DSP_BASE) && (addr < (MM_DSP_BASE + MM_DSP_SIZE)) ){
 		(*memoryMapRegionMethods.dsp_handler)(rw, addr - MM_DSP_BASE, data, mask);
 		return 5;
-
+	}else if( (addr >= MM_STATIC_ROUTE_BASE) && (addr < (MM_STATIC_ROUTE_BASE + MM_STATIC_ROUTE_SIZE)) ){
+		(*memoryMapRegionMethods.static_route_handler)(rw, addr - MM_STATIC_ROUTE_BASE, data, mask);
+		return 6;
 	}
 	return 0;
-
 }

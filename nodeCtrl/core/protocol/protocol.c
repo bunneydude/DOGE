@@ -97,10 +97,10 @@ uint8_t application_parse_packet(struct Protocol* obj, appPacket* message, appPa
          if(message->addr >= MM_FUNCTION_MAX){ //if address is beyond entire memory map
             application_form_packet(response, responseAttr, CMD_NACK, message->addr, ERR_RANGE, NULL);
          }else{
-            if(message->addr < MM_PHYSICAL_MAX){ 
+            if(message->addr < MM_PHYSICAL_MAX){
                returnData = obj->dataRegisters[message->addr];
             }else{
-               check_mm_space(1, message->addr, &returnData, 0);
+               check_mm_space(MM_READ, message->addr, &returnData, 0);
             }
             application_form_packet(response, responseAttr, CMD_ACK, message->addr, returnData, NULL);
          }
@@ -116,7 +116,7 @@ uint8_t application_parse_packet(struct Protocol* obj, appPacket* message, appPa
             }else if(message->addr < MM_PHYSICAL_MAX){
                obj->dataRegisters[message->addr] = message->data;
             }else{
-               check_mm_space(0, message->addr, &message->data, 0);
+               check_mm_space(MM_WRITE, message->addr, &message->data, 0);
             }
             application_form_packet(response, responseAttr, CMD_ACK, message->addr, message->data, NULL);
          }

@@ -32,6 +32,8 @@
 #define NODE_ID_11 0xb
 /**@brief Node ID 12 **/
 #define NODE_ID_12 0xc
+/**@brief Node ID 13 **/
+#define NODE_ID_13 0xd
 /**@brief Root Node ID(Edison) **/
 #define ROOT_NODE NODE_ID_1
 
@@ -60,6 +62,7 @@
 #ifdef MSP430
 #include "doge_timers.h"
 #include "doge_gpio.h"
+#include "static_routes.h"
 #ifdef __cplusplus
 #include "reliable_channel.h"
 #endif /* __cplusplus */
