@@ -6,6 +6,6 @@
 
 #define MAX_DATA_LENGTH 32
 
-//#define DUAL_RADIO
+#define DUAL_RADIO
 
 #endif

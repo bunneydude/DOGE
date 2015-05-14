@@ -149,14 +149,17 @@ uint8_t network_update(uint16_t id, uint8_t LQE, uint8_t radioID, uint8_t networ
             }
             network[index].neighbor.shLQE = 0xFF & LQE;
          }
+#ifdef MSP430
          print_string("Neighbor: ", NONE); print_decimal(id, NEWLINE);
          print_string(", RSSI 0x", NONE); print_hex(network[index].neighbor.shLQE, NEWLINE);
+#endif
       }else{ //make a new entry
          entry.neighbor.shNodeID = id;
          entry.neighbor.shLQE = 0xFF & LQE;
          entry.neighbor.radioID = radioID;
          entry.neighbor.networkID = networkID;
          returnData = network_insert(&entry, NEIGHBOR_ENTRY); 
+#ifdef MSP430
          if (returnData == 1){
             print_string("Added neighbor: ", NONE); 
             print_hex(id, NEWLINE);
@@ -165,6 +168,7 @@ uint8_t network_update(uint16_t id, uint8_t LQE, uint8_t radioID, uint8_t networ
             print_string("No room for neighbor: ", NONE); 
             print_decimal(id, NEWLINE);
          }
+#endif
       }
    }
    return returnData;

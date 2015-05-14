@@ -195,7 +195,13 @@ void char_to_RGB(uint8_t input, uint8_t* red, uint8_t* green, uint8_t* blue){
 	}
 }
 
-struct radioMethods dogeRadios[MAX_RADIO_NUMBER];
+//struct radioMethods dogeRadios[MAX_RADIO_NUMBER];
+
+
+dogePacket rxPacket;
+appPacket* rxAppPacket;
+packetAttr rxAttr;
+
 
 int main(void)
 {
@@ -236,35 +242,34 @@ int main(void)
 	nrf24_tx_address(nrfAddress);
 	nrf24_rx_address(nrfAddress);
 
-	dogeRadios[2].sending = nrf24_isSending;
-	dogeRadios[2].get_data = nrf24_timeoutRead;
-	dogeRadios[2].send_data = nrf24_send;
+	//dogeRadios[2].sending = nrf24_isSending;
+	//dogeRadios[2].get_data = nrf24_timeoutRead;
+	//dogeRadios[2].send_data = nrf24_send;
 
 	uint8_t hbtState = 0;
-	uint8_t nodeID = 0x7;
 
 	Protocol_init(&spiProtocol);
 
 
 	printf("S");
 
-	//pwm_set_channel(RED_CH, LED_LOCATION);
-	//pwm_set_channel(GREEN_CH, LPC_TP2);
-	//pwm_set_channel(BLUE_CH, LPC_TP1);
-	//pwm_init();
+	pwm_set_channel(RED_CH, LED_LOCATION);
+	pwm_set_channel(GREEN_CH, LPC_TP2);
+	pwm_set_channel(BLUE_CH, LPC_TP1);
+	pwm_init();
 
-	//uint8_t tempPercent = 0;
-	//uint8_t redValue = 0;
-	//uint8_t greenValue = 0;
-	//uint8_t blueValue = 0;
-uint8_t rtCount = 0;
+	uint8_t tempPercent = 0;
+	uint8_t redValue = 0;
+	uint8_t greenValue = 0;
+	uint8_t blueValue = 0;
+	uint8_t rtCount = 0;
 
-	gpioSetValue(0, LED_LOCATION, hbtState ^= 0x1);
-	mrtDelay(500);
+//	gpioSetValue(0, LED_LOCATION, hbtState ^= 0x1);
+//	mrtDelay(500);
 
 
 	dogeTimer hbtTimer = {0};
-uint8_t i = 0;
+	uint8_t i = 0;
 	printf("DOGE node online");
 	while(1)
 	{
@@ -272,17 +277,27 @@ uint8_t i = 0;
 //		while(!timer_expired(&hbtTimer));
 //		gpioSetValue(0, LED_LOCATION, hbtState ^= 0x1);
 
-		if(dogeRadios[2].get_data(rxData, 32, 1000) > 0){
-			gpioSetValue(0, LED_LOCATION, hbtState ^= 0x1);// Toggle heartbeat LED
+		if(nrf24_timeoutRead((uint8_t*)&rxPacket, 32, 1000) > 0){
+//			gpioSetValue(0, LED_LOCATION, hbtState ^= 0x1);// Toggle heartbeat LED
+			if( (MY_NODE_ID == rxPacket.hdr.dst) && (MY_NODE_ID == rxPacket.hdr.shDst)){
+
+				printf("Got %d, %d, %d, %d, %d ", rxPacket.payload[0], rxPacket.payload[1], rxPacket.payload[2], rxPacket.payload[3], rxPacket.payload[4]);
+				tempPercent = (rxPacket.payload[3] / 255.0)*100;
+				char_to_RGB(tempPercent, &redValue, &greenValue, &blueValue);
+
+				pwm_write(RED_CH, redValue);
+				pwm_write(GREEN_CH, greenValue);
+				pwm_write(BLUE_CH, blueValue);
+			}else{
+				printf("Dst %d, shDst %d.", rxPacket.hdr.dst, rxPacket.hdr.shDst);
+			}
+			mrtDelay(1);
+/*
 			printf("Got:");
 			for(i=0; i<DOGE_PAYLOAD; i++){
 				printf("%d", rxData[i]);
 			}
-			mrtDelay(1);
-			//dogeRadios[2].send_data(DOGE_BROADCAST, txData, DOGE_PAYLOAD);
-			//while(nrf24_isSending());
-			//nrf24_powerUpRx(); //done transmitting, set back to rx mode
-			//rtCount = nrf24_retransmissionCount();
+*/
 		}
 		mrtDelay(1000);
 	//}
