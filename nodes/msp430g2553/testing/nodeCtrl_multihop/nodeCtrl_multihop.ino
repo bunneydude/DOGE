@@ -196,10 +196,6 @@ void loop()
 {
 #if (TEST_ID == 0x1)
 #if MY_NODE_ID == ROOT_NODE
-   memset(&txPacket, 0, sizeof(dogePacket));
-   memset(&rxPacket, 0, sizeof(dogePacket));
-   txAppPacket = (appPacket*)((uint8_t*)&txPacket + RAW_PACKET_DATA_OFFSET);
-   rxAppPacket = (appPacket*)((uint8_t*)&rxPacket + RAW_PACKET_DATA_OFFSET);
    //Form a test packet
    application_form_packet(txAppPacket, &txAttr, CMD_READ_REG, 55, 0, NULL);
    link_layer_form_packet(&txPacket, &txAttr, RAW_PACKET, ROOT_NODE, NODE_ID_3, ROOT_NODE, NODE_ID_2);
@@ -210,10 +206,6 @@ void loop()
 #endif
 #elif (TEST_ID == 0x2)
 #if MY_NODE_ID == ROOT_NODE
-   memset(&txPacket, 0, sizeof(dogePacket));
-   memset(&rxPacket, 0, sizeof(dogePacket));
-   txAppPacket = (appPacket*)((uint8_t*)&txPacket + RAW_PACKET_DATA_OFFSET);
-   rxAppPacket = (appPacket*)((uint8_t*)&rxPacket + RAW_PACKET_DATA_OFFSET);
    //Form a test packet
    application_form_packet(txAppPacket, &txAttr, CMD_WRITE_REG, NRF24_NODE_14_STATIC_ADDRESS, 0x55, NULL);
    link_layer_form_packet(&txPacket, &txAttr, RAW_PACKET, ROOT_NODE, NODE_ID_4, ROOT_NODE, NODE_ID_2);
@@ -223,6 +215,7 @@ void loop()
    print_decimal(success, NEWLINE);
 #endif
 #endif
+   uint8_t neighborIndex = 0;
    toggle_led(FALSE);
 
    //Make sure radio is ready to receive
@@ -254,8 +247,8 @@ void loop()
                                       rxPacket.hdr.src, rxPacket.hdr.dst, MY_NODE_ID,
                                       network[tempIndex].neighbor.shNodeID);
                reliable_transmit();
-               //          print_string("Forwarded...", NONE);
-               //          print_packet(&txPacket);
+               /*print_string("Neighbor forward...", NONE);*/
+               /*print_packet(&txPacket);*/
             }
          }
          else if (network_has_route(rxPacket.hdr.dst, &tempIndex, RADIO_ID_915, FALSE)){
@@ -264,12 +257,13 @@ void loop()
                txAttr.ack = GET_HEADER_TYPE_ACK(rxPacket.hdr.type);
                txAttr.size = RAW_PACKET_DATA_SIZE(&rxPacket);
                copy_raw_packet_data((rawPacket*)&txPacket, (rawPacket*)&rxPacket);
+               neighborIndex = network[tempIndex].routing.neighborIndex;
                link_layer_form_packet(&txPacket, &txAttr, GET_HEADER_TYPE(rxPacket.hdr.type), 
                                       rxPacket.hdr.src, rxPacket.hdr.dst, MY_NODE_ID, 
-                                      network[tempIndex].neighbor.shNodeID);
+                                      network[neighborIndex].neighbor.shNodeID);
                reliable_transmit();
-               //print_string("Forwarded...", NONE);
-               //print_packet(&txPacket);
+               /*print_string("Route forward...", NONE);*/
+               /*print_packet(&txPacket);*/
             }
          }
          else

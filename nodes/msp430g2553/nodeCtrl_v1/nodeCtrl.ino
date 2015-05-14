@@ -56,6 +56,7 @@ void setup()
 
 void loop()
 {
+   uint8_t neighborIndex = 0;
    toggle_led(FALSE);
 
    //Make sure radio is ready to receive
@@ -93,9 +94,10 @@ void loop()
                txAttr.ack = GET_HEADER_TYPE_ACK(rxPacket.hdr.type);
                txAttr.size = RAW_PACKET_DATA_SIZE(&rxPacket);
                copy_raw_packet_data((rawPacket*)&txPacket, (rawPacket*)&rxPacket);
+               neighborIndex = network[tempIndex].routing.neighborIndex;
                link_layer_form_packet(&txPacket, &txAttr, GET_HEADER_TYPE(rxPacket.hdr.type), 
                                       rxPacket.hdr.src, rxPacket.hdr.dst, MY_NODE_ID, 
-                                      network[tempIndex].neighbor.shNodeID);
+                                      network[neighborIndex].neighbor.shNodeID);
                reliable_transmit();
             }
          }
