@@ -104,7 +104,7 @@ def connect_sketch():
     Connect to the IPC objects from sketch
     '''
     rootID = 1 #TODO: where to read this in from?
-    pipe = RadioInterface("edison", rootID, config['debug'])
+    pipe = RadioInterface("edison", rootID, config['debug_no_sketch'])
     pipe.connect_sketch()
     
     root = VirtualNode(rootID, "Edison")

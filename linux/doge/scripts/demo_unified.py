@@ -16,7 +16,7 @@ star_nte = [
 
 config['preset_nte_nodes'] = star_nte
 
-config['debug'] = True
+config['debug'] =True
 config['debug_test_network'] = True
 
 networkSocket, routingProcessor, rootNode = rp_setup()
