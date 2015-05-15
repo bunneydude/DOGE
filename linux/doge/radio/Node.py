@@ -34,7 +34,7 @@ class Device:
       # assign inputs
       self._deviceName = deviceName.lower()
       
-      print("Loading memory map")
+#      print("Loading memory map: {0}".format(memoryMapFile))
       with open(memoryMapFile, 'r') as file:
          self._memoryMap = json.load(file)
 
@@ -79,7 +79,6 @@ class HardwareNode:
     _validSources = ['state', 'hardware']
 
     def __init__(self, device, nodeID, pipe, master, load=True):
-        print "Device={0}, pipe={1}".format(device,pipe)
         if(not isinstance(device, Device)): raise Exception("The device argument must be an instance of Node.Device.")
         if(nodeID not in range(1, 2**16)): raise Exception("The nodeID, {0}, must be in the range [1, 65535]".format(nodeID))
         if(not isinstance(pipe, RadioInterface.RadioInterface)): raise Exception("The device argument must be an instance of Node.Device.")
@@ -107,16 +106,16 @@ class HardwareNode:
             self._primaryRadio = '2.4ghz'
         else:
             self._primaryRadio = 'edison'
-
+        
         if(load == True): self.load_state()
-
+         
 
     def load_state(self):
         self._loaded = True
         narray = []
         rarray = []
         if(True == config['debug'] == config['debug_test_network']):
-            print("Use preloaded network")
+            #print("Use preloaded network")
             maxNetworkSize = 8
             maxNeighbors = 4
             maxRoutes = 4

@@ -130,7 +130,7 @@ def plot_setup():
 
 def rp_setup():
     root,pipe = connect_sketch() #if not already not connected 
-    
+
     #List of network edges,nodes,routing edges. Sent to webserver/browser for vis.js n/w visiualization
     edges = []
     nodes = []
@@ -149,7 +149,6 @@ def rp_setup():
         if(node.get_nodeID() != root.get_nodeID()): #TODO might need a better way to avoid the root node
             root.add_neighbor({'shNodeID':node.get_nodeID(), 'shLQE':1, 'radioID':0, 'networkID':1})
             node.load_state()
-            print("Node {0}: neighbors = {1}, routes = {2}".format(node.get_nodeID(), node.get_neighbor_table(), node.get_routing_table()))
             edisonRP.createNetworkVis(nodes, edges, route_edges, node)
 
     for routePair in config['preset_routes']:
