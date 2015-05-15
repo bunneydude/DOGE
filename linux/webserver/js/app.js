@@ -15,7 +15,7 @@
       templateUrl: 'views/Pin.html'
     });
     $routeProvider.when('/device', {
-      templateUrl: 'views/Device.html'
+      templateUrl: 'views/DeviceList.html'
     });
     $routeProvider.when('/deviceChart', {
       templateUrl: 'views/DeviceChart.html',
@@ -41,7 +41,7 @@
       templateUrl: 'views/LoadData.html'
     });
     return $routeProvider.otherwise({
-      templateUrl: 'views/DeviceList.html'
+      templateUrl: 'views/About.html'
     });
   });
 
