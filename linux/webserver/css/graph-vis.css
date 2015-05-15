@@ -67,7 +67,11 @@ body {
     display: none;
 }
 
-
-
+#about-text {
+    margin-left: 20px;
+    color: black;
+    font-family: verdana;
+    font-size: medium;
+}
 
 
