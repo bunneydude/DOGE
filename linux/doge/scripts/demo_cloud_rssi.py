@@ -6,7 +6,7 @@ import sys
 import json
 import time
 
-config['debug'] =True
+config['debug'] = True
 config['debug_test_network'] = True
 config['debug_no_sketch'] = False
 
@@ -17,8 +17,9 @@ networkNodes = routingProcessor.networkNodes
 
 #Unmask nodes
 rootNode.mask_neighbor(action="unmask")
-for node in networkNodes.itervalues():
-    node.mask_neighbor(action="unmask")
+
+
+#rootNode.mask_neighbor(10)
 
 node10 = networkNodes[10]
 
@@ -37,18 +38,18 @@ led = leds[0]
 
 while True:
    #handle any network requests (blocking 1 second wait)
-   for _ in range(0,4):
-      handle_rp_request(networkSocket, routingProcessor)
+#   for _ in range(0,4):
+#      handle_rp_request(networkSocket, routingProcessor)
 
    plotData = []
    timestamp = time.time()
-   rssi = node10.get_rssi()
 
-   plotData.append([int(timestamp),-1*rssi])
-   print "Send to plot: {0}, {1}".format(int(timestamp), rssi)
+   for node in networkNodes.itervalues():
+       if(node is not rootNode): plotData.append([int(timestamp), -1*node.get_rssi()])
+   print "Send to plot"
    plotSocket.emit('update', json.dumps(plotData))
-   time.sleep(2)
-   node10.push(led, rgbValue)
+   time.sleep(1)
+#   node10.push(led, rgbValue)
    rgbValue = (rgbValue + 30) & 0xff
    switchCounter += 1
    if switchCounter > 5:

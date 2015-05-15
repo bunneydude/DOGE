@@ -341,10 +341,23 @@ class HardwareNode:
         print("   Node {0}: neighbors = {1}, routes = {2}".format(self._nodeID, neighborArray, routingArray))
         return neighborArray, routingArray, maxNetworkSize, maxNeighbors, maxRoutes
 
-    def get_rssi(self):
-        rssi = random.randint(20,30)
-        return(rssi)
-
+    def get_rssi(self, nodeID=None):
+        if(nodeID is None): nodeID = self._masterNode.get_nodeID()
+        if(nodeID not in range(1, 2**16)): raise Exception("The specified nodeID, {0}, must be in the range [1, 65535]".format(nodeID))
+	if(config['debug_no_sketch'] == True):
+	    return random.randint(-80,-20)
+        if(self.has_neighbor(nodeID)):
+            entry, index =  self._networkTable.get_neighbor_entry(nodeID)
+            size, data = self.pull("n{0}_2".format(index))
+            if(len(data) > 3):
+                return -((data[2]^0xff)+1)
+            else:
+                print("Node {0}.get_rssi(): Error reading RSSI for node {1}".format(self._nodeID, nodeID))
+                return -1
+                
+        else:
+            print("Node {0}.get_rssi(): Node {1} is not in the neighbor table".format(self._nodeID, nodeID))
+            return -1
 
 class VirtualNode:
     _pipe = None
