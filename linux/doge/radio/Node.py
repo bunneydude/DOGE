@@ -5,6 +5,7 @@ import doge.core.protocol_ctypes as ProtocolDefs
 from __builtin__ import file
 import random
 from doge.conf.globals import config
+import warnings
 
 #The Device class represents a microcontroller and its firmware.
 class Device:
@@ -16,7 +17,8 @@ class Device:
       "gpio":{"base":"mm_gpio_base", "size":"mm_gpio_size"},
       "adc":{"base":"mm_adc_base", "size":"mm_adc_size"},
       "uart":{"base":"mm_uart_base", "size":"mm_uart_size"},
-      "dsp":{"base":"mm_dsp_base", "size":"mm_dsp_size"}
+      "dsp":{"base":"mm_dsp_base", "size":"mm_dsp_size"},
+      "static_route":{"base":"mm_static_route_base", "size":"mm_static_route_size"}
    }
 
    """ Create the device based on the microcontroller name and memory map
@@ -33,7 +35,7 @@ class Device:
       # assign inputs
       self._deviceName = deviceName.lower()
       
-      print("Loading memory map")
+#      print("Loading memory map: {0}".format(memoryMapFile))
       with open(memoryMapFile, 'r') as file:
          self._memoryMap = json.load(file)
 
@@ -78,7 +80,6 @@ class HardwareNode:
     _validSources = ['state', 'hardware']
 
     def __init__(self, device, nodeID, pipe, master, load=True):
-        print "Device={0}, pipe={1}".format(device,pipe)
         if(not isinstance(device, Device)): raise Exception("The device argument must be an instance of Node.Device.")
         if(nodeID not in range(1, 2**16)): raise Exception("The nodeID, {0}, must be in the range [1, 65535]".format(nodeID))
         if(not isinstance(pipe, RadioInterface.RadioInterface)): raise Exception("The device argument must be an instance of Node.Device.")
@@ -106,70 +107,26 @@ class HardwareNode:
             self._primaryRadio = '2.4ghz'
         else:
             self._primaryRadio = 'edison'
-
-        if(load == True): load_state()
-
+        
+        if(load == True): self.load_state()
+         
 
     def load_state(self):
         self._loaded = True
         narray = []
         rarray = []
         if(True == config['debug'] == config['debug_test_network']):
-            print("Use preloaded network")
+            #print("Use preloaded network")
             maxNetworkSize = 8
             maxNeighbors = 4
             maxRoutes = 4
+            
+            narray = config['preset_node_tables'][self._nodeID]["narray"]
+            rarray = config['preset_node_tables'][self._nodeID]["rarray"]
+            for byte in range(0,4):
+                for index in range(0,len(narray)):
+                    self.add_sensor("n{0}_{1}".format(index, byte), "network", index*4 + byte)
 
-            if(self._nodeID == 2 ):
-                narray =  [[1,74,2,1]]
-                for byte in range(0,4):
-                    self.add_sensor("n0_{0}".format(byte), "network", 0*4 + byte)
-                rarray = []
-            elif(self._nodeID == 3 ):
-                narray =  [[1,44,2,1]]
-                for byte in range(0,4):
-                    self.add_sensor("n0_{0}".format(byte), "network", 0*4 + byte)
-                rarray = []
-            elif(self._nodeID == 4 ):
-                narray =  [[1,66,2,1]]
-                for byte in range(0,4):
-                    self.add_sensor("n0_{0}".format(byte), "network", 0*4 + byte)
-                rarray = []
-            elif(self._nodeID == 5 ):
-                narray =  [[1,96,2,1], [4,33,2,1]]
-                for byte in range(0,4):
-                    self.add_sensor("n0_{0}".format(byte), "network", 0*4 + byte)
-                    self.add_sensor("n1_{0}".format(byte), "network", 1*4 + byte)
-                rarray = []
-            elif(self._nodeID == 6 ):
-                narray =  [[1,74,2,1]]
-                for byte in range(0,4):
-                    self.add_sensor("n0_{0}".format(byte), "network", 0*4 + byte)
-                rarray = []
-            elif(self._nodeID == 7 ):
-                narray =  [[1,44,2,1]]
-                for byte in range(0,4):
-                    self.add_sensor("n0_{0}".format(byte), "network", 0*4 + byte)
-                rarray = []
-            elif(self._nodeID == 8 ):
-                narray =  [[1,66,2,1]]
-                for byte in range(0,4):
-                    self.add_sensor("n0_{0}".format(byte), "network", 0*4 + byte)
-                rarray = []
-            elif(self._nodeID == 9 ):
-                narray =  [[10,96,2,1], [4,33,2,1]]
-                for byte in range(0,4):
-                    self.add_sensor("n0_{0}".format(byte), "network", 0*4 + byte)
-                    self.add_sensor("n1_{0}".format(byte), "network", 1*4 + byte)
-                rarray = []
-	    elif(self._nodeID == 10 ):
-                narray =  [[9,96,2,1], [4,33,2,1]]
-                for byte in range(0,4):
-                    self.add_sensor("n0_{0}".format(byte), "network", 0*4 + byte)
-                    self.add_sensor("n1_{0}".format(byte), "network", 1*4 + byte)
-                rarray = []
-	    else:
-                raise Exception("Unexpected node ID: {0}".format(self._nodeID))
         else: #read info from node
             narray, rarray, maxNetworkSize, maxNeighbors, maxRoutes = self.read_network_state()
       
@@ -218,7 +175,9 @@ class HardwareNode:
         if(not self._loaded): raise Exception("Node {0} has not been loaded. Call load_state() on it first".format(self._nodeID))
         if(sensorName.lower() not in self._inputs.keys()): raise Exception("Unknown sensor: {0}. Current sensor list: {1}".format(sensorName.lower(), self._inputs.keys()))
         shID = self._masterNode.get_forward_id(self._nodeID)
-        if(shID == -1): raise Exception("Node {0}: No route possible".format(self._nodeID))
+        if(shID == -1): 
+            warnings.warn("Node {0}: No route possible".format(self._nodeID), Warning)
+            return 0, []
 
         returnData = {}
         address = self._device.address(self._inputs[sensorName.lower()]["space"], self._inputs[sensorName.lower()]["offset"])
@@ -234,7 +193,9 @@ class HardwareNode:
         if(sensorName.lower() not in self._inputs.keys()): raise Exception("Unknown sensor: {0}. Current sensor list: {1}".format(sensorName.lower(), self._inputs.keys()))       
         
         shID = self._masterNode.get_forward_id(self._nodeID)
-        if(shID == -1): raise Exception("Node {0}: No route possible".format(self._nodeID))
+        if(shID == -1): 
+            warnings.warn("Node {0}: No route possible".format(self._nodeID), Warning)
+            return 0, []    
 
         returnData = {}
         address = self._device.address(self._inputs[sensorName.lower()]["space"], self._inputs[sensorName.lower()]["offset"])
@@ -490,7 +451,7 @@ class VirtualNode:
 
         if nodeID is None: #mask all entries
             for entry in self._networkTable._neighborArray: #FIXME breaking abstraction/protection rules here...
-                print("   Masked edge from node {0} to node {1}".format(self._nodeID, entry[0]))
+                print("   {0} edge from node {1} to node {2}".format(action, self._nodeID, entry[0]))
                 entry[1] = maskValues[action]
         else:
             if(nodeID not in range(1, 2**16)): raise Exception("The specified nodeID, {0}, must be in the range [1, 65535]".format(nodeID))
@@ -499,7 +460,7 @@ class VirtualNode:
                 print("Error: could not find node {0} in node {1}'s neighbor table.".format(nodeID, self._nodeID))
                 print("   Neighbor table = {0}".format(self._networkTable.get_neighbor_list()))
             else:
-                print("   Masked the edge from node {0} to node {1}".format(self._nodeID, nodeID))
+                print("   {0} the edge from node {1} to node {2}".format(action, self._nodeID, nodeID))
                 entry[1] = maskValues[action]
                 self.update_neighbor_LQE(entry, index)
 

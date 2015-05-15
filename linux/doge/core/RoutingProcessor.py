@@ -45,7 +45,7 @@ class RoutingProcessor():
 
    #Go through Neighbor Table Entry list and add edges
    for entry in neighborTable:
-      radioNumber = (entry[3] >> 4) & 0x3
+      radioNumber = entry[3]
       edges.append({'id':self.edge_id, 'from':nodeID, 'to': entry[self.NTE_ID],'label':entry[self.NTE_LQE],'radio':radioNumber})
       self.edge_id += 1
      

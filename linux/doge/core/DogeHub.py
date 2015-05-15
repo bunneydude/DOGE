@@ -5,6 +5,7 @@ from collections import defaultdict
 from doge.radio.RadioInterface import RadioInterface
 from doge.radio.Node import HardwareNode, VirtualNode, Device
 from doge.core.RoutingProcessor import RoutingProcessor
+from socketIO_client import SocketIO
 from doge.conf.globals import config
 
 # TODO: Create inner class definition for operation on RP calls via private methods post-sketch connection
@@ -107,7 +108,7 @@ def connect_sketch():
     Connect to the IPC objects from sketch
     '''
     rootID = 1 #TODO: where to read this in from?
-    pipe = RadioInterface("edison", rootID, config['debug'])
+    pipe = RadioInterface("edison", rootID, config['debug_no_sketch'] and config['debug'], config['radio_log_level'])
     pipe.connect_sketch()
     
     root = VirtualNode(rootID, "Edison")
@@ -124,9 +125,16 @@ def load_preset_nte_config(pipe, master):
         networkNodes[nodeInfo['node_id']] = HardwareNode(device, nodeID = nodeInfo['node_id'], pipe = pipe, master = master, load=False)
     return networkNodes
 
+def plot_setup():
+    port = 3000
+    socket = SocketIO('localhost', port)
+
+    return socket
+
+
 def rp_setup():
     root,pipe = connect_sketch() #if not already not connected 
-    
+
     #List of network edges,nodes,routing edges. Sent to webserver/browser for vis.js n/w visiualization
     edges = []
     nodes = []
@@ -145,7 +153,6 @@ def rp_setup():
         if(node.get_nodeID() != root.get_nodeID()): #TODO might need a better way to avoid the root node
             root.add_neighbor({'shNodeID':node.get_nodeID(), 'shLQE':1, 'radioID':0, 'networkID':1})
             node.load_state()
-            print("Node {0}: neighbors = {1}, routes = {2}".format(node.get_nodeID(), node.get_neighbor_table(), node.get_routing_table()))
             edisonRP.createNetworkVis(nodes, edges, route_edges, node)
 
     for routePair in config['preset_routes']:
@@ -177,3 +184,7 @@ def rp_run(socket, routingProcessor):
         socket.on('message', routingProcessor.processMessage)
         socket.wait(seconds=1)
     
+def handle_rp_request(socket, routingProcessor):    
+    #Wait for incoming message targetted to routing processor
+    socket.on('message', routingProcessor.processMessage)
+    socket.wait(seconds=1)
