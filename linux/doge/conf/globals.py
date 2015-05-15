@@ -12,7 +12,7 @@ config['debug'] = True
 config['debug_no_sketch'] = False #Don't send data to sketch via IPCBuffer
 config['debug_test_network'] = False #Use a preset network for neighbor/routing edges
 
-config['radio_log_level'] = 1 
+config['radio_log_level'] = 1
 
 # Preset Neighbor Table Nodes
 nte_nodes = [

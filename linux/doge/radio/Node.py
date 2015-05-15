@@ -16,7 +16,8 @@ class Device:
       "gpio":{"base":"mm_gpio_base", "size":"mm_gpio_size"},
       "adc":{"base":"mm_adc_base", "size":"mm_adc_size"},
       "uart":{"base":"mm_uart_base", "size":"mm_uart_size"},
-      "dsp":{"base":"mm_dsp_base", "size":"mm_dsp_size"}
+      "dsp":{"base":"mm_dsp_base", "size":"mm_dsp_size"},
+      "static_route":{"base":"mm_static_route_base", "size":"mm_static_route_size"}
    }
 
    """ Create the device based on the microcontroller name and memory map
