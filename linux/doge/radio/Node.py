@@ -5,6 +5,7 @@ import doge.core.protocol_ctypes as ProtocolDefs
 from __builtin__ import file
 import random
 from doge.conf.globals import config
+import warnings
 
 #The Device class represents a microcontroller and its firmware.
 class Device:
@@ -174,7 +175,9 @@ class HardwareNode:
         if(not self._loaded): raise Exception("Node {0} has not been loaded. Call load_state() on it first".format(self._nodeID))
         if(sensorName.lower() not in self._inputs.keys()): raise Exception("Unknown sensor: {0}. Current sensor list: {1}".format(sensorName.lower(), self._inputs.keys()))
         shID = self._masterNode.get_forward_id(self._nodeID)
-        if(shID == -1): raise Exception("Node {0}: No route possible".format(self._nodeID))
+        if(shID == -1): 
+            warnings.warn("Node {0}: No route possible".format(self._nodeID), Warning)
+            return 0, []
 
         returnData = {}
         address = self._device.address(self._inputs[sensorName.lower()]["space"], self._inputs[sensorName.lower()]["offset"])
@@ -190,7 +193,9 @@ class HardwareNode:
         if(sensorName.lower() not in self._inputs.keys()): raise Exception("Unknown sensor: {0}. Current sensor list: {1}".format(sensorName.lower(), self._inputs.keys()))       
         
         shID = self._masterNode.get_forward_id(self._nodeID)
-        if(shID == -1): raise Exception("Node {0}: No route possible".format(self._nodeID))
+        if(shID == -1): 
+            warnings.warn("Node {0}: No route possible".format(self._nodeID), Warning)
+            return 0, []    
 
         returnData = {}
         address = self._device.address(self._inputs[sensorName.lower()]["space"], self._inputs[sensorName.lower()]["offset"])

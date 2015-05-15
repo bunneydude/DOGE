@@ -14,13 +14,15 @@ plotSocket = plot_setup()
 
 networkNodes = routingProcessor.networkNodes
 
-#get node objects
+#Unmask nodes
+rootNode.mask_neighbor(action="unmask")
 #for node in networkNodes.itervalues():
-#   print("Have node {0}".format(node.get_nodeID()))
 #   node.mask_neighbor(action="unmask")
 
+
+rootNode.mask_neighbor(10)
+
 node10 = networkNodes[10]
-node9 = networkNodes[9]
 
 node10.add_sensor("rgLED1", "static_route", mmFields.NRF24_NODE_11)
 node10.add_sensor("rgbLED", "static_route", mmFields.NRF24_NODE_12)
@@ -37,7 +39,7 @@ led = leds[0]
 
 while True:
    #handle any network requests (blocking 1 second wait)
-   for _ in range(0,1):
+   for _ in range(0,4):
       handle_rp_request(networkSocket, routingProcessor)
 
    plotData = []
@@ -45,11 +47,11 @@ while True:
    rssi = node10.get_rssi()
 
    plotData.append([int(timestamp),rssi])
-   print "Send to plot: {0}".format(timestamp, rssi)
+   print "Send to plot: {0}, {1}".format(int(timestamp), rssi)
    plotSocket.emit('update', json.dumps(plotData))
-#   time.sleep(1)
+   time.sleep(1)
    node10.push(led, rgbValue)
-   rgbValue = (rgbValue + 10) & 0xff
+   rgbValue = (rgbValue + 30) & 0xff
    switchCounter += 1
    if switchCounter > 5:
       switchCounter = 0
