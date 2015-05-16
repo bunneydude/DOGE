@@ -46,8 +46,8 @@ def find(name, path):
 
 class IntelAnalytics():
 
- iotkitJsonRssi =  {'component_type':'temperature','component_version':"1.0",'component_format':'float','component_measureunit':'Degrees Farenheit'}
- iotkitJsonTemp =  {'component_type':'rssi','component_version':"1.0",'component_format':'float','component_measureunit':'Strength'}
+ iotkitJsonRssi =  {'component_type':'rssi','component_version':"1.0",'component_format':'float','component_measureunit':'Degrees Farenheit'}
+ iotkitJsonTemp =  {'component_type':'temperature','component_version':"1.0",'component_format':'float','component_measureunit':'Strength'}
  sensor = {'rssi':iotkitJsonRssi, 'temperature':iotkitJsonTemp}
 
  #####################################
@@ -374,12 +374,12 @@ class IntelAnalytics():
     iotkitJson = {}
     val = ''
     data['network'] = 'IoT-Demo'
-    if 'temperature' in data:
-        iotkitJson = self.sensor['temperature']
-        val = 'temperature'
-    elif 'rssi' in data:
+    if 'rssi' in data:
         iotkitJson = self.sensor['rssi']
         val = 'rssi'
+    elif 'temperature' in data:
+        iotkitJson = self.sensor['temperature']
+        val = 'temperature'
     else:
         return
 

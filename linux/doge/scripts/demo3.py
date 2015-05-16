@@ -2,6 +2,7 @@ from doge.core.DogeHub import *
 from doge.radio.RadioInterface import RadioInterface
 from doge.radio.Node import *
 from doge.radio import mmFields
+from doge.core.DogeHub import connect_cloud
 import sys
 import json
 import time
@@ -18,6 +19,7 @@ networkNodes = routingProcessor.networkNodes
 #Unmask nodes
 rootNode.mask_neighbor(action="unmask")
 
+intelStream = connect_cloud("intel")
 
 #rootNode.mask_neighbor(10)
 
@@ -45,9 +47,13 @@ while True:
    timestamp = time.time()
 
    for node in networkNodes.itervalues():
-       if(node is not rootNode): plotData.append([int(timestamp), -1*node.get_rssi()])
-   print "Send to plot"
-   plotSocket.emit('update', json.dumps(plotData))
+       if(node is not rootNode): 
+	       #plotData.append([int(timestamp), -1*node.get_rssi()])
+	       intelStream.push({'id':node.get_nodeID(), 'rssi':-1*node.get_rssi()})
+   #print "Send to plot"
+   #plotSocket.emit('update', json.dumps(plotData))
+   #for point in plotData:
+#	   intelStream.push(
    time.sleep(1)
 #   node10.push(led, rgbValue)
 #   rgbValue = (rgbValue + 30) & 0xff

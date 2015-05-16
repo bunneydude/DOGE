@@ -4,9 +4,11 @@ import urllib2
 class SparkfunData():
 
 #    public_key   = 'g6WrZDLm8xHp6Yzzbg21'
-    public_key   = 'ro1x0lDv2auQv36zYMJp'
+#    public_key   = 'ro1x0lDv2auQv36zYMJp'
+    public_key   = 'g6GYDJDKQAH6WRqyjJAW'
 #    private_key  = 'qzEBGMy8mJSGJpjjqe9D'
-    private_key  = 'jkexqWoJvRc89KxBympg'
+#    private_key  = 'jkexqWoJvRc89KxBympg'
+    private_key  = 'qzeAMDMowZTJwW4oXBEw'
     base_url     = 'https://data.sparkfun.com'
     post_url     = base_url + '/input/'  + public_key
     pull_url     = base_url + '/output/' + public_key
