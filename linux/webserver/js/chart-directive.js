@@ -1,5 +1,8 @@
 'use strict';
 
+var chartdata;
+var currentChart;
+
 angular.module('DeviceManager.directives', []).
   directive('chart', [function () {
 
@@ -19,6 +22,8 @@ angular.module('DeviceManager.directives', []).
        
        
         scope.$watch('chartdata', function (chartdata, oldchartdata) {
+
+          //console.log ('chart-directive chartdata scope');
 
           if (chartdata) {
             //set chart defaults through tag attributes
@@ -123,8 +128,10 @@ angular.module('DeviceManager.directives', []).
               }
 //            chartdata.tooltip.shared = true;
             }
-               var currentChart=   renderChart(chartsDefaults, chartdata);
-                scope.$root.$broadcast('chartCreated', currentChart);
+               //console.log ('rendering chart');
+               //globalChartData = chartdata;
+               currentChart=   renderChart(chartsDefaults, chartdata);
+               scope.$root.$broadcast('chartCreated', currentChart);
          
           }
 

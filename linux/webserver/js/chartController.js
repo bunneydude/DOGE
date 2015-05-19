@@ -1,12 +1,15 @@
 'use strict';
 
 /* Controllers */
+var chartDataTemplate;
+var chart_created = 0;
+var globalChart;
+var tempLineChart;
 
 angular.module('DeviceManager.chartController', []).
   controller('chartController', ['$scope', 'pageService', 'chartService','$timeout',  function ($scope, pageService, chartService) {
 
     if (!$scope.chartTemplate) {
-      //get the chart template for this view... right now it covers all charts...
       pageService.get(null, 'js/highcharts.json').then(function (success) {
         $scope.chartTemplate = success;
         $scope.createCharts();
@@ -17,10 +20,15 @@ angular.module('DeviceManager.chartController', []).
       $scope.createCharts();
     }
 
+
     $scope.createCharts = function () {
-              
-     $scope.lineChartData ={};
-           $scope.chart= {}
+      //console.log('in createCharts scope');    
+
+    
+    
+     //$scope.lineChartData ={};
+     //$scope.chart= {}; 
+     
      var dataDescription = {
         timeseries: {
           yAxisLabels: [''],
@@ -55,28 +63,41 @@ angular.module('DeviceManager.chartController', []).
         }
       };
         
-   
+     //Render chart when view is switched back after chart was created before
+     if (chart_created) {
+        $scope.chart= globalChart;
+        $scope.lineChartData = chartService.convertLineChart(chartDataTemplate, tempLineChart, dataDescription.timeseries, '');
+     }
+ 
     $scope.$on('chartCreated', function(e, chart){    
+        //console.log('chartCreated');
         $scope.chart=   chart;
     });
+
     var ipaddr = location.hostname;
     var socket = io.connect('http://'+ipaddr+':3000');         
     socket.emit('join',{'socketid':'chart'});
 
      socket.on('init', function(data) {
-        var tempLineChart = angular.copy($scope.chartTemplate.line);
+        tempLineChart = angular.copy($scope.chartTemplate.line);
         $scope.lineChartData = chartService.convertLineChart(data, tempLineChart, dataDescription.timeseries, '');
+        chartDataTemplate = data;
+        chart_created = 1;
         $scope.$apply();
+        //console.log('chart init');
       });
 
       socket.on('update', function(data) {
+        //console.log('in socket update: $scope.chart='+$scope.chart);
         for (var i = 0, _len = data.length; i < _len; i++) {
             var newData = data[i];
-          // $scope.lineChartData.series[i].data.push(newData); 
-             $scope.chart.series[i].addPoint(newData,true, false);
-           
+            //console.log(newData);
+            $scope.chart.series[i].addPoint(newData,true, false);
+            globalChart = $scope.chart;
+             
         }
         $scope.$apply();
+        
       });
 
         
