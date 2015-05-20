@@ -28,6 +28,7 @@ class RadioInterface():
       self.rxData = []
       self.rxPacket = None
 
+   # Open the IPC objects to communicate w/ the Arduino sketch
    def connect_sketch(self):
       if(self.debug == False):
          if(self._connected == False):
@@ -39,6 +40,7 @@ class RadioInterface():
       else:
          print("In debug mode the sketch is not connected")
 
+   # TODO this method should take a list of bytes instead of forming the packet within. Currently it breaks abstraction between the interface and protocol used
    def proxy_send(self, destination, command, address, payload, singleHopDest=None, cbytes=None):
       if(singleHopDest is None): singleHopDest = self._nodeID
       if(destination not in range(0, 2**16)): raise Exception("The destination, {0}, must be in the range [0,65535]".format(destination))
@@ -63,6 +65,7 @@ class RadioInterface():
          else:
             print("Error - need to call connect_sketch first")
 
+   # Pull bytes out of the stream, decode w/ COBS, and store the result in self.rxPacket
    def proxy_receive(self):
       self.rxData = []
       encData = []
