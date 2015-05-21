@@ -1,9 +1,10 @@
 'use strict';
 
 /* Controllers */
+
 var chartDataTemplate;
-var chart_created = 0;
 var globalChart;
+var lineChartData;
 var tempLineChart;
 
 angular.module('DeviceManager.chartController', []).
@@ -26,8 +27,6 @@ angular.module('DeviceManager.chartController', []).
 
     
     
-     //$scope.lineChartData ={};
-     //$scope.chart= {}; 
      
      var dataDescription = {
         timeseries: {
@@ -63,15 +62,15 @@ angular.module('DeviceManager.chartController', []).
         }
       };
         
-     //Render chart when view is switched back after chart was created before
-     if (chart_created) {
-        $scope.chart= globalChart;
-        $scope.lineChartData = chartService.convertLineChart(chartDataTemplate, tempLineChart, dataDescription.timeseries, '');
-     }
- 
+    //This variable is set in chart-directive. Controls chart redraw on view switch
+    if (chart_created) {
+        //console.log('chart_created reinit');
+        $scope.lineChartData =   lineChartData;
+    }
+
     $scope.$on('chartCreated', function(e, chart){    
         //console.log('chartCreated');
-        $scope.chart=   chart;
+        globalChart=   chart;
     });
 
     var ipaddr = location.hostname;
@@ -79,22 +78,19 @@ angular.module('DeviceManager.chartController', []).
     socket.emit('join',{'socketid':'chart'});
 
      socket.on('init', function(data) {
-        tempLineChart = angular.copy($scope.chartTemplate.line);
-        $scope.lineChartData = chartService.convertLineChart(data, tempLineChart, dataDescription.timeseries, '');
-        chartDataTemplate = data;
-        chart_created = 1;
-        $scope.$apply();
         //console.log('chart init');
+        chartDataTemplate = data;
+        tempLineChart = angular.copy($scope.chartTemplate.line);
+        lineChartData = chartService.convertLineChart(chartDataTemplate, tempLineChart, dataDescription.timeseries, '');
+        $scope.lineChartData =   lineChartData;
+        $scope.$apply();
       });
 
       socket.on('update', function(data) {
-        //console.log('in socket update: $scope.chart='+$scope.chart);
         for (var i = 0, _len = data.length; i < _len; i++) {
             var newData = data[i];
             //console.log(newData);
-            $scope.chart.series[i].addPoint(newData,true, false);
-            globalChart = $scope.chart;
-             
+            globalChart.series[i].addPoint(newData,true, false);
         }
         $scope.$apply();
         

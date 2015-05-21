@@ -1,7 +1,6 @@
 'use strict';
 
-var chartdata;
-var currentChart;
+var chart_created = 0;
 
 angular.module('DeviceManager.directives', []).
   directive('chart', [function () {
@@ -43,7 +42,7 @@ angular.module('DeviceManager.directives', []).
               },
               scrollbar: {
                   enabled: true
-              }
+              },
             }
 
             if (attrs.type === 'pie') {
@@ -78,7 +77,6 @@ angular.module('DeviceManager.directives', []).
             if (attrs.type === 'line') {
               chartsDefaults.chart.marginTop = 30;
               chartsDefaults.chart.spacingTop = 50;
-                
 //            chartsDefaults.chart.zoomType = null;
             }
 
@@ -104,9 +102,10 @@ angular.module('DeviceManager.directives', []).
                 style: {
                   fontFamily: 'Lato, Helvetica, Arial, sans-serif'
                 }
-              }
+              },
             });
 
+           
 
             if (attrs.type === 'line' || attrs.type === 'area') {
               var xAxis1 = chartdata.xAxis[0];
@@ -129,10 +128,9 @@ angular.module('DeviceManager.directives', []).
 //            chartdata.tooltip.shared = true;
             }
                //console.log ('rendering chart');
-               //globalChartData = chartdata;
-               currentChart=   renderChart(chartsDefaults, chartdata);
+               var currentChart=   renderChart(chartsDefaults, chartdata);
                scope.$root.$broadcast('chartCreated', currentChart);
-         
+               chart_created =1;
           }
 
         });
