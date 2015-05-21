@@ -110,7 +110,9 @@ class HardwareNode:
         
         if(load == True): self.load_state()
          
-
+    # Create the network table for this node
+    # If using a debug mode, preload
+    # Otherwise, query the node directly for its table with read_network_state()
     def load_state(self):
         self._loaded = True
         narray = []
@@ -144,23 +146,23 @@ class HardwareNode:
 
     # field - which state to commit
     # force - if False, first check to see if the state needs to be updated. Otherwise always update
-    def commit(self, field='all', force=False):
+    def commit(self, field='all', force=False): #FIXME not yet implemented
         pass
     #    if(field.lower() == 'all'):
 
     #returns True if there is state that needs to be committed to the HW node
     # if returns True, the info list has the keys for which fields have been modified
-    def modified(self, info=[]):
+    def modified(self, info=[]): #FIXME not yet implemented
         pass 
 
-
+    # Add a radio to this node so the webserver can color it properly
     def add_radio(self, radio):
         if(radio.lower() not in self._validRadios): raise Exception("Invalid radio specified: {0}. Must be one of {1}".format(radio.lower(), self._validRadios))
         if(len(self._radios) == self._maxRadios): raise Exception("This node has exceeded the max number of radios: {0}".format(self._maxRadios))
 
         self._radios.append(radio.lower())
 
-
+    # Adds a 'name, offset' pair to this node so the user can call pull/push
     def add_sensor(self, name, registerSpace, registerOffset):
 #        print("DEBUG - Node {0}: add sensor {1} at {2}".format(self._nodeID, name, registerOffset))
         if(name.lower() in self._inputs.keys()): raise Exception("Node {0}: The sensor name, {1}, is already in use. Current sensors are {2}".format(self._nodeID, name.lower(), self._inputs.keys()))
@@ -170,7 +172,8 @@ class HardwareNode:
         if(address == -1): raise Exception("Offset {0} in space {1} is out of range. Please consult the memory map file".format(registerOffset, registerSpace))       
         self._inputs[name.lower()] = {"space":registerSpace.lower(), "offset":registerOffset}
 
-
+    # Get data from the declared sensor name
+    # Returns a 'int, list' tuple
     def pull(self, sensorName):
         if(not self._loaded): raise Exception("Node {0} has not been loaded. Call load_state() on it first".format(self._nodeID))
         if(sensorName.lower() not in self._inputs.keys()): raise Exception("Unknown sensor: {0}. Current sensor list: {1}".format(sensorName.lower(), self._inputs.keys()))
@@ -188,6 +191,7 @@ class HardwareNode:
 
         return self._pipe.rxPacket.size, list(self._pipe.rxPacket.data)
 
+    # Write a byte of data to the specified sensor name
     def push(self, sensorName, data):
         if(not self._loaded): raise Exception("Node {0} has not been loaded. Call load_state() on it first".format(self._nodeID))
         if(sensorName.lower() not in self._inputs.keys()): raise Exception("Unknown sensor: {0}. Current sensor list: {1}".format(sensorName.lower(), self._inputs.keys()))       
