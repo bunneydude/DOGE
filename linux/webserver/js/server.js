@@ -87,7 +87,7 @@ chart_io.sockets.on('connection', function(socket) {
     socket.on('updateComponent', function(data) {});
 
     socket.on('update',function(data){
-        console.log ('Recvd data from python');
+        console.log ('Recvd data from python = '+data);
         data = JSON.parse(data);
         //console.log (data);
         chart_io.to('chart').emit('update',data);

@@ -2,11 +2,15 @@
 
 /* Controllers */
 
+var chartDataTemplate;
+var globalChart;
+var lineChartData;
+var tempLineChart;
+
 angular.module('DeviceManager.chartController', []).
   controller('chartController', ['$scope', 'pageService', 'chartService','$timeout',  function ($scope, pageService, chartService) {
 
     if (!$scope.chartTemplate) {
-      //get the chart template for this view... right now it covers all charts...
       pageService.get(null, 'js/highcharts.json').then(function (success) {
         $scope.chartTemplate = success;
         $scope.createCharts();
@@ -17,10 +21,13 @@ angular.module('DeviceManager.chartController', []).
       $scope.createCharts();
     }
 
+
     $scope.createCharts = function () {
-              
-     $scope.lineChartData ={};
-           $scope.chart= {}
+      //console.log('in createCharts scope');    
+
+    
+    
+     
      var dataDescription = {
         timeseries: {
           yAxisLabels: [''],
@@ -55,28 +62,38 @@ angular.module('DeviceManager.chartController', []).
         }
       };
         
-   
+    //This variable is set in chart-directive. Controls chart redraw on view switch
+    if (chart_created) {
+        //console.log('chart_created reinit');
+        $scope.lineChartData =   lineChartData;
+    }
+
     $scope.$on('chartCreated', function(e, chart){    
-        $scope.chart=   chart;
+        //console.log('chartCreated');
+        globalChart=   chart;
     });
+
     var ipaddr = location.hostname;
     var socket = io.connect('http://'+ipaddr+':3000');         
     socket.emit('join',{'socketid':'chart'});
 
      socket.on('init', function(data) {
-        var tempLineChart = angular.copy($scope.chartTemplate.line);
-        $scope.lineChartData = chartService.convertLineChart(data, tempLineChart, dataDescription.timeseries, '');
+        //console.log('chart init');
+        chartDataTemplate = data;
+        tempLineChart = angular.copy($scope.chartTemplate.line);
+        lineChartData = chartService.convertLineChart(chartDataTemplate, tempLineChart, dataDescription.timeseries, '');
+        $scope.lineChartData =   lineChartData;
         $scope.$apply();
       });
 
       socket.on('update', function(data) {
         for (var i = 0, _len = data.length; i < _len; i++) {
             var newData = data[i];
-          // $scope.lineChartData.series[i].data.push(newData); 
-             $scope.chart.series[i].addPoint(newData,true, false);
-           
+            //console.log(newData);
+            globalChart.series[i].addPoint(newData,true, false);
         }
         $scope.$apply();
+        
       });
 
         
