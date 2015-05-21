@@ -34,11 +34,7 @@ angular.module('DeviceManager.directives', []).
                 width: attrs.width || null,
                 reflow: true,
                 animation: false,
-                zoomType: 'x'
-//              events: {
-//                redraw: resize,
-//                load: resize
-//              }
+                zoomType: 'x',
               },
               scrollbar: {
                   enabled: true
@@ -78,6 +74,7 @@ angular.module('DeviceManager.directives', []).
               chartsDefaults.chart.marginTop = 30;
               chartsDefaults.chart.spacingTop = 50;
 //            chartsDefaults.chart.zoomType = null;
+                 
             }
 
             if (attrs.type === 'bar') {

@@ -8,7 +8,7 @@ import time
 
 config['debug'] =True
 config['debug_test_network'] = True
-config['debug_no_sketch'] = False
+config['debug_no_sketch'] = True
 
 networkSocket, routingProcessor, rootNode = rp_setup()
 plotSocket = plot_setup()
@@ -43,8 +43,7 @@ while True:
    plotData = []
    timestamp = time.time()
    rssi = node10.get_rssi()
-
-   plotData.append([int(timestamp),-1*rssi])
+   plotData.append([int(timestamp),rssi])
    print "Send to plot: {0}, {1}".format(int(timestamp), rssi)
    plotSocket.emit('update', json.dumps(plotData))
    time.sleep(2)

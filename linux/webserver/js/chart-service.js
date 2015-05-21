@@ -11,6 +11,7 @@ angular.module('DeviceManager.services', [], function ($provide) {
       seriesIndex;
 
     return {
+
       convertLineChart: function (chartData, chartTemplate, dataDescription, settings) {
 
         var seriesCount = chartData.length,
@@ -47,7 +48,9 @@ angular.module('DeviceManager.services', [], function ($provide) {
             lineChart.series[l].dashStyle = 'solid';
 
             lineChart.yAxis[0].title.text = dataDescription.yAxisLabels;
-
+            //Set yAxis min and max to null so chart calculates this automatically
+            lineChart.yAxis[0].max = null; 
+            lineChart.yAxis[0].min = null; 
             for (var i = 0; i < dataPoints.length; i++) {
               if (typeof dataDescription.dataAttr[1] === 'object') {
                 lineChart.series[l].data.push([dataPoints[i].timestamp, dataPoints[i].count]);
