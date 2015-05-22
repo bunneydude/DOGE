@@ -26,7 +26,7 @@ class RadioInterface():
       
       self.txData = []
       self.rxData = []
-      self.rxPacket = None
+      self.rxPacket = ProtocolDefs.rawPacket()
 
    # Open the IPC objects to communicate w/ the Arduino sketch
    def connect_sketch(self):
@@ -73,7 +73,8 @@ class RadioInterface():
       duration = 0
       if(self.debug == False):
          while(duration < timeout):
-            if self._logLevel >= 3: print("   Available bytes = {0}".format(self.rxBuffer.available()))
+            #if self._logLevel >= 3: print("   Available bytes = {0}".format(self.rxBuffer.available()))
+            print("   Available bytes = {0}".format(self.rxBuffer.available()))
             if(self.rxBuffer.available() > 0): 
                encData.append(ord(self.rxBuffer.read()))
                if(encData[0] == 0): #caught the end of a previous frame
@@ -93,7 +94,9 @@ class RadioInterface():
                duration += 100
                time.sleep(0.1)
          if(duration >= timeout):      
-            print("Timeout")
+  	    print("RadioInterface.proxy_receive: Timeout")
+	    self.rxPacket = ProtocolDefs.rawPacket()
+	    self.rxData = []
             return -1
       else:
          tempData = Protocol.form_packet(type=1, srcID=6, dstID=self._nodeID, shSrcID=6, shDstID=self._nodeID, cmd=ProtocolDefs.CMD_ACK, addr=1, data=2, enc='bytes')

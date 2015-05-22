@@ -45,7 +45,7 @@ while True:
    timestamp = time.time()
 
    for node in networkNodes.itervalues():
-       if(node is not rootNode): plotData.append([int(timestamp), -1*node.get_rssi()])
+       if(node is not rootNode): plotData.append([int(timestamp), node.get_rssi()])
    print "Send to plot"
    plotSocket.emit('update', json.dumps(plotData))
    time.sleep(1)

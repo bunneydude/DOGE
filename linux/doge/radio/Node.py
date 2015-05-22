@@ -186,10 +186,13 @@ class HardwareNode:
         address = self._device.address(self._inputs[sensorName.lower()]["space"], self._inputs[sensorName.lower()]["offset"])
 
         self._pipe.proxy_send(destination=self._nodeID, command=ProtocolDefs.CMD_READ_REG, address=address, payload=0, singleHopDest=shID)
-        self._pipe.proxy_receive()
+        returnCode = self._pipe.proxy_receive()
         #print("Pull complete. Got: [header: [{0}], size = {1}, data = {2}]".format(ProtocolDefs.print_structure(self._pipe.rxPacket.hdr), self._pipe.rxPacket.size, list(i for i in self._pipe.rxPacket.data)))
 
-        return self._pipe.rxPacket.size, list(self._pipe.rxPacket.data)
+        if(returnCode == -1):
+            return 0, []            
+        else:
+            return self._pipe.rxPacket.size, list(self._pipe.rxPacket.data)
 
     # Write a byte of data to the specified sensor name
     def push(self, sensorName, data):
