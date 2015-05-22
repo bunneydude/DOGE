@@ -10,6 +10,7 @@ from doge.conf.globals import config
 
 # TODO: Create inner class definition for operation on RP calls via private methods post-sketch connection
 
+# Takes in the name of a cloud service, 'sparkfun' or 'intel', and returns the corresponding interface object
 def connect_cloud(service):
     stream = None
     if service.lower() == 'sparkfun':
@@ -18,6 +19,7 @@ def connect_cloud(service):
         stream = IntelAnalytics()
     return stream
 
+# Grab the most recent data for a stream based on the keys in dataFilter
 def getLatestNodeData(stream, dataFilter):
     if type(dataFilter) != type(dict()):
         return {}
@@ -36,6 +38,7 @@ def getLatestNodeData(stream, dataFilter):
             return row
 #    return _rawData
     return {}
+
 
 def getAllNodeData(stream):
     _rawData = stream.pull('json')
@@ -117,7 +120,8 @@ def connect_sketch():
 def find_neighbors(nids):
     pass
 
-
+# Create nodes based on the config['preset_nte_nodes'] structure
+# This helps speed up testing w/ hardware and will eventually be used to restore network state if the user relaunches the python
 def load_preset_nte_config(pipe, master):
     networkNodes = {}
     for nodeInfo in config['preset_nte_nodes']:
@@ -177,13 +181,15 @@ def rp_setup():
 
     return sock, edisonRP, root
 
-    
+# Infinite loop for handling requests from the webserver
+# FIXME might be deleted in a future release    
 def rp_run(socket, routingProcessor):    
     while True:
         #Wait for incoming message targetted to routing processor
         socket.on('message', routingProcessor.processMessage)
         socket.wait(seconds=1)
-    
+
+# Non-infinite loop version of rp_run
 def handle_rp_request(socket, routingProcessor):    
     #Wait for incoming message targetted to routing processor
     socket.on('message', routingProcessor.processMessage)

@@ -29,7 +29,9 @@ class RoutingProcessor():
    self.network_neighbor_tables = {}
    self.network_routing_tables = {}
    self.networkNodes = initialNetwork
- 
+
+ # Appends a dictionary to 'nodes', 'edges' and 'route_edges' based on the passed in node object
+ # These structures are later sent to the webserver to create the initial view of the network 
  def createNetworkVis(self,nodes, edges, route_edges, node):
    nodeID = node.get_nodeID()
    neighborTable = node.get_neighbor_table()
@@ -54,7 +56,7 @@ class RoutingProcessor():
      route_edges.append({'id':self.route_edge_id, 'from': nodeID, 'to': entry[self.RTE_ID],'label':entry[self.RTE_LQE]})
      self.route_edge_id += 1
 
-
+ 
  def createSocket(self,port):
    #Create client socket 
    socket = SocketIO('localhost', port)

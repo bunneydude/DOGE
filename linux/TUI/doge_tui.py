@@ -4,10 +4,9 @@ import time
 import Queue
 import threading
 import curses
+import random
 
-import IPCBuffer
 import os
-import Protocol
 import sys
 import json
 
@@ -22,12 +21,6 @@ screenPos = 0
 
 uiQueue = Queue.Queue()
 sketchQueue = Queue.Queue()
-
-proxyCmdBuffer = IPCBuffer.IPCBuffer(3)
-proxyRxBuffer = IPCBuffer.IPCBuffer(4)
-
-proxyCmdBuffer.open_sketch()
-proxyRxBuffer.open_sketch()
 
 def main(stdscr):
    global uiRun
@@ -67,10 +60,19 @@ def main(stdscr):
          draw_rows(stdscr, screen, rowDict)  
       time.sleep(0.02)
 
+   # Signal for the threads to end
    uiRun = False
    sketchRun = False
    inputThread.join()
    sketchThread.join()
+
+
+# @param data - dictionary
+#           'id' - node ID
+#           'timestamp' - time of the measurement
+#           'network' - which node this came from
+#           'temp' - temperature
+#           'rssi' - signal strength
 
 def handle_data(rowDict, data):
    timestamp = data['timestamp']
@@ -116,8 +118,6 @@ def user_input(stdscr):
 def sketch_loop():
    global sketchQueue
    global sketchRun
-   global proxyCmdBuffer
-   global proxyRxBuffer
 
    toSend = []
    rxBytes = []
@@ -127,50 +127,17 @@ def sketch_loop():
    rssi = -60
    timestamp = 0
 
-   WRITE = 2
-   SREG_TARGET = 7
-   SREG_PING = 11
-   PING = 1
-
    while sketchRun:
       nodeDataList = []
       for target in range(2,6):
          # set target
-         toSend = Protocol.form_packet(cmd=WRITE, addr=SREG_TARGET, data=target)
-         for b in toSend:
-            proxyCmdBuffer.write(b)
 
-         #get response
-         rxBytes = []
-         rxBytes.append(ord(proxyRxBuffer.read()))
-         rxBytes.append(ord(proxyRxBuffer.read()))
-
-         for i in range(rxBytes[-1]):
-            rxBytes.append(ord(proxyRxBuffer.read()))
-         rxBytes.append(ord(proxyRxBuffer.read()))      
-
-############## get data
-         toSend = Protocol.form_packet(cmd=WRITE, addr=SREG_PING, data=PING)
-         for b in toSend:
-            proxyCmdBuffer.write(b)
-
-         #get response
-         rxBytes = []
-         rxBytes.append(ord(proxyRxBuffer.read()))
-         rxBytes.append(ord(proxyRxBuffer.read()))
-
-         for i in range(rxBytes[-1]):
-            rxBytes.append(ord(proxyRxBuffer.read()))
-         rxBytes.append(ord(proxyRxBuffer.read()))         
-
-         rssi = -((rxBytes[3]^0xff)+1)
-         temperature = rxBytes[4]
+         rssi = random.randint(-80, -20)
+         temperature = random.randint(60,100)
          timestamp = time.time()
-         nodeDataList.append([timestamp,rssi+100])
+         nodeDataList.append([timestamp,-1*rssi])
          sketchQueue.put({'timestamp':timestamp, 'id':target, 'network':'BP', 'data':{'temp':temperature, 'rssi':rssi} })
          time.sleep(0.1)
-      file = open("/home/root/arudinoTest-master/data.json","w")
-      file.write(json.dumps(nodeDataList))
 
 
 def sketch_link():

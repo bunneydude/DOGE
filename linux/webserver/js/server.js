@@ -17,23 +17,30 @@
 
   __dirname = '';
 
-
+  //The main Web UI will created on port 8000 
   var webserver = app.listen(8000,function(){
     console.log("Server started on port 8000");
    });
 
+  //Define port that will be used for a socket between the RoutingProcessor and Webserver
+  //All Data charting/plotting will happen via messages on this socket
   var chartserver = app.listen(3000, function() {
   });
 
+  //Socket to be used for data charting
   chart_io = require('socket.io')(chartserver);
 
+  //Define port that will be used for a socket between the RoutingProcessor and Webserver
+  //All messages for network visualization and user requested changes will happen via messages on this socket
   var graphserver = app.listen(4000, function() {
   });
-
+  
+  //Socket to be used for network visualization
   graph_io = require('socket.io')(graphserver);
 
  
-   generateChartData = function() {
+  //Chart labels to be used by chartController.js for rendering the chart. 
+  generateChartData = function() {
     var lineChartData;
     return lineChartData = [
       {
@@ -73,23 +80,26 @@
   };
 
   
-
+//Handle communicatin on socket for Chart related messages
 chart_io.sockets.on('connection', function(socket) {
-   
+    
+    //Clients will join the server in rooms/channels 
+    //chartController.js will join as room 'chart'
     socket.on('join', function (data) {
         socket.join(data.socketid);
     });
  
+    //On socket init send chart template to chartController.js
     chart_io.to('chart').emit('init', generateChartData());
-    console.log('connected');
+    console.log('Connected to chart socket ');
    
      
     socket.on('updateComponent', function(data) {});
 
+    //If 'update' message recvd from RoutingProcessor -> Send data to chartController.js for rendering.
     socket.on('update',function(data){
         console.log ('Recvd data from python = '+data);
         data = JSON.parse(data);
-        //console.log (data);
         chart_io.to('chart').emit('update',data);
 
     });
@@ -98,6 +108,7 @@ chart_io.sockets.on('connection', function(socket) {
   });
 
 
+//Handle communicatin on socket for Network Vis related messages
 var nw_data; 
 var sent_nw_data = 0;
 

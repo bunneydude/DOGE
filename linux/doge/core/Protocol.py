@@ -4,6 +4,12 @@ import warnings
 
 libprotocol = CDLL("./doge/core/libprotocol.so")
 
+# Takes in the attributes for a packet (src/dest ID, command, etc) and an encoding (enc)
+# Returns a list representing a packet. If the 'bytes' encoding is used, each element of the list is in the form '\x12' - i.e. multi-byte fields like nodeID is broken into two
+# When encoding is 'fields' the multi-byte fields are combined into a single element
+#
+# In general, use the 'fields' encoding if you want to pass this packet up to other Python code and use the 'bytes' encoding
+# when you want to send the packet down to the RadioInterface code
 def form_packet(type=RAW_PACKET, srcID=1, dstID=1, shSrcID=1, shDstID=1, cmd=CMD_READ_REG, addr=0, data=0, bytes=None, enc="bytes"):
    validEncodings = ["bytes", "fields"]
 
@@ -38,6 +44,8 @@ def form_packet(type=RAW_PACKET, srcID=1, dstID=1, shSrcID=1, shDstID=1, cmd=CMD
  
 
 # Expects a list of ints or strings
+# This method will create a new packet object as defined in protocol_ctypes
+# TODO the name is a bit misleading - 'unpack' might be a better title than 'parse'
 def parse_packet(data):
    if(type(data) is not list): raise Exception("Input must be a list. It was instead a {0}".format(type(data)))
    if(len(data) == 0): raise Exception("Input list cannot be empty")
@@ -60,6 +68,3 @@ def parse_packet(data):
    memmove(addressof(newPacket), data, length)
    
    return newPacket
-
-def receive_packet(stream, registers):
-   raise Exception("Protocol.receive_packet has been deprecated.")
