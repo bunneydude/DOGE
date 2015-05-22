@@ -1,6 +1,8 @@
 #!/bin/bash
+#TODO: replace this with Makefile
 set -x
 
+#change this to your repo location
 DOGE_DIR=/home/bunney/Documents/repos/DOGE
 
 cd $DOGE_DIR/nodeCtrl/core/protocol
