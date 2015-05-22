@@ -73,8 +73,7 @@ class RadioInterface():
       duration = 0
       if(self.debug == False):
          while(duration < timeout):
-            #if self._logLevel >= 3: print("   Available bytes = {0}".format(self.rxBuffer.available()))
-            print("   Available bytes = {0}".format(self.rxBuffer.available()))
+            if self._logLevel >= 3: print("   Available bytes = {0}".format(self.rxBuffer.available()))
             if(self.rxBuffer.available() > 0): 
                encData.append(ord(self.rxBuffer.read()))
                if(encData[0] == 0): #caught the end of a previous frame
