@@ -10,19 +10,21 @@
   /* setting up the name of the Contorller*/
 
 
-  app = angular.module('DeviceManager', ['ngAnimate', 'ngRoute', 'ngResource', 'ngSanitize', 'ionic', 'DeviceManager.directives', 'DeviceManager.services', 'DeviceManager.servicesa', 'DeviceManager.controllers'], function($routeProvider, $locationProvider) {
+  app = angular.module('DeviceManager', ['ngAnimate', 'ngRoute', 'ngResource', 'ngSanitize', 'ionic', 'DeviceManager.directives', 'DeviceManager.services', 'DeviceManager.servicesa', 'DeviceManager.chartController', 'DeviceManager.graphController'], function($routeProvider, $locationProvider) {
     $routeProvider.when('/pin', {
       templateUrl: 'views/Pin.html'
     });
     $routeProvider.when('/device', {
-      templateUrl: 'views/Device.html'
+      templateUrl: 'views/DeviceList.html'
     });
     $routeProvider.when('/deviceChart', {
       templateUrl: 'views/DeviceChart.html',
-      controller: 'ChartController'
-      /* The chart Controller is located in page-controller.js*/
-
+      controller: 'chartController'
     });
+    $routeProvider.when('/visNetwork', {
+     templateUrl: 'views/VisNetwork.html',
+     controller: 'graphController'
+     });
     $routeProvider.when('/deviceDetails', {
       templateUrl: 'views/DeviceDetails.html'
     });
@@ -39,7 +41,7 @@
       templateUrl: 'views/LoadData.html'
     });
     return $routeProvider.otherwise({
-      templateUrl: 'views/DeviceList.html'
+      templateUrl: 'views/About.html'
     });
   });
 

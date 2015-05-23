@@ -1,0 +1,41 @@
+<div class="list card">
+   <div class="item item-avatar item-divider">
+        <img ng-src="{{currentPin.image}}">
+        <h2>{{currentPin.name}}</h2>
+        <p/> 
+       <span ng-show="currentPin.subpins" >
+       <label>View</label>
+            <div class="switch-toggle switch-candy" ng-click="currentPin.inAdvancedMode= !currentPin.inAdvancedMode">
+                <input id="week" name="view" type="radio" ng-checked="!currentPin.inAdvancedMode" >
+                <label for="week" onclick="">Normal</label>
+
+                <input id="month" name="view" type="radio" ng-checked="currentPin.inAdvancedMode">
+                <label for="month" onclick="">Advanced</label>
+
+            <a></a>
+            </div>
+           
+       </span>
+        Please select what mode to run this pin in.
+    </div>
+ 
+    <div class="item" > 
+   <span ng-hide="currentPin.inAdvancedMode" >
+        <div class="fade-in" ng-include src="'views/PinNormal.html'"></div>
+    </span>
+    
+    <span ng-show="currentPin.inAdvancedMode"> 
+         <div class="fade-in" ng-include src="'views/PinAdvanced.html'"></div>
+    </span>
+    </div>
+    <div class="item">
+        <button class="button button-stable" ng-click="savePin()">
+            Save pin state
+        </button>
+        
+        <button class="button button-stable" ng-click="resetPin()">
+            Reset pin
+        </button>
+        
+    </div>
+</div>

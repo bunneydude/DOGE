@@ -1,0 +1,16 @@
+<div class="list card">
+    
+    <div class="item item-divider">
+         Device Details 
+        
+        </div>
+    <div class="item ">
+<div class="row" ng-repeat="io in gpIOsForPin()" on-hold="openModal($index, currentPin.id)">
+  <div class="col">Managed by pin:{{io.pin}}</div>
+  <div class="col" style="background-color: {{pin.currentColor}}">currentState : {{io.activemode}}</div>
+</div>
+    </div>
+    <div class="item item-divider">
+        Tap and hold to edit an item.
+    </div>
+</div>

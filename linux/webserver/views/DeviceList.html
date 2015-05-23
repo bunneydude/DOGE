@@ -1,0 +1,7 @@
+<div class="list">
+    <a class="item item-thumbnail-left" href="#/device" ng-click="setCurrentDevice(listDevice.id)" ng-repeat='listDevice in devices'>
+      <img ng-src="{{listDevice.image}}"/>
+        <h2>{{listDevice.name}}</h2>
+        <p><span class="status-{{listDevice.status}}"> </span> {{listDevice.otherDetailedinfomation}}</p>
+    </a>
+</div>

@@ -1,30 +1,24 @@
-#import os, sys, inspect
-
-#cmd_subfolder = os.path.realpath(os.path.abspath(os.path.join(os.path.split(inspect.getfile( inspect.currentframe() ))[0],"../core")))
-#if cmd_subfolder not in sys.path:
-#	sys.path.insert(0, cmd_subfolder)
-
 from doge.core.IPCBuffer import IPCBuffer
 import doge.core.Protocol as Protocol
-
-WRITE = 2
-READ = 1
-SREG_TARGET = 7
-SREG_PING = 11
-PING = 1
-SREG_TEMPERATURE = 4
+import doge.core.protocol_ctypes as ProtocolDefs
+import time
+from cobs import cobs
+import struct
 
 class RadioInterface():
    _connected = False
    _name = None
    _nodeID = 1
+   _logLevel = 1
 
-   def __init__(self, name, nodeID, debug=False):
+   def __init__(self, name, nodeID, debug=False, logLevel=2):
       if(not isinstance(name, str)): raise Exception("The name must be a string")
       if(nodeID < 0 or nodeID > 255): raise Exception("The nodeID, {0}, must be in the range [0,255]".format(nodeID))
+      if(logLevel not in range(1,4)): raise Exception("The log level must be in the range [1,3]")
 
       self._name = name
       self._nodeID = nodeID
+      self._logLevel = logLevel
 
       self.cmdBuffer = IPCBuffer(3)
       self.rxBuffer = IPCBuffer(4)
@@ -32,77 +26,79 @@ class RadioInterface():
       
       self.txData = []
       self.rxData = []
+      self.rxPacket = ProtocolDefs.rawPacket()
 
+   # Open the IPC objects to communicate w/ the Arduino sketch
    def connect_sketch(self):
       if(self.debug == False):
-         self.cmdBuffer.open_sketch()
-         self.rxBuffer.open_sketch()
-         self._connected = True #TODO error handling
+         if(self._connected == False):
+            self.cmdBuffer.open_sketch()
+            self.rxBuffer.open_sketch()
+            self._connected = True
+         else:
+            print("IPC objects already connected")
       else:
          print("In debug mode the sketch is not connected")
 
-   def proxy_send(self, destination, command, address, payload):
-      if(destination < 0 or destination > 255): raise Exception("The destination, {0}, must be in the range [0,255]".format(destination))
+   # TODO this method should take a list of bytes instead of forming the packet within. Currently it breaks abstraction between the interface and protocol used
+   def proxy_send(self, destination, command, address, payload, singleHopDest=None, cbytes=None):
+      if(singleHopDest is None): singleHopDest = self._nodeID
+      if(destination not in range(0, 2**16)): raise Exception("The destination, {0}, must be in the range [0,65535]".format(destination))
+      if(singleHopDest not in range(0, 2**16)): raise Exception("The single-hop destination, {0}, must be in the range [0,65535]".format(singleHopDest))
 
-      self.txData = [self._nodeID, destination] + Protocol.form_packet(cmd=command, addr=address, data=payload)
-      print("About to send: {0}".format(self.txData))
+      self.txData = Protocol.form_packet(type=ProtocolDefs.RAW_PACKET, srcID=self._nodeID, dstID=destination, shSrcID=self._nodeID, shDstID=singleHopDest, cmd=command, addr=address, data=payload, bytes=cbytes, enc='bytes')
+      if self._logLevel >= 2: #print("   About to send: {0}".format(list(ord(x) for x in self.txData)))
+         txPacket = Protocol.parse_packet(self.txData)
+         print("About to send: [header: [{0}], size = {1}, data = {2}]".format(ProtocolDefs.print_structure(txPacket.hdr), txPacket.size, list(i for i in txPacket.data)))
+
+      encData = cobs.encode(''.join(self.txData))
+#      print("   Encoded: {0}".format(list(encData)))
+      encData = list(ord(x) for x in encData) 
+      if self._logLevel >= 3: print("   Encoded: {0}".format(encData))
+
       if(self.debug == False):
          if(self._connected == True):
-            #write out everything in txData
-            for b in self.txData:
+            #write out everything in encData
+            for b in encData:
                self.cmdBuffer.write(b)
-            
-            print("Waiting for response")
-            #get response
-            self.rxData = []
-            for _ in range(4): #read first 4 bytes (srcID, dstID, cmd, size)
-               self.rxData.append(ord(self.rxBuffer.read()))
-               #print("Got: {0}".format(self.rxData))
-
-            for _ in range(self.rxData[-1]): #get rest of payload
-               self.rxData.append(ord(self.rxBuffer.read()))
-               #print("Got: {0}".format(self.rxData))
-            
-            # get checksun
-            self.rxData.append(ord(self.rxBuffer.read()))
-            #print("Got: {0}".format(self.rxData))
+            self.cmdBuffer.write(0) #needed to mark end of frame
          else:
             print("Error - need to call connect_sketch first")
-      else:
-         print("Debug: send message {0}".format(self.txData))
-         self.rxData = [destination, self._nodeID, 3, 2, 5, 6]
-         self.rxData.append(-sum(self.rxData)%256)
 
-
-   def push(self, network, nodeID, data):      
-      # set target - write nodeID to SREG_TARGET
-      self.proxy_send(WRITE, SREG_TARGET, nodeID)
-
-      # set data - write data to address
-      self.proxy_send(WRITE, SREG_TEMPERATURE, data)
-      
-      # transmit - write to SREG_PING
-      self.proxy_send(WRITE, SREG_PING, 0x2)
-
+   # Pull bytes out of the stream, decode w/ COBS, and store the result in self.rxPacket
+   def proxy_receive(self):
+      self.rxData = []
+      encData = []
+      timeout = 2000
+      duration = 0
       if(self.debug == False):
-         if(self.rxData[0] == 4):
-            print("\nError for node " + str(network) + " " + str(nodeID) + ": " + str(self.rxData[3])  + "\n")
-
-
-   def pull(self, network, nodeID, field):
-      fieldDecode = {"rssi":0x0, "temperature":0x4}
+         while(duration < timeout):
+            if self._logLevel >= 3: print("   Available bytes = {0}".format(self.rxBuffer.available()))
+            if(self.rxBuffer.available() > 0): 
+               encData.append(ord(self.rxBuffer.read()))
+               if(encData[0] == 0): #caught the end of a previous frame
+                  return 0
       
-      # set target
-      self.proxy_send(WRITE, SREG_TARGET, nodeID)
+               while(encData[-1] != 0): #get bytes until end of frame
+                  encData.append(ord(self.rxBuffer.read()))
 
-      #transmit
-      self.proxy_send(WRITE, SREG_PING, fieldDecode[field.lower()] | 0x1)
+               encData = encData[0:-1] #remove trailing 0
+               #print(" Got encData: {0}".format(list(encData)))
 
-      if(self.debug == False):
-         if(self.rxData[0] == 4):
-            print("\nError for node " + str(network) + " " + str(nodeID) + ": " + str(self.rxData[3])  + "\n")
+               tempData = list(cobs.decode(''.join(struct.pack('<B',x) for x in encData)))
+               self.rxPacket = Protocol.parse_packet(tempData)
+               self.rxData = list(ord(x) for x in tempData)
+               return 1
+            else:
+               duration += 100
+               time.sleep(0.1)
+         if(duration >= timeout):      
+  	    print("RadioInterface.proxy_receive: Timeout")
+	    self.rxPacket = ProtocolDefs.rawPacket()
+	    self.rxData = []
             return -1
-         else:
-            return self.rxData[3]
       else:
+         tempData = Protocol.form_packet(type=1, srcID=6, dstID=self._nodeID, shSrcID=6, shDstID=self._nodeID, cmd=ProtocolDefs.CMD_ACK, addr=1, data=2, enc='bytes')
+         self.rxPacket = Protocol.parse_packet(tempData)
+         self.rxData = list(ord(x) for x in tempData)
          return 1

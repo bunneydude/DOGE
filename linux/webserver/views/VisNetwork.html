@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+<head>
+  <title> DOGE Network</title>
+
+  <script type="text/javascript" src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+
+</head>
+
+<body>
+
+ 
+<h3 style="margin-left:182px"> DOGE Network</h3>
+
+
+<div id ="filter">
+<b>Filter:</b>
+  <select name="Network Filter" onchange="draw();">
+  <option value="Full">Full Network</option>
+  <option value="433mhz">433 MHz</option>
+  <option value="915mhz">915 MHz</option>
+  <option value="2.4ghz">2.4 GHz</option>
+</select>
+</div>    
+  
+<p id="selection" class="pageText"></p>
+<p id="instructions" class="pageText"></p>
+<p id="route" class="pageText"></p>
+
+  <div id="user-checkbox" style="margin-left: 182px">
+    <input  id="useMaskRouteBox" type="checkbox"  > Use masked nodes/edges for routing</input>
+    <br></br>
+  </div>
+    
+  <div id="user-confirm">
+    <input type="button" value="Confirm" id="confirmButton" ng-click="saveUserData()" style="margin-left: 182px"></input>
+    <input type="button" value="Cancel" id="cancelButton" ng-click="clearUserBox()" ></input>
+  </div>
+  <br></br>
+  <div id="mynetwork-control" class="center">
+  <input type="button" value="Toggle Node Routes" id="toggleNodeRouteButton" class="mynetwork-control-button" ng-click="toggleNodeRoutes()"></input>
+  <input type="button" value="Toggle Node Edges" id="toggleNodeEdgeButton" class="mynetwork-control-button" ng-click="toggleNodeEdges()"></input>
+  <input type="button" value="Default Edge View" id="defaultEdgeViewButton" class="mynetwork-control-button" ng-click="defaultEdgeView()"></input>
+  <input type="button" value="Add Route" id="addRouteButton" class="mynetwork-control-button" ng-click="addRoute()"></input>
+  <input type="button" value="Request New Route" id="reqRouteButton" class="mynetwork-control-button" ng-click="reqNewRoute()"></input>
+  <input type="button" value="Delete Route"  id="deleteRouteButton"  class="mynetwork-control-button" ng-click="deleteRoute()"></input>
+  <input type="button" value="Mask Node/Edge"  id="elementMaskingButton"  class="mynetwork-control-button" ng-click="elementMasking('mask')"></input>
+  <input type="button" value="Un-Mask Node/Edge"  id="elementMaskingButton"  class="mynetwork-control-button" ng-click="elementMasking('unmask')"></input>
+</div>
+ 
+<div id="mynetwork" class="center"></div>
+<input type="button" value="Toggle Legend" ng-click="toggleLegend()" style="margin-left: 182px;"></button>
+<div id="mynetworklegend" class="center"></div>
+  
+</body>
+</html>
+

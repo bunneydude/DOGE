@@ -1,5 +1,7 @@
 'use strict';
 
+var chart_created = 0;
+
 angular.module('DeviceManager.directives', []).
   directive('chart', [function () {
 
@@ -20,6 +22,8 @@ angular.module('DeviceManager.directives', []).
        
         scope.$watch('chartdata', function (chartdata, oldchartdata) {
 
+          //console.log ('chart-directive chartdata scope');
+
           if (chartdata) {
             //set chart defaults through tag attributes
             var chartsDefaults = {
@@ -30,15 +34,11 @@ angular.module('DeviceManager.directives', []).
                 width: attrs.width || null,
                 reflow: true,
                 animation: false,
-                zoomType: 'x'
-//              events: {
-//                redraw: resize,
-//                load: resize
-//              }
+                zoomType: 'x',
               },
               scrollbar: {
                   enabled: true
-              }
+              },
             }
 
             if (attrs.type === 'pie') {
@@ -73,8 +73,8 @@ angular.module('DeviceManager.directives', []).
             if (attrs.type === 'line') {
               chartsDefaults.chart.marginTop = 30;
               chartsDefaults.chart.spacingTop = 50;
-                
 //            chartsDefaults.chart.zoomType = null;
+                 
             }
 
             if (attrs.type === 'bar') {
@@ -99,9 +99,10 @@ angular.module('DeviceManager.directives', []).
                 style: {
                   fontFamily: 'Lato, Helvetica, Arial, sans-serif'
                 }
-              }
+              },
             });
 
+           
 
             if (attrs.type === 'line' || attrs.type === 'area') {
               var xAxis1 = chartdata.xAxis[0];
@@ -123,9 +124,10 @@ angular.module('DeviceManager.directives', []).
               }
 //            chartdata.tooltip.shared = true;
             }
+               //console.log ('rendering chart');
                var currentChart=   renderChart(chartsDefaults, chartdata);
-                scope.$root.$broadcast('chartCreated', currentChart);
-         
+               scope.$root.$broadcast('chartCreated', currentChart);
+               chart_created =1;
           }
 
         });

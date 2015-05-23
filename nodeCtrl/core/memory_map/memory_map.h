@@ -16,10 +16,15 @@ struct mmMethods{
 	uint8_t (*adc_handler)(uint8_t, uint8_t, uint8_t*, uint8_t);
 	uint8_t (*uart_handler)(uint8_t, uint8_t, uint8_t*, uint8_t);
 	uint8_t (*dsp_handler)(uint8_t, uint8_t, uint8_t*, uint8_t);
+	uint8_t (*static_route_handler)(uint8_t, uint8_t, uint8_t*, uint8_t);
 };
 
 extern struct mmMethods memoryMapRegionMethods;
-	
+
+typedef enum{
+  MM_WRITE = 0,
+  MM_READ = 1
+}dogeMMOps;
 
 enum mm_base_sizes{ //number of bytes needed, for now round up to next power of 2
 	MM_DEVICE_SIZE = 4,
@@ -28,21 +33,26 @@ enum mm_base_sizes{ //number of bytes needed, for now round up to next power of 
 	MM_GPIO_SIZE = 0x10,
 	MM_ADC_SIZE = 0x10,
 	MM_UART_SIZE = 0x4,
-	MM_DSP_SIZE = 0x8
+	MM_DSP_SIZE = 0x8,
+	MM_STATIC_ROUTE_SIZE = 0x8
 };
 
 enum mm_bases{
-	MM_PHYSICAL_BAR = 0x0, //actual memory
-	MM_DEVICE_BASE  = MM_PHYSICAL_BAR,
-	MM_NETWORK_BASE = MM_DEVICE_BASE + MM_DEVICE_SIZE,
-	MM_PHYSICAL_MAX = MM_NETWORK_BASE + MM_NETWORK_SIZE,
+  MM_PHYSICAL_BAR = 0x0, //actual memory
+  MM_PHYSICAL_RO_BAR = MM_PHYSICAL_BAR,
+  MM_DEVICE_BASE  = MM_PHYSICAL_BAR,
 
-	MM_FUNCTION_BAR = MM_PHYSICAL_MAX, //start of memory-mapped functions
-	MM_GPIO_BASE    = MM_FUNCTION_BAR,
-	MM_ADC_BASE     = MM_GPIO_BASE + MM_GPIO_SIZE,
-	MM_UART_BASE    = MM_ADC_BASE + MM_ADC_SIZE,
-	MM_DSP_BASE     = MM_UART_BASE + MM_UART_SIZE,
-	MM_FUNCTION_MAX = MM_DSP_BASE + MM_DSP_SIZE,
+  MM_NETWORK_BASE = MM_DEVICE_BASE + MM_DEVICE_SIZE,
+  MM_PHYSICAL_RW_BAR = MM_NETWORK_BASE - 1,//last byte in MM_DEVICE is networkConfig...need to reorganize table some so this is more clear
+  MM_PHYSICAL_MAX = MM_NETWORK_BASE + MM_NETWORK_SIZE,
+
+  MM_FUNCTION_BAR = MM_PHYSICAL_MAX, //start of memory-mapped functions
+  MM_GPIO_BASE    = MM_FUNCTION_BAR,
+  MM_ADC_BASE     = MM_GPIO_BASE + MM_GPIO_SIZE,
+  MM_UART_BASE    = MM_ADC_BASE + MM_ADC_SIZE,
+  MM_DSP_BASE     = MM_UART_BASE + MM_UART_SIZE,
+  MM_STATIC_ROUTE_BASE = MM_DSP_BASE + MM_DSP_SIZE,
+  MM_FUNCTION_MAX = MM_STATIC_ROUTE_BASE + MM_STATIC_ROUTE_SIZE
 };
 
 

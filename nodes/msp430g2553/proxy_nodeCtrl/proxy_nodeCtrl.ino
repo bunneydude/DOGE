@@ -1,38 +1,43 @@
+#include <stdint.h>
 #include "proxy_nodeCtrl.h"
 #include <SPI.h>
 #include <AIR430BoostFCC.h>
-#include <nrf24.h>
-#include <nRF24L01.h>
-#include <Protocol.h>
-#include <MyRingBuffer.h>
-#include <stdint.h>
+#include <protocol.h>
+#include <cobs.h>
+#include <platform.h>
+#include <nrfLegacy.h>
 
 // -----------------------------------------------------------------------------
 /**
  *  Global data
  */
 
-// Data to write to radio TX FIFO (60 bytes MAX.)
-uint8_t txData[DATA_LENGTH];    
+dogePacket txPacket;
+appPacket* const txAppPacket = (appPacket*)(&((rawPacket*)(&txPacket))->data);
+packetAttr txAttr;
 
-// Data to read from radio RX FIFO (60 bytes MAX.)
-uint8_t rxData[DATA_LENGTH];
+dogePacket rxPacket;
+appPacket* const rxAppPacket = (appPacket*)(&((rawPacket*)(&rxPacket))->data);
+packetAttr rxAttr;
 
-#define MY_NODE_ID 0x1
-#define NODECTRL_VERSION 1
+#define static_assert_root(cond) uint8_t static_assert_root[((cond) == 1) ? 1 : -1]
+static_assert_root(MY_NODE_ID == ROOT_NODE);
+
+uint8_t serialBuffer[MAX_DATA_LENGTH + 2]; //+1 for COBS overhead, another +1 for framing byte
 
 uint8_t nrf_address[5] = {
   0xD7,0xD7,0xD7,0xD7,0xD7};
 uint8_t nrfRXAttempts = 0;
 
-Protocol myProtocol(0);
+struct Protocol myProtocol;
 uint8_t sent = 0;
 uint8_t i = 1;
-uint8_t hbt_output = 0x0;
+uint8_t hbt_output = 0x1;
 uint8_t sendResponse = 0;
-uint8_t e2eSrcID = 0;
+uint16_t e2eSrcID = 0;
 // -----------------------------------------------------------------------------
 //functions for nRF
+/*
 void nrf24_ce_digitalWrite(uint8_t state){
   digitalWrite(RADIO_NRF_CE,state);
 }
@@ -57,25 +62,20 @@ uint8_t nrf_read_timeout(uint16_t timeout){
   }
   return 0;    
 }
-
+*/
 // Main example
 
 void setup()
 {
+  setup_timer_hw();
   pinMode(RADIO_NRF_CE, OUTPUT);
   digitalWrite(RADIO_NRF_CE, LOW);     
   pinMode(RADIO_NRF_CSN, OUTPUT);
   digitalWrite(RADIO_NRF_CSN, HIGH); 
 
-  myProtocol.serial_registers[SREG_NODE_ID] = MY_NODE_ID;
-  myProtocol.serial_registers[SREG_TX_PWR] = 0;
-  myProtocol.serial_registers[SREG_RSSI] = 0;
-  myProtocol.serial_registers[SREG_LQI] = 0;
-  myProtocol.serial_registers[SREG_TEMPERATURE] = 0;
-  myProtocol.serial_registers[SREG_PING] = 0;
+  Radio.begin(MY_NODE_ID, CHANNEL_1, POWER_MAX);
 
-  Radio.begin(0x01, CHANNEL_1, POWER_MAX);
-
+/*
 #ifdef DUAL_RADIO
   SPI.begin(); 
   nrf24_init();
@@ -83,90 +83,111 @@ void setup()
   nrf24_tx_address(nrf_address);
   nrf24_rx_address(nrf_address);  
 #endif
-
+*/
   Serial.begin(9600);
-
-  uint8_t temp;
-  while(Serial.available()){ //flush rx pipe
-    temp = Serial.read();
-  }
-
 
   pinMode(RED_LED, OUTPUT);
   digitalWrite(RED_LED, hbt_output);
+
+  memset(&txPacket, 0, sizeof(dogePacket));
+  memset(&rxPacket, 0, sizeof(dogePacket));  
+//  txAppPacket = (appPacket*)((uint8_t*)&txPacket + RAW_PACKET_DATA_OFFSET);
+//  rxAppPacket = (appPacket*)((uint8_t*)&rxPacket + RAW_PACKET_DATA_OFFSET);
 }
-
-
 
 void loop(){
 
-  while(!serial_receive(rxData)); //wait for data
-/*
-    //echo it back
-  for(i=0; i<rxData[3] + 5; i++){ //size at [3] plus 5 non-payload bytes
-    myProtocol._uartTxBuffer.write(rxData[i]);
+  while(serial_receive((uint8_t*)(&rxPacket)) == 0); //wait for data
+
+  if(rxPacket.hdr.dst == MY_NODE_ID){ //ACK back same address and data
+    application_form_packet(txAppPacket, &txAttr, CMD_ACK, rxAppPacket->addr, rxAppPacket->data, NULL);
+    link_layer_form_packet(&txPacket, &txAttr, RAW_PACKET, MY_NODE_ID, rxPacket.hdr.src, MY_NODE_ID, rxPacket.hdr.shSrc);  
+    add_packet_crc(&txPacket);
   }
-  myProtocol.uartTx();
-*/
-  
-    if(rxData[1] == MY_NODE_ID){
-      //try to handle it locally
-      if(myProtocol.parse_packet(&rxData[2], &txData[2])){
-        txData[0] = MY_NODE_ID;
-        txData[1] = rxData[0];
-        for(i=0; i<txData[3] + 5; i++){ //size at [3] plus 5 non-payload bytes
-          myProtocol._uartTxBuffer.write(txData[i]);
-        }
-        myProtocol.uartTx();
-      }
-    }else{ //forward it
-      e2eSrcID = rxData[0]; //store the original source ID
-      
-      Radio.transmit(0x2, rxData, DATA_LENGTH);
-  
-      //Make sure radio is ready to receive
-      while (Radio.busy());
-  
-      // Turn on the receiver and listen for incoming data. Timeout after 1 seconds.
-      if (Radio.receiverOn(txData, sizeof(txData), 1000) > 0){
-        digitalWrite(RED_LED, hbt_output ^= 0x1);
-  
-        //update radio info
-        myProtocol.serial_registers[SREG_RSSI] = Radio.getRssi();
-        myProtocol.serial_registers[SREG_LQI] = Radio.getLqi();     
-  
-      }else{ //timeout, send error message
-          myProtocol.form_packet(&txData[2], NACK, 0, TIMEOUT);     
-          txData[0] = MY_NODE_ID;
-          txData[1] = e2eSrcID;
-      }
-      for(i=0; i<txData[3] + 5; i++){ //size at [3] plus 5 non-payload bytes
-        myProtocol._uartTxBuffer.write(txData[i]);
-      }
-      myProtocol.uartTx();      
-    }//end forward  
+  else{ //forward it
+    copy_doge_packet(&txPacket, &rxPacket);
+    reliable_transmit();
+
+    //Make sure radio is ready to receive
+    while (Radio.busy());
+
+    // Turn on the receiver and listen for incoming data. Timeout after 1 seconds.
+    if (reliable_receive(TIMEOUT_1000_MS))
+    {
+      copy_doge_packet(&txPacket, &rxPacket);
+      digitalWrite(RED_LED, hbt_output ^= 0x1);
+    }
+    else{ //timeout, send error message
+      application_form_packet(txAppPacket, &txAttr, CMD_NACK, rxAppPacket->addr, ERR_TIMEOUT, NULL);
+      link_layer_form_packet(&txPacket, &txAttr, RAW_PACKET, MY_NODE_ID, rxPacket.hdr.src, MY_NODE_ID, rxPacket.hdr.shSrc); 
+      add_packet_crc(&txPacket);
+    }
+  }//end forward
+  serial_transmit((uint8_t*)(&txPacket), RAW_PACKET_TOTAL_SIZE(&txPacket), 1);
 }//end main loop
 
-uint8_t serial_receive(uint8_t* buf){
-  if(Serial.available()){ 
-    uint8_t index = 0;
-    uint8_t i = 0;
 
-    while(Serial.available() < 4); //wait for 4 bytes (srcID, dstID, cmd, size)
-    for(i=0; i<4; i++){
-      buf[index++] = Serial.read();
+
+
+// This receive code should work no matter which byte is seen first
+// If we start in the middle of a frame, finish receiving the frame and discard
+//
+// When sync'd, first byte should be non-zero and the first of the frame data
+// The last byte will be 0 or else it means we ran out of space (indicates error on sender-side)
+
+uint8_t serial_receive(uint8_t* returnBuf){
+
+  uint8_t index = 0;
+  uint8_t rxByte = 1;
+
+  if(Serial.available() >= 2){ //need at least 2 bytes to start receiving
+    serialBuffer[0] = Serial.read();
+    if(serialBuffer[0] == 0){ //caught the end of a previous frame
+      return 0;
     }
 
-    while(Serial.available() < buf[3]); //wait for rest of bytes (payload)
-    for(i=0; i<buf[3]; i++){ //get rest of bytes
-      buf[index++] = Serial.read();
+    do{ //read until next 0 or we reach max length
+      while(!Serial.available());
+      serialBuffer[++index] = Serial.read();
     }
+    while((serialBuffer[index] != 0) && (index < (MAX_DATA_LENGTH+2)-1)); 
+    //MAX_DATA_LENGTH+2 is the size of serialBuffer; extra -1 is to account for 0-based indexing
 
-    while(Serial.available() == 0); //wait for checksum
-    buf[index++] = Serial.read();
+    if(serialBuffer[index] != 0){ //ran out of space for a frame
+      do{
+        while(!Serial.available());
+        rxByte = Serial.read();
+      }
+      while(rxByte != 0); //get rest of frame out of uart buffer
+      return 0; //discard received bytes
 
-    return 1;
+    }
+    else{//got a full frame
+      index = cobs_decode(serialBuffer, index, returnBuf);
+      return index; //represents number of bytes decoded
+    }
   }
-  return 0;
+  else{
+    return 0; //wait for more bytes
+  }
 }
 
+//encode size bytes from buf with COBS
+uint8_t serial_transmit(uint8_t* buf, uint8_t size, uint8_t encode){
+  uint8_t rc = 0;
+  uint8_t i = 0;
+
+  if(encode == 1){
+    rc = cobs_encode(buf, size, serialBuffer);
+    for(i=0; i<rc; i++){
+      Serial.write(serialBuffer[i]);
+    }
+  }
+  else{
+    for(i=0; i<size; i++){
+      Serial.write(buf[i]);
+    }
+  }
+
+  Serial.write((uint8_t)0); //indicate end of frame
+}

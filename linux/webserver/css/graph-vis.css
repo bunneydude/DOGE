@@ -1,0 +1,77 @@
+body {
+    font: 10pt sans;
+    padding: 500;
+    
+}
+
+#mynetwork {
+    position:relative;
+    width: 1000px;
+    height: 325px;
+    border: 1px solid lightgray;
+}
+
+#mynetworklegend {
+    position:absolute;
+    border-width: 0;
+    width: 1000px;
+    height: 30px;
+}
+
+#mynetwork-control {
+    position:relative;
+    width: 1000px;
+    height: 30px;
+    border: 1px solid lightgray;
+    background: #ffffff; /* Old browsers */
+    background: -moz-linear-gradient(top,  #ffffff 0%, #fcfcfc 48%, #fafafa 50%, #fcfcfc 100%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ffffff), color-stop(48%,#fcfcfc), color-stop(50%,#fafafa), color-stop(100%,#fcfcfc)); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top,  #ffffff 0%,#fcfcfc 48%,#fafafa 50%,#fcfcfc 100%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top,  #ffffff 0%,#fcfcfc 48%,#fafafa 50%,#fcfcfc 100%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top,  #ffffff 0%,#fcfcfc 48%,#fafafa 50%,#fcfcfc 100%); /* IE10+ */
+    background: linear-gradient(to bottom,  #ffffff 0%,#fcfcfc 48%,#fafafa 50%,#fcfcfc 100%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#fcfcfc',GradientType=0 ); /* IE6-9 */
+
+}
+.mynetwork-control-button {
+    display:inline-block;
+    border:none;
+    border-radius:40px;
+    font-family:verdana;
+    font-size:12px;
+    width:180px;
+    height:28px;
+    background-color:transparent;
+    padding: 8px 8px 5px 8px;
+
+}
+.mynetwork-control-button:hover { 
+    box-shadow: 1px 1px 8px rgba(0, 0, 0, 0.20);
+}
+#user-confirm {
+    display:none;
+}
+#user-checkbox {
+    display:none;
+}
+.pageText {
+    font-family:verdana;
+    font-size:24;
+    margin-left: 180px;
+}
+.center {
+    margin-left: auto;
+    margin-right: auto;
+}
+#filter {
+    display: none;
+}
+
+#about-text {
+    margin-left: 20px;
+    color: black;
+    font-family: verdana;
+    font-size: medium;
+}
+
+
