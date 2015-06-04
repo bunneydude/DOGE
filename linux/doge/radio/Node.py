@@ -7,8 +7,11 @@ import random
 from doge.conf.globals import config
 import warnings
 
-#The Device class represents a microcontroller and its firmware.
 class Device:
+   """The Device class represents a microcontroller and its firmware.
+
+   """
+
    _validDeviceNames = ["msp430g2553", "lpc812"]
 
    _mmString = {
@@ -21,13 +24,14 @@ class Device:
       "static_route":{"base":"mm_static_route_base", "size":"mm_static_route_size"}
    }
 
-   """ Create the device based on the microcontroller name and memory map
-   @param deviceName : String : The name of the microcontroller. Must be one of:
-      * msp430g2553
-      * lpc812
-   @param memoryMapFile : String : File name containing a json object that describes the base and sizes of the differet memory sections
-   """
    def __init__(self, deviceName, memoryMapFile):
+      """ Create the device based on the microcontroller name and memory map
+      Args:
+         deviceName (str) : The name of the microcontroller. Must be one of:
+            * msp430g2553
+            * lpc812
+         memoryMapFile (str) : File name containing a json object that describes the base and sizes of the differet memory sections
+      """
       # Validate inputs
       if(deviceName.lower() not in self._validDeviceNames): raise Exception("deviceName {0} is invalid. Must be one of {1}".format(deviceName.lower(), self._validDeviceNames))
       if(not os.path.isfile(memoryMapFile)): raise Exception("File {0} does not exist".format(memoryMapFile))
@@ -39,24 +43,25 @@ class Device:
       with open(memoryMapFile, 'r') as file:
          self._memoryMap = json.load(file)
 
-   """ Print a string representation of the object """
    def to_s(self):
+      """ Print a string representation of the object """
       print("Device: config = {0}, version = {1}".format(self._deviceName, self._memoryMap))
 
-   """ Return the physical address of the register in the specified memory space
-   @param space : String : The memory space to access. Must be one of:
-      * "device"
-      * "network"
-      * "gpio"
-      * "adc"
-      * "uart"
-      * "dsp:
-
-   @param register : Integer : Offset for the register you want to access. A full list is in mmFields.py.
-   
-   @returns Integer : Returns -1 if the regsister offset was outside the range of the memory space. Otherwise, returns the physical address.
-   """
    def address(self, space, register):
+      """ Return the physical address of the register in the specified memory space
+      Args
+         space (str) : The memory space to access. Must be one of:
+            * "device"
+            * "network"
+            * "gpio"
+            * "adc"
+            * "uart"
+            * "dsp"
+
+         register (int) : Offset for the register you want to access. A full list is in mmFields.py.
+   
+      Returns (int) : Returns -1 if the regsister offset was outside the range of the memory space. Otherwise, returns the physical address.
+      """
       if(space in self._mmString.keys()):
          if(register < self._memoryMap[self._mmString[space]["size"]]):
             return self._memoryMap[self._mmString[space]["base"]] + register
@@ -65,9 +70,20 @@ class Device:
    #returns base, size
    # space is one of _mmString.keys()
    def get_region_info(self, space):
+      """ Get the base and size value for a given address space
+
+      Args
+         space (str) : The memory space to access. Must be one of:
+            * "device"
+            * "network"
+            * "gpio"
+            * "adc"
+            * "uart"
+            * "dsp"
+      returns (int, int) : Returns the base and size as a tuple
+      """
       if(space not in self._mmString.keys()): raise Exception("The space provided, {0}, must be one of {1}".format(space, self._mmSpace.keys()))
       return self._memoryMap[self._mmString[space]["base"]], self._memoryMap[self._mmString[space]["size"]]      
-
 
 
 # A node consists of a device (microcontroller + firmware),
