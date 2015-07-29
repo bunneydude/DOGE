@@ -76,7 +76,7 @@ mkdir -p $ENERGIA_LIB_DIR/cobs
 mkdir -p $ENERGIA_LIB_DIR/radios
 
 #Energia will not use project folder symlinks. Use hard links for these.
-ln $PWD/nodes/msp430g2553/nodeCtrl/nodeCtrl.ino              $ENERGIA_LIB_DIR/../nodeCtrl/nodeCtrl.ino
+ln $PWD/nodes/msp430g2553/nodeCtrl_v1/nodeCtrl.ino           $ENERGIA_LIB_DIR/../nodeCtrl/nodeCtrl.ino
 #Need to link nodeCtrl.c to *.cpp file for C++ Energia library compilation
 ln $PWD/nodeCtrl/core/nodeCtrl.c                             $ENERGIA_LIB_DIR/../nodeCtrl/nodeCtrl_core.cpp
 ln $PWD/nodeCtrl/core/nodeCtrl.h                             $ENERGIA_LIB_DIR/../nodeCtrl/nodeCtrl.h
