@@ -33,7 +33,7 @@ extern "C" {
 #define CMD_READ_MEM_ACK_DATA_SIZE(size) ((size) + 2)
 #define CMD_WRITE_MEM_DATA_SIZE(size)    ((size) + 3)
 
-//commands
+/** @brief Protocol Commands */
 enum Protocol_commands{
    CMD_READ_REG = 0x1,
    CMD_WRITE_REG = 0x2,
@@ -48,7 +48,14 @@ enum Protocol_commands{
    CMD_ADC_END = 0xB,
    CMD_SPI = 0xC,
    CMD_READ_MEM_ACK = 0xD,
-   CMD_WRITE_MEM_ACK = 0xE
+   CMD_WRITE_MEM_ACK = 0xE,
+   CMD_PULL_ENABLE,
+   CMD_PULL_DIR,
+   CMD_PIN_OUTPUT,
+   CMD_PIN_DIR,
+   CMD_PIN_VALUE,
+   CMD_STATUS,
+   CMD_DEVICE
 };
 
 //error codes

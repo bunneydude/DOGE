@@ -1,7 +1,7 @@
 /**@file Contains definitions for packet functions */
 #include "../packet.h"
 #include <stddef.h>
-#include "../nodeCtrl.h"
+#include "protocol.h"
 #include "../platform/serial_c.h"
 #include "type.h"
 

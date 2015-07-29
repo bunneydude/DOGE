@@ -8,6 +8,109 @@ extern dogePacket rxPacket;
 appPacket* const rxAppPacket = (appPacket*)(&((rawPacket*)(&rxPacket))->data);
 extern packetAttr rxAttr;
 
+void insert_neighbor(uint16_t nodeID, uint16_t LQE)
+{
+   //Insert neighbor into Neighbor Table
+   struct neighborEntry neighborEntry = {
+      nodeID, LQE, RADIO_ID_915, NETWORK_ID_0 };
+   network_insert((union networkEntry*)&neighborEntry, NEIGHBOR_ENTRY);
+}
+
+void insert_route(uint16_t dstNodeID, uint16_t neighborID, uint16_t LQE)
+{
+   uint8_t index;
+   if (network_has_neighbor(neighborID, &index, RADIO_ID_915, FALSE)){
+      struct routingEntry routingEntry = {
+         dstNodeID, LQE, index };
+      network_insert((union networkEntry*)&routingEntry, ROUTING_ENTRY);
+   }
+}
+
+void setup_iotg_demo_grid()
+{
+#if (MY_NODE_ID == ROOT_NODE)
+   //ROOT NODE CONFIG IS IN PYTHON
+#elif (MY_NODE_ID == NODE_ID_2)
+   //Neighbor Table
+   insert_neighbor(ROOT_NODE, MAX_LQE);
+   insert_neighbor(NODE_ID_3, MAX_LQE);
+   insert_neighbor(NODE_ID_5, MAX_LQE);
+   insert_neighbor(NODE_ID_6, MAX_LQE);
+   //Routing Table
+   insert_route(NODE_ID_10, NODE_ID_3, MAX_LQE);
+   insert_route(NODE_ID_10, NODE_ID_5, MAX_LQE);
+   insert_route(NODE_ID_10, NODE_ID_6, MAX_LQE);
+#elif (MY_NODE_ID == NODE_ID_3)
+   //Neighbor Table
+   insert_neighbor(ROOT_NODE, MAX_LQE);
+   insert_neighbor(NODE_ID_2, MAX_LQE);
+   insert_neighbor(NODE_ID_4, MAX_LQE);
+   //Routing Table
+   insert_route(ROOT_NODE, NODE_ID_2, MAX_LQE);
+   insert_route(NODE_ID_10, NODE_ID_4, MAX_LQE);
+#elif (MY_NODE_ID == NODE_ID_4)
+   //Neighbor Table
+   insert_neighbor(ROOT_NODE, MAX_LQE);
+   insert_neighbor(NODE_ID_3, MAX_LQE);
+   insert_neighbor(NODE_ID_7, MAX_LQE);
+   //Routing Table
+   insert_route(ROOT_NODE, NODE_ID_3, MAX_LQE);
+   insert_route(NODE_ID_10, NODE_ID_7, MAX_LQE);
+#elif (MY_NODE_ID == NODE_ID_5)
+   //Neighbor Table
+   insert_neighbor(ROOT_NODE, MAX_LQE);
+   insert_neighbor(NODE_ID_2, MAX_LQE);
+   insert_neighbor(NODE_ID_8, MAX_LQE);
+   //Routing Table
+   insert_route(ROOT_NODE, NODE_ID_2, MAX_LQE);
+   insert_route(NODE_ID_10, NODE_ID_8, MAX_LQE);
+#elif (MY_NODE_ID == NODE_ID_6)
+   //Neighbor Table
+   insert_neighbor(ROOT_NODE, MAX_LQE);
+   insert_neighbor(NODE_ID_2, MAX_LQE);
+   insert_neighbor(NODE_ID_7, MAX_LQE);
+   insert_neighbor(NODE_ID_9, MAX_LQE);
+   //Routing Table
+   insert_route(ROOT_NODE, NODE_ID_2, MAX_LQE);
+   insert_route(NODE_ID_10, NODE_ID_7, MAX_LQE);
+   insert_route(NODE_ID_10, NODE_ID_9, MAX_LQE);
+#elif (MY_NODE_ID == NODE_ID_7)
+   //Neighbor Table
+   insert_neighbor(ROOT_NODE, MAX_LQE);
+   insert_neighbor(NODE_ID_4, MAX_LQE);
+   insert_neighbor(NODE_ID_6, MAX_LQE);
+   insert_neighbor(NODE_ID_10, MAX_LQE);
+   //Routing Table
+   insert_route(ROOT_NODE, NODE_ID_4, MAX_LQE);
+   insert_route(NODE_ID_10, NODE_ID_6, MAX_LQE);
+#elif (MY_NODE_ID == NODE_ID_8)
+   //Neighbor Table
+   insert_neighbor(ROOT_NODE, MAX_LQE);
+   insert_neighbor(NODE_ID_5, MAX_LQE);
+   insert_neighbor(NODE_ID_9, MAX_LQE);
+   //Routing Table
+   insert_route(ROOT_NODE, NODE_ID_5, MAX_LQE);
+   insert_route(NODE_ID_10, NODE_ID_9, MAX_LQE);
+#elif (MY_NODE_ID == NODE_ID_9)
+   //Neighbor Table
+   insert_neighbor(ROOT_NODE, MAX_LQE);
+   insert_neighbor(NODE_ID_6, MAX_LQE);
+   insert_neighbor(NODE_ID_8, MAX_LQE);
+   insert_neighbor(NODE_ID_10, MAX_LQE);
+   //Routing Table
+   insert_route(NODE_ID_10, NODE_ID_6, MAX_LQE);
+   insert_route(ROOT_NODE, NODE_ID_8, MAX_LQE);
+#elif (MY_NODE_ID == NODE_ID_10)
+   //Neighbor Table
+   insert_neighbor(ROOT_NODE, MAX_LQE);
+   insert_neighbor(NODE_ID_7, MAX_LQE);
+   insert_neighbor(NODE_ID_9, MAX_LQE);
+   //Routing Table
+   insert_route(ROOT_NODE, NODE_ID_7, MAX_LQE);
+   insert_route(ROOT_NODE, NODE_ID_9, MAX_LQE);
+#endif
+}
+
 uint8_t static_route_mm_handler(uint8_t rw, uint8_t addr, uint8_t* data, uint8_t mask)
 {
    /*

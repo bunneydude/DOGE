@@ -75,7 +75,12 @@ mkdir -p $ENERGIA_LIB_DIR/platform
 mkdir -p $ENERGIA_LIB_DIR/cobs
 mkdir -p $ENERGIA_LIB_DIR/radios
 
-ln -s $PWD/nodes/msp430g2553/nodeCtrl_v1/nodeCtrl.ino        $ENERGIA_LIB_DIR/../nodeCtrl/nodeCtrl.ino
+#Energia will not use project folder symlinks. Use hard links for these.
+ln $PWD/nodes/msp430g2553/nodeCtrl/nodeCtrl.ino              $ENERGIA_LIB_DIR/../nodeCtrl/nodeCtrl.ino
+#Need to link nodeCtrl.c to *.cpp file for C++ Energia library compilation
+ln $PWD/nodeCtrl/core/nodeCtrl.c                             $ENERGIA_LIB_DIR/../nodeCtrl/nodeCtrl_core.cpp
+ln $PWD/nodeCtrl/core/nodeCtrl.h                             $ENERGIA_LIB_DIR/../nodeCtrl/nodeCtrl.h
+#Use symlinks for library files
 ln -s $PWD/nodes/msp430g2553/proxy_nodeCtrl/proxy_nodeCtrl.h $ENERGIA_LIB_DIR/proxy_nodeCtrl.h
 ln -s $PWD/nodeCtrl/core/adc/adc.h                           $ENERGIA_LIB_DIR/adc/adc.h
 ln -s $PWD/nodeCtrl/core/adc/adc.c                           $ENERGIA_LIB_DIR/adc/adc.c
@@ -100,7 +105,6 @@ ln -s $PWD/nodeCtrl/core/memory_map/memory_map.h             $ENERGIA_LIB_DIR/me
 ln -s $PWD/nodeCtrl/core/memory_map/memory_map.c             $ENERGIA_LIB_DIR/memory_map/memory_map.c
 ln -s $PWD/nodeCtrl/core/routing/routing.h                   $ENERGIA_LIB_DIR/routing/routing.h
 ln -s $PWD/nodeCtrl/core/packet.h                            $ENERGIA_LIB_DIR/packet.h
-ln -s $PWD/nodeCtrl/core/nodeCtrl.h                          $ENERGIA_LIB_DIR/nodeCtrl.h
 ln -s $PWD/nodeCtrl/core/task/task_list.h                    $ENERGIA_LIB_DIR/task/task_list.h
 ln -s $PWD/nodeCtrl/core/task/task_list.c                    $ENERGIA_LIB_DIR/task/task_list.c
 ln -s $PWD/nodeCtrl/core/network/network.h                   $ENERGIA_LIB_DIR/network/network.h

@@ -8,6 +8,7 @@
 #include "type.h"
 #include "../platform/platform.h"
 #include "../nrfLegacy/nrfLegacy.h"
+#include "../network/network.h"
 
 #define NRF24_DEFAULT_MM_MASK (0xFF)
 #define NRF24_DEFAULT_APP_ADDRESS (0x00)
@@ -47,6 +48,7 @@ typedef enum{
    NRF24_NODE_18_STATIC_ADDRESS = MM_STATIC_ROUTE_BASE + NRF24_NODE_18_OFFSET
 }nrf24NodeAddresses;
 
+void setup_iotg_demo_grid();
 uint8_t static_route_mm_handler(uint8_t rw, uint8_t addr, uint8_t* data, uint8_t mask);
 
 #endif
