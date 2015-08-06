@@ -8,6 +8,10 @@
 /**@brief NodeCtrl version */
 #define NODECTRL_VERSION 1
 
+#ifdef __cplusplus
+#define __STDC_LIMIT_MACROS
+#endif
+
 /**@brief Node ID 1 **/
 #define NODE_ID_1 0x1
 /**@brief Node ID 2 **/
@@ -59,20 +63,63 @@
 
 #define DEMO_GRID 1
 #define MY_NODE_ID NODE_ID_1
+
+#ifdef __LPC8XX__
+#define TEMP_SENSOR   0
+#define LED_LOCATION  2
+#define RED_LED       LED_LOCATION
+#define RADIO_NRF_CE  14
+#define RADIO_NRF_CSN 7
+#define NRF_IRQ       17
+#define LPC_ISP       12
+#define LPC_SCL       11
+#define LPC_SDA       10
+#define LPC_ADC       6
+#define LPC_TEMP1     9
+#define LPC_TEMP2     1
+#define LPC_TP1       16
+#define LPC_TP2       15
+#define RED_CH        0
+#define GREEN_CH      1
+#define BLUE_CH       2
+#define ADDRESS_BROADCAST 0
+#elif defined(MSP430)
 //#define DUAL_RADIO
-
-
-#define RADIO_NRF_CE P2_3
+#define TEMP_SENSOR   A3
+#define RADIO_NRF_CE  P2_3
 #define RADIO_NRF_CSN P2_1
+#endif
 
-
-#ifdef MSP430
 #include "doge_timers.h"
 #include "doge_gpio.h"
+#include "doge_radio.h"
+#include "doge_adc.h"
 #include "static_routes.h"
-#ifdef __cplusplus
-#include "reliable_channel.h"
-#endif /* __cplusplus */
-#endif
 #include "serial_c.h"
+
+#ifdef __LPC8XX__
+#include "reliable_channel.h"
+/* Undefine nrf24.h CONFIG definition */
+#undef CONFIG
+#include <LPC8XX.h>
+#include "lpc812/gpio/gpio.h"
+#include "lpc812/initializer.h"
+#include "lpc812/uart.h"
+#include "lpc812/spi.h"
+#include "lpc812/pwm.h"
+#elif defined(MSP430) && defined(__cplusplus)
+#include "reliable_channel.h"
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+void gpio_init();
+void uart_init(int baudRate);
+void radio_init();
+void comparator_init();
+void timer_hw_init();
+#ifdef __cplusplus
+}
+#endif
 #endif

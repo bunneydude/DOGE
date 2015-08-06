@@ -1,5 +1,21 @@
 #include "doge_gpio.h"
+#ifdef __LPC8XX__
+void digital_write(uint8_t pin, uint8_t value)
+{
+   gpioSetValue(0, pin, value);
+}
+int digital_read(uint8_t pin)
+{
+   /* TODO LPC812 */
+   return 0;
+}
+void toggle_led(dogeBool init)
+{
+   /* TODO LPC812 */
+}
+#endif
 
+#ifdef MSP430
 void toggle_led(dogeBool init)
 {
    static dogeTimer LEDTimer = {0, 0};
@@ -54,3 +70,4 @@ void toggle_led(dogeBool init)
          state = LED_RESET;
    }
 }
+#endif

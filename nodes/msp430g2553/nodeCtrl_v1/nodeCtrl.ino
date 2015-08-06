@@ -10,7 +10,7 @@
 #include <SPI.h>
 #include <AIR430BoostFCC.h>
 #include <dsp.h>
-#include <platform.h>
 #include <nrfLegacy.h>
+#include <platform.h>
 
 /* nodeCtrl.ino should match core/nodeCtrl.c includes */

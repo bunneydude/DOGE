@@ -1,7 +1,8 @@
 /**************************************************************************/
 /*!
-    @file     main.c
-
+    @file     gpio.c
+    @author   K. Townsend
+    
     @section LICENSE
 
     Software License Agreement (BSD License)
@@ -30,73 +31,60 @@
     ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
     (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+*/
 /**************************************************************************/
-#include <stdio.h>
-#include "LPC8xx.h"
-#include "main.h"
-#include "mrt.h"
-#include "lpc_type.h"
-#include "radios/radios.h"
-#include "nodeCtrl.h"
-#include "platform/lpc812/uart.h"
-#include "platform/lpc812/gpio/gpio.h"
-#include "platform/platform.h"
+#include <string.h>
 
+#include "gpio.h"
 
-#include <cr_section_macros.h>
-
-void char_to_RGB(uint8_t input, uint8_t* red, uint8_t* green, uint8_t* blue){
-
-   if(input < 20){
-      //R = [255, 0]
-      //G = 0
-      //B = 255
-      *red = ( ( (uint32_t)(20 - input) )/20.0)*100;
-      *green = 0;
-      *blue = 100;
-
-   }else if( (20 <= input) && (input < 40)){
-      //R = 0
-      //G = [0,255]
-      //B = 255
-
-      *red = 0;
-      *green = ( ( (uint32_t)(input - 20) )/20.0)*100;
-      *blue = 100;
-
-   }else if( (40 <= input) && (input < 60)){
-      //R = 0
-      //G = 255
-      //B = [255, 0]
-
-      *red = 0;
-      *green = 100;
-      *blue = ( ( (uint32_t)(60 - input) )/20.0)*100;
-
-   }else if( (60 <= input) && (input < 80)){
-      //R = [0, 255]
-      //G = 255
-      //B = 0
-
-      *red = ( ( (uint32_t)(input - 60) )/20.0)*100;
-      *green = 100;
-      *blue = 0;
-
-   }else{
-      //R = 255
-      //G = [255, 0]
-      //B = 0
-
-      *red = 100;
-      *green = ( ( (uint32_t)(100 - input) )/20.0)*100;
-      *blue = 0;
-
-   }
+void gpioInit(void)
+{
+  /* Enable AHB clock to the GPIO domain. */
+  LPC_SYSCON->SYSAHBCLKCTRL |=  (1 << 6);
+  LPC_SYSCON->PRESETCTRL    &= ~(1 << 10);
+  LPC_SYSCON->PRESETCTRL    |=  (1 << 10);
 }
 
-int main(void)
+uint32_t gpioGetPinValue(uint32_t port, uint32_t pin)
 {
-   nodeCtrl_init();
-   nodeCtrl_entry();
+  uint32_t result = 0;
+
+  if(pin < 0x20)
+  {
+    if (LPC_GPIO_PORT->PIN0 & (0x1 << pin))
+    {
+      result = 1;
+    }
+  }
+  else if(pin == 0xFF)
+  {
+    result = LPC_GPIO_PORT->PIN0;
+  }
+  return result;
+}
+
+void gpioSetValue(uint32_t port, uint32_t pin, uint32_t value)
+{
+  if (value)
+  {
+    LPC_GPIO_PORT->SET0 = 1 << pin;
+  }
+  else
+  {
+    LPC_GPIO_PORT->CLR0 = 1 << pin;
+  }
+  return;
+}
+
+void gpioSetDir(uint32_t port, uint32_t pin, uint32_t dir)
+{
+  if(dir)
+  {
+    LPC_GPIO_PORT->DIR0 |= (1 << pin);
+  }
+  else
+  {
+    LPC_GPIO_PORT->DIR0 &= ~(1 << pin);
+  }
+  return;
 }

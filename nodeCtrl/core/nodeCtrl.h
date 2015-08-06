@@ -2,7 +2,6 @@
 #ifndef NODECTRL_H
 #define NODECTRL_H
 
-#ifdef MSP430
 #include <stdint.h>
 #include <memory_map.h>
 #include <network.h>
@@ -10,13 +9,14 @@
 #include <neighbor-config.h>
 #include <neighbor.h>
 #include <gpio.h>
-#include <msp430_gpio.h>
 #include <adc.h>
-#include <SPI.h>
-#include <AIR430BoostFCC.h>
 #include <dsp.h>
 #include <platform.h>
-#include <nrfLegacy.h>
+
+#ifdef MSP430
+#include <msp430_gpio.h>
+#include <SPI.h>
+#include <AIR430BoostFCC.h>
 #endif
 
 /** @brief 16 bit data type with 2 bytes */

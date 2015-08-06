@@ -114,12 +114,18 @@ ln -s $PWD/nodeCtrl/core/platform/serial_c.cpp               $ENERGIA_LIB_DIR/pl
 ln -s $PWD/nodeCtrl/core/platform/reliable_channel.h         $ENERGIA_LIB_DIR/platform/reliable_channel.h
 ln -s $PWD/nodeCtrl/core/platform/reliable_channel.cpp       $ENERGIA_LIB_DIR/platform/reliable_channel.cpp
 ln -s $PWD/nodeCtrl/core/platform/doge_gpio.h                $ENERGIA_LIB_DIR/platform/doge_gpio.h
-ln -s $PWD/nodeCtrl/core/platform/doge_gpio.cpp              $ENERGIA_LIB_DIR/platform/doge_gpio.cpp
+ln -s $PWD/nodeCtrl/core/platform/doge_gpio.c                $ENERGIA_LIB_DIR/platform/doge_gpio.c
 ln -s $PWD/nodeCtrl/core/platform/doge_timers.h              $ENERGIA_LIB_DIR/platform/doge_timers.h
 ln -s $PWD/nodeCtrl/core/platform/doge_timers.c              $ENERGIA_LIB_DIR/platform/doge_timers.c
 ln -s $PWD/nodeCtrl/core/platform/static_routes.cpp          $ENERGIA_LIB_DIR/platform/static_routes.cpp
 ln -s $PWD/nodeCtrl/core/platform/static_routes.h            $ENERGIA_LIB_DIR/platform/static_routes.h
 ln -s $PWD/nodeCtrl/core/platform/nrf24_wrappers.cpp         $ENERGIA_LIB_DIR/platform/nrf24_wrappers.cpp
 ln -s $PWD/nodeCtrl/core/platform/platform.h                 $ENERGIA_LIB_DIR/platform/platform.h
+ln -s $PWD/nodeCtrl/core/platform/doge_radio.h               $ENERGIA_LIB_DIR/platform/doge_radio.h
+ln -s $PWD/nodeCtrl/core/platform/doge_radio.cpp             $ENERGIA_LIB_DIR/platform/doge_radio.cpp
+ln -s $PWD/nodeCtrl/core/platform/doge_adc.h                 $ENERGIA_LIB_DIR/platform/doge_adc.h
+ln -s $PWD/nodeCtrl/core/platform/doge_adc.c                 $ENERGIA_LIB_DIR/platform/doge_adc.c
+#Rename to *.cpp to correctly link AIR430BoostFCC C++ library
+ln -s $PWD/nodeCtrl/core/platform/hw_init.c                  $ENERGIA_LIB_DIR/platform/hw_init.cpp
 ln -s $PWD/nodeCtrl/core/cobs/cobs.c                         $ENERGIA_LIB_DIR/cobs/cobs.cpp
 ln -s $PWD/nodeCtrl/core/cobs/cobs.h                         $ENERGIA_LIB_DIR/cobs/cobs.h

@@ -1,24 +1,5 @@
 #include "doge_timers.h"
   
-#ifdef MSP430
-void setup_timer_hw()
-{
-   /*
-   * This setup code is similar to wiring_analog.c analogWrite
-   * Differences:
-   * 1. Changed TACCR0 to count to MAX TIMER VAL
-   * 2. Changed clock source to ACLK instead of SMCLK
-   */
-   TA0CCR0 = MAX_TIMER_VAL;       // PWM Period
-   TA0CCTL1 = OUTMOD_7;           // reset/set
-   TA0CCR1 = PWM_DUTY(100);       // PWM duty cycle
-   TA0CTL = TASSEL_1 + MC_1 + ANALOG_DIV;       // ACLK, up mode
-}
-#endif
-#ifdef LINUX
-void setup_timer_hw(){}
-#endif
-
 dogeBool timer_expired(dogeTimer* timer)
 {
    timerType currTime = current_time();

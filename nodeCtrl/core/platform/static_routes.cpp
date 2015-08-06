@@ -1,11 +1,11 @@
 #include "static_routes.h"
 
 extern dogePacket txPacket;
-extern appPacket* const txAppPacket = (appPacket*)(&((rawPacket*)(&txPacket))->data);
+extern appPacket* const txAppPacket;
 extern packetAttr txAttr;
 
 extern dogePacket rxPacket;
-appPacket* const rxAppPacket = (appPacket*)(&((rawPacket*)(&rxPacket))->data);
+extern appPacket* const rxAppPacket;
 extern packetAttr rxAttr;
 
 void insert_neighbor(uint16_t nodeID, uint16_t LQE)

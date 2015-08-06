@@ -1,6 +1,7 @@
 /**************************************************************************/
 /*!
-    @file     main.c
+    @file     uart.h
+    @author   K. Townsend
 
     @section LICENSE
 
@@ -30,73 +31,37 @@
     ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
     (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+*/
 /**************************************************************************/
-#include <stdio.h>
+#ifndef _UART_H_
+#define _UART_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "LPC8xx.h"
-#include "main.h"
-#include "mrt.h"
-#include "lpc_type.h"
-#include "radios/radios.h"
-#include "nodeCtrl.h"
-#include "platform/lpc812/uart.h"
-#include "platform/lpc812/gpio/gpio.h"
-#include "platform/platform.h"
 
+#define UART_ENABLE          (1 << 0)
+#define UART_DATA_LENGTH_8   (1 << 2)
+#define UART_PARITY_NONE     (0 << 4)
+#define UART_STOP_BIT_1      (0 << 6)
 
-#include <cr_section_macros.h>
+/* Status bits */
+#define UART_STATUS_RXRDY    (1 << 0)
+#define UART_STATUS_RXIDLE   (1 << 1)
+#define UART_STATUS_TXRDY    (1 << 2)
+#define UART_STATUS_TXIDLE   (1 << 3)
+#define UART_STATUS_CTSDEL   (1 << 5)
+#define UART_STATUS_RXBRKDEL (1 << 11)
 
-void char_to_RGB(uint8_t input, uint8_t* red, uint8_t* green, uint8_t* blue){
+void uart0Init     (uint32_t baudRate);
+void uart0SendChar (char buffer);
+void uart0Send     (char *buffer, uint32_t length);
 
-   if(input < 20){
-      //R = [255, 0]
-      //G = 0
-      //B = 255
-      *red = ( ( (uint32_t)(20 - input) )/20.0)*100;
-      *green = 0;
-      *blue = 100;
-
-   }else if( (20 <= input) && (input < 40)){
-      //R = 0
-      //G = [0,255]
-      //B = 255
-
-      *red = 0;
-      *green = ( ( (uint32_t)(input - 20) )/20.0)*100;
-      *blue = 100;
-
-   }else if( (40 <= input) && (input < 60)){
-      //R = 0
-      //G = 255
-      //B = [255, 0]
-
-      *red = 0;
-      *green = 100;
-      *blue = ( ( (uint32_t)(60 - input) )/20.0)*100;
-
-   }else if( (60 <= input) && (input < 80)){
-      //R = [0, 255]
-      //G = 255
-      //B = 0
-
-      *red = ( ( (uint32_t)(input - 60) )/20.0)*100;
-      *green = 100;
-      *blue = 0;
-
-   }else{
-      //R = 255
-      //G = [255, 0]
-      //B = 0
-
-      *red = 100;
-      *green = ( ( (uint32_t)(100 - input) )/20.0)*100;
-      *blue = 0;
-
-   }
+#ifdef __cplusplus
 }
+#endif
 
-int main(void)
-{
-   nodeCtrl_init();
-   nodeCtrl_entry();
-}
+#endif
+

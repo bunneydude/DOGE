@@ -5,7 +5,8 @@
 #include "../protocol/protocol.h"
 #include "../packet.h"
 #include "../radios/radios.h"
-#include "../platform/doge_timers.h"
+#include "doge_timers.h"
+#include "doge_radio.h"
 #ifdef MSP430
 #include <SPI.h>
 #include <AIR430BoostFCC.h>

@@ -7,11 +7,13 @@ void loop() __attribute__ ((alias("nodeCtrl_entry")));
 
 // Data to write to radio TX FIFO (60 bytes MAX.)
 dogePacket txPacket;
+extern appPacket* const txAppPacket;
 appPacket* const txAppPacket = (appPacket*)(&((rawPacket*)(&txPacket))->data);
 packetAttr txAttr;
 
 // Data to read from radio RX FIFO (60 bytes MAX.)
 dogePacket rxPacket;
+extern appPacket* const rxAppPacket;
 appPacket* const rxAppPacket = (appPacket*)(&((rawPacket*)(&rxPacket))->data);
 packetAttr rxAttr;
 
@@ -22,34 +24,31 @@ uint8_t tempIndex;
 
 void nodeCtrl_init()
 {
-   print_string("START",NEWLINE);
-   setup_timer_hw();
+   /* Initialize HW */
+   gpio_init();
+   timer_hw_init();
+   uart_init(9600);
+   radio_init();
+   /* Initialize FW */
    Protocol_init(&spiProtocol);
    network_init(NETWORK_DIVISION_DEFAULT);
    dsp_init(5,0);
    memoryMapRegionMethods.gpio_handler = gpio_mm_handler;
    memoryMapRegionMethods.adc_handler = adc_mm_handler;
    memoryMapRegionMethods.static_route_handler = static_route_mm_handler;
-
-   Serial.begin(9600);
-
-   // The radio library uses the SPI library internally, this call initializes
-   // SPI/CSn and GDO0 lines. Also setup initial address, channel, and TX power.
-   Radio.begin(ADDRESS_BROADCAST, CHANNEL_1, POWER_MAX); 
-
-   pinMode(RED_LED, OUTPUT);
-   digitalWrite(RED_LED, hbt_output);   // set the LED on
+   /* Creates static routes for IOTG competition demo grid */
    setup_iotg_demo_grid();
+   digital_write(RED_LED, hbt_output); // set the LED on
 }
 
 void nodeCtrl_entry()
 {
-   while(1){
+   while (1) {
       uint8_t neighborIndex = 0;
       toggle_led(FALSE);
 
       //Make sure radio is ready to receive
-      while (Radio.busy());
+      while (sending());
 
       // Turn on the receiver and listen for incoming data. Timeout after 500ms.
       if (reliable_receive(TIMEOUT_500_MS)){
@@ -57,7 +56,7 @@ void nodeCtrl_entry()
             toggle_led(TRUE);
             sendResponse = link_layer_parse_packet(&spiProtocol, &rxPacket, &txPacket);
             //update neighbor table
-            network_update(rxPacket.hdr.shSrc, Radio.getRssi(), RADIO_ID_915, NETWORK_ID_0, NEIGHBOR_ENTRY);
+            network_update(rxPacket.hdr.shSrc, get_rssi(), RADIO_ID_915, NETWORK_ID_0, NEIGHBOR_ENTRY);
             if (sendResponse == TRANSMIT_RESPONSE){
                if (HEADER_TYPE_EQUALS(txPacket.hdr.type, RAW_PACKET)){
                   reliable_transmit();
@@ -92,7 +91,7 @@ void nodeCtrl_entry()
             }
             else
             {
-               Serial.println("ERROR: Attempt to forward packet that does not exist in neighbor or routing tables");
+               print_string("ERROR: Attempt to forward packet that does not exist in neighbor or routing tables", NEWLINE);
             }
          }
       }
@@ -102,11 +101,10 @@ void nodeCtrl_entry()
 
       if(dspStatus.counter == 1){ //reset counter and sample temperature sensor
          dspStatus.counter = dspStatus.period;
-         dsp_add_sample( analogRead(A3) );    
+         dsp_add_sample( analog_read(TEMP_SENSOR) );
       }
    }
 }
-
 
 /*
  * pin named by 0-255 

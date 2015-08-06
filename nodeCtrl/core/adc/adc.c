@@ -1,13 +1,18 @@
 #include <stdint.h>
 #ifdef MSP430
 #include <msp430g2553.h>
+#include <Energia.h>
 #endif
 
 #include "../memory_map/memory_map.h"
 #include "adc.h"
-#include <Energia.h>
 
-
+#ifdef __LPC8XX__
+uint8_t adc_mm_handler(uint8_t rw, uint8_t addr, uint8_t* data, uint8_t mask)
+{
+   return 0;
+}
+#elif defined(MSP430)
 uint8_t adc_mm_handler(uint8_t rw, uint8_t addr, uint8_t* data, uint8_t mask)
 {	
 	uint16_t rawData = 0;
@@ -75,3 +80,4 @@ uint8_t adc_mm_handler(uint8_t rw, uint8_t addr, uint8_t* data, uint8_t mask)
 
 	return 0;
 }
+#endif

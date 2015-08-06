@@ -1,6 +1,7 @@
 /**************************************************************************/
 /*!
-    @file     main.c
+    @file     uart.c
+    @author   K. Townsend
 
     @section LICENSE
 
@@ -30,73 +31,55 @@
     ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
     (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+*/
 /**************************************************************************/
-#include <stdio.h>
-#include "LPC8xx.h"
-#include "main.h"
-#include "mrt.h"
-#include "lpc_type.h"
-#include "radios/radios.h"
-#include "nodeCtrl.h"
-#include "platform/lpc812/uart.h"
-#include "platform/lpc812/gpio/gpio.h"
-#include "platform/platform.h"
+#include <string.h>
 
+#include "uart.h"
 
-#include <cr_section_macros.h>
+void uart0Init(uint32_t baudRate)
+{
+  uint32_t clk;
+  const uint32_t UARTCLKDIV=1;
 
-void char_to_RGB(uint8_t input, uint8_t* red, uint8_t* green, uint8_t* blue){
+  /* Setup the clock and reset UART0 */
+  LPC_SYSCON->UARTCLKDIV = UARTCLKDIV;
+  NVIC_DisableIRQ(UART0_IRQn);
+  LPC_SYSCON->SYSAHBCLKCTRL |=  (1 << 14);
+  LPC_SYSCON->PRESETCTRL    &= ~(1 << 3);
+  LPC_SYSCON->PRESETCTRL    |=  (1 << 3);
 
-   if(input < 20){
-      //R = [255, 0]
-      //G = 0
-      //B = 255
-      *red = ( ( (uint32_t)(20 - input) )/20.0)*100;
-      *green = 0;
-      *blue = 100;
+  /* Configure UART0 */
+  clk = SystemCoreClock/LPC_SYSCON->UARTCLKDIV;
+  LPC_USART0->CFG = UART_DATA_LENGTH_8 | UART_PARITY_NONE | UART_STOP_BIT_1;
+  LPC_USART0->BRG = clk / 16 / baudRate - 1;
+  LPC_SYSCON->UARTFRGDIV = 0xFF;
+  LPC_SYSCON->UARTFRGMULT = (((clk / 16) * (LPC_SYSCON->UARTFRGDIV + 1)) /
+    (baudRate * (LPC_USART0->BRG + 1))) - (LPC_SYSCON->UARTFRGDIV + 1);
 
-   }else if( (20 <= input) && (input < 40)){
-      //R = 0
-      //G = [0,255]
-      //B = 255
+  /* Clear the status bits */
+  LPC_USART0->STAT = UART_STATUS_CTSDEL | UART_STATUS_RXBRKDEL;
 
-      *red = 0;
-      *green = ( ( (uint32_t)(input - 20) )/20.0)*100;
-      *blue = 100;
+  /* Enable UART0 interrupt */
+  NVIC_EnableIRQ(UART0_IRQn);
 
-   }else if( (40 <= input) && (input < 60)){
-      //R = 0
-      //G = 255
-      //B = [255, 0]
-
-      *red = 0;
-      *green = 100;
-      *blue = ( ( (uint32_t)(60 - input) )/20.0)*100;
-
-   }else if( (60 <= input) && (input < 80)){
-      //R = [0, 255]
-      //G = 255
-      //B = 0
-
-      *red = ( ( (uint32_t)(input - 60) )/20.0)*100;
-      *green = 100;
-      *blue = 0;
-
-   }else{
-      //R = 255
-      //G = [255, 0]
-      //B = 0
-
-      *red = 100;
-      *green = ( ( (uint32_t)(100 - input) )/20.0)*100;
-      *blue = 0;
-
-   }
+  /* Enable UART0 */
+  LPC_USART0->CFG |= UART_ENABLE;
 }
 
-int main(void)
+void uart0SendChar(char buffer)
 {
-   nodeCtrl_init();
-   nodeCtrl_entry();
+  /* Wait until we're ready to send */
+  while (!(LPC_USART0->STAT & UART_STATUS_TXRDY));
+  LPC_USART0->TXDATA = buffer;
+}
+
+void uart0Send(char *buffer, uint32_t length)
+{
+  while (length != 0)
+  {
+    uart0SendChar(*buffer);
+    buffer++;
+    length--;
+  }
 }

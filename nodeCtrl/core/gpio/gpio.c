@@ -10,6 +10,11 @@
 #include "../memory_map/memory_map.h"
 #include "gpio.h"
 
+#ifdef __LPC8XX__
+uint8_t gpio_mm_handler(uint8_t rw, uint8_t addr, uint8_t* data, uint8_t mask){
+   return 0;
+}
+#elif defined(MSP430)
 static const volatile uint8_t* gpioRORegisters[2] = {&P1IN, &P2IN};
 static volatile uint8_t* gpioRWRegisters[6] = {&P1OUT, &P1DIR, &P1REN, &P2OUT, &P2DIR, &P2REN};
 
@@ -54,3 +59,4 @@ uint8_t gpio_mm_handler(uint8_t rw, uint8_t addr, uint8_t* data, uint8_t mask)
 
 	return 0;
 }
+#endif

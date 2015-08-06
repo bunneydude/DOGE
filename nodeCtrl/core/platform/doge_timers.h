@@ -46,7 +46,6 @@ typedef struct
 #define TIMEOUT_500_MS (12000/2)
 #define TIMEOUT_1000_MS (12000)
 
-void setup_timer_hw();
 timerType current_time();
 void timer_init(dogeTimer* timer, timerType duration);
 dogeBool timer_expired(dogeTimer* timer);
