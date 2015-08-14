@@ -12,11 +12,11 @@ extern "C" {
 #endif /* __cplusplus */
 
 #if DBG
-#define static_assert5(cond) uint8_t static_assert5[((cond) == 1) ? 1 : -1]
-#define static_assert6(cond) uint8_t static_assert6[((cond) == 1) ? 1 : -1]
+#define static_assert6(cond) static uint8_t static_assert6[((cond) == 1) ? 1 : -1]
+#define static_assert7(cond) static uint8_t static_assert7[((cond) == 1) ? 1 : -1]
 #else
-#define static_assert5(cond)
 #define static_assert6(cond)
+#define static_assert7(cond)
 #endif
 
 #define MAX_PAYLOAD_SIZE (14)
@@ -88,8 +88,8 @@ typedef struct {
    //could also shove source and destination node ids in here
 } packetAttr;
 
-static_assert5(sizeof(appPacket) == 18);
-static_assert6((sizeof(((rawPacket*)0)->hdr) +
+static_assert6(sizeof(appPacket) == 18);
+static_assert7((sizeof(((rawPacket*)0)->hdr) +
                 sizeof(((rawPacket*)0)->size) +
                 sizeof(appPacket)) <= sizeof(rawPacket));
 

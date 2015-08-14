@@ -8,11 +8,11 @@ extern "C" {
 #endif /* __cplusplus */
 
 #if DBG
-#define static_assert1(cond) uint8_t static_assert1[((cond) == 1) ? 1 : -1]
-#define static_assert2(cond) uint8_t static_assert2[((cond) == 1) ? 1 : -1]
-#define static_assert3(cond) uint8_t static_assert3[((cond) == 1) ? 1 : -1]
-#define static_assert4(cond) uint8_t static_assert4[((cond) == 1) ? 1 : -1]
-#define static_assert5(cond) uint8_t static_assert5[((cond) == 1) ? 1 : -1]
+#define static_assert1(cond) static uint8_t static_assert1[((cond) == 1) ? 1 : -1]
+#define static_assert2(cond) static uint8_t static_assert2[((cond) == 1) ? 1 : -1]
+#define static_assert3(cond) static uint8_t static_assert3[((cond) == 1) ? 1 : -1]
+#define static_assert4(cond) static uint8_t static_assert4[((cond) == 1) ? 1 : -1]
+#define static_assert5(cond) static uint8_t static_assert5[((cond) == 1) ? 1 : -1]
 #else
 #define static_assert1(cond)
 #define static_assert2(cond)

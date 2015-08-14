@@ -1,6 +1,6 @@
 #ifndef SERIAL_C_H
 #define SERIAL_C_H
-#include "../packet.h"
+#include "platform.h"
 
 #ifdef __cplusplus
 extern "C" {

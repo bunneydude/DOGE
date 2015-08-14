@@ -63,6 +63,7 @@
 
 #define DEMO_GRID 1
 #define MY_NODE_ID NODE_ID_1
+#define DBG 0
 
 #ifdef __LPC8XX__
 #define TEMP_SENSOR   0
