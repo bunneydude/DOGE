@@ -12,11 +12,15 @@
  *  Global data
  */
 
+// Data to write to radio TX FIFO (60 bytes MAX.)
 dogePacket txPacket;
+extern appPacket* const txAppPacket;
 appPacket* const txAppPacket = (appPacket*)(&((rawPacket*)(&txPacket))->data);
 packetAttr txAttr;
 
+// Data to read from radio RX FIFO (60 bytes MAX.)
 dogePacket rxPacket;
+extern appPacket* const rxAppPacket;
 appPacket* const rxAppPacket = (appPacket*)(&((rawPacket*)(&rxPacket))->data);
 packetAttr rxAttr;
 
@@ -29,12 +33,7 @@ uint8_t nrf_address[5] = {
   0xD7,0xD7,0xD7,0xD7,0xD7};
 uint8_t nrfRXAttempts = 0;
 
-struct Protocol myProtocol;
-uint8_t sent = 0;
-uint8_t i = 1;
 uint8_t hbt_output = 0x1;
-uint8_t sendResponse = 0;
-uint16_t e2eSrcID = 0;
 // -----------------------------------------------------------------------------
 //functions for nRF
 /*
@@ -67,16 +66,18 @@ uint8_t nrf_read_timeout(uint16_t timeout){
 
 void setup()
 {
-  setup_timer_hw();
+   /* Initialize HW */
+   gpio_init();
+   timer_hw_init();
+   uart_init(9600);
+   radio_init();
+   digital_write(RED_LED, hbt_output); // set the LED on
+/*
+#ifdef DUAL_RADIO
   pinMode(RADIO_NRF_CE, OUTPUT);
   digitalWrite(RADIO_NRF_CE, LOW);     
   pinMode(RADIO_NRF_CSN, OUTPUT);
   digitalWrite(RADIO_NRF_CSN, HIGH); 
-
-  Radio.begin(MY_NODE_ID, CHANNEL_1, POWER_MAX);
-
-/*
-#ifdef DUAL_RADIO
   SPI.begin(); 
   nrf24_init();
   nrf24_config(2, DATA_LENGTH);
@@ -84,15 +85,6 @@ void setup()
   nrf24_rx_address(nrf_address);  
 #endif
 */
-  Serial.begin(9600);
-
-  pinMode(RED_LED, OUTPUT);
-  digitalWrite(RED_LED, hbt_output);
-
-  memset(&txPacket, 0, sizeof(dogePacket));
-  memset(&rxPacket, 0, sizeof(dogePacket));  
-//  txAppPacket = (appPacket*)((uint8_t*)&txPacket + RAW_PACKET_DATA_OFFSET);
-//  rxAppPacket = (appPacket*)((uint8_t*)&rxPacket + RAW_PACKET_DATA_OFFSET);
 }
 
 void loop(){
@@ -125,9 +117,6 @@ void loop(){
   }//end forward
   serial_transmit((uint8_t*)(&txPacket), RAW_PACKET_TOTAL_SIZE(&txPacket), 1);
 }//end main loop
-
-
-
 
 // This receive code should work no matter which byte is seen first
 // If we start in the middle of a frame, finish receiving the frame and discard
@@ -173,7 +162,7 @@ uint8_t serial_receive(uint8_t* returnBuf){
 }
 
 //encode size bytes from buf with COBS
-uint8_t serial_transmit(uint8_t* buf, uint8_t size, uint8_t encode){
+void serial_transmit(uint8_t* buf, uint8_t size, uint8_t encode){
   uint8_t rc = 0;
   uint8_t i = 0;
 
