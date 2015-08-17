@@ -52,7 +52,6 @@ ln -s $PWD/nodes/lpc812/lpc812_nodeCtrl/src/main.h            $XPRESSO_WORKSPACE
 ln -s $PWD/nodes/lpc812/lpc812_nodeCtrl/src/mrt.c             $XPRESSO_WORKSPACE_DIR/src/mrt.c
 ln -s $PWD/nodes/lpc812/lpc812_nodeCtrl/src/mrt.h             $XPRESSO_WORKSPACE_DIR/src/mrt.h
 ln -s $PWD/nodes/lpc812/lpc812_nodeCtrl/src/lpc_type.h        $XPRESSO_WORKSPACE_DIR/src/lpc_type.h
-ln -s $PWD/nodes/lpc812/lpc812_nodeCtrl/src/printf.c          $XPRESSO_WORKSPACE_DIR/src/printf.c
 ln -s $PWD/nodeCtrl/core/adc/adc.h                            $XPRESSO_WORKSPACE_DIR/src/adc/adc.h
 ln -s $PWD/nodeCtrl/core/adc/adc.c                            $XPRESSO_WORKSPACE_DIR/src/adc/adc.c
 ln -s $PWD/nodeCtrl/core/neighbor/neighbor-config.h           $XPRESSO_WORKSPACE_DIR/src/neighbor/neighbor-config.h
@@ -105,7 +104,11 @@ ln -s $PWD/nodeCtrl/core/platform/lpc812/spi.c                $XPRESSO_WORKSPACE
 ln -s $PWD/nodeCtrl/core/platform/lpc812/spi.h                $XPRESSO_WORKSPACE_DIR/src/platform/lpc812/spi.h
 ln -s $PWD/nodeCtrl/core/platform/lpc812/pwm.c                $XPRESSO_WORKSPACE_DIR/src/platform/lpc812/pwm.c
 ln -s $PWD/nodeCtrl/core/platform/lpc812/pwm.h                $XPRESSO_WORKSPACE_DIR/src/platform/lpc812/pwm.h
+ln -s $PWD/nodeCtrl/core/platform/lpc812/printf.c             $XPRESSO_WORKSPACE_DIR/src/platform/lpc812/printf.c
+ln -s $PWD/nodeCtrl/core/platform/lpc812/printf.h             $XPRESSO_WORKSPACE_DIR/src/platform/lpc812/printf.h
 ln -s $PWD/nodeCtrl/core/platform/lpc812/printf-retarget.c    $XPRESSO_WORKSPACE_DIR/src/platform/lpc812/printf-retarget.c
 ln -s $PWD/nodeCtrl/core/platform/lpc812/swm.c                $XPRESSO_WORKSPACE_DIR/src/platform/lpc812/swm.c
 ln -s $PWD/nodeCtrl/core/platform/lpc812/initializer.h        $XPRESSO_WORKSPACE_DIR/src/platform/lpc812/initializer.h
-ln -s $PWD/nodeCtrl/core/platform/hw_init.c                   $XPRESSO_WORKSPACE_DIR/src/platform/hw_init.c
+ln -s $PWD/nodeCtrl/core/platform/hw_init.h                   $XPRESSO_WORKSPACE_DIR/src/platform/hw_init.h
+ln -s $PWD/nodeCtrl/core/platform/doge_app.c                  $XPRESSO_WORKSPACE_DIR/src/platform/doge_app.c
+ln -s $PWD/nodeCtrl/core/platform/doge_app.h                  $XPRESSO_WORKSPACE_DIR/src/platform/doge_app.h

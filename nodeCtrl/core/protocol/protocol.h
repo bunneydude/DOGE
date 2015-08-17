@@ -14,9 +14,11 @@ extern "C" {
 #if DBG
 #define static_assert6(cond) static uint8_t static_assert6[((cond) == 1) ? 1 : -1]
 #define static_assert7(cond) static uint8_t static_assert7[((cond) == 1) ? 1 : -1]
+#define static_assert8(cond) static uint8_t static_assert8[((cond) == 1) ? 1 : -1]
 #else
 #define static_assert6(cond)
 #define static_assert7(cond)
+#define static_assert8(cond)
 #endif
 
 #define MAX_PAYLOAD_SIZE (14)
@@ -32,6 +34,10 @@ extern "C" {
 #define CMD_WRITE_MEM_ACK_DATA_SIZE      (3)
 #define CMD_READ_MEM_ACK_DATA_SIZE(size) ((size) + 2)
 #define CMD_WRITE_MEM_DATA_SIZE(size)    ((size) + 3)
+
+#define USER_APP_PAYLOAD_SIZE      (5)
+#define CMD_USER_APP_DATA_SIZE     (6)
+#define CMD_USER_APP_ACK_DATA_SIZE (2)
 
 /** @brief Protocol Commands */
 enum Protocol_commands{
@@ -55,7 +61,9 @@ enum Protocol_commands{
    CMD_PIN_DIR,
    CMD_PIN_VALUE,
    CMD_STATUS,
-   CMD_DEVICE
+   CMD_DEVICE,
+   CMD_USER_APP,
+   CMD_USER_APP_ACK
 };
 
 //error codes
@@ -80,7 +88,6 @@ typedef struct {
    uint8_t byteNumber; //unused
    uint8_t payload[MAX_PAYLOAD_SIZE];
 } appPacket;
-#pragma pack()
 
 typedef struct {
    uint8_t ack;
@@ -88,16 +95,28 @@ typedef struct {
    //could also shove source and destination node ids in here
 } packetAttr;
 
+/* User defined data type */
+typedef struct {
+   uint8_t cmd;
+   uint8_t payload[USER_APP_PAYLOAD_SIZE];
+} userAppPacket;
+#pragma pack()
+
 static_assert6(sizeof(appPacket) == 18);
 static_assert7((sizeof(((rawPacket*)0)->hdr) +
                 sizeof(((rawPacket*)0)->size) +
                 sizeof(appPacket)) <= sizeof(rawPacket));
+static_assert8((sizeof(((rawPacket*)0)->hdr) +
+                sizeof(((rawPacket*)0)->size) +
+                sizeof(userAppPacket)) <= sizeof(rawPacket));
 
 void Protocol_init(struct Protocol* obj);
 uint8_t link_layer_parse_packet(struct Protocol* obj, dogePacket* message, dogePacket* response);
 uint8_t link_layer_form_packet(dogePacket* packet, packetAttr* attr, uint8_t type, uint16_t src, uint16_t dst, uint16_t shSrc, uint16_t shDst);
 uint8_t application_parse_packet(struct Protocol* obj, appPacket* message, appPacket* response, packetAttr* messageAttr, packetAttr* responseAttr);
 uint8_t application_form_packet(appPacket* packet, packetAttr* attr, uint8_t cmd, uint8_t addr, uint8_t data, uint8_t* bytes);
+uint8_t user_application_parse_packet(userAppPacket* message, packetAttr* messageAttr);
+uint8_t user_application_form_packet(userAppPacket* packet, packetAttr* attr, uint8_t cmd, uint8_t* bytes);
 
 #ifdef __cplusplus
 }

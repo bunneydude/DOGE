@@ -35,7 +35,8 @@ uint8_t link_layer_parse_packet(struct Protocol* obj, dogePacket* message, dogeP
    if (status == ERR_CHECKSUM){
       //TODO: log error and/or send error message back?
       sendResponse = NO_TRANSMIT;
-   }else if (type == RAW_PACKET){
+   }
+   else if (type == RAW_PACKET){
       messageAttr.ack = ack;
       messageAttr.size = RAW_PACKET_DATA_SIZE(message);
       status = application_parse_packet(obj,
@@ -76,12 +77,10 @@ uint8_t link_layer_form_packet(dogePacket* packet, packetAttr* attr, uint8_t typ
    packet->hdr.shSrc = shSrc;
    packet->hdr.shDst = shDst;
    packet->hdr.ttl = DEFAULT_PACKET_TTL;
-   if (type == RAW_PACKET)
-   {
+   if (type == RAW_PACKET){
       ((rawPacket*)packet)->size = attr->size;
    }
-   else if(IS_HEADER_TYPE_ACK(packet->hdr.type))
-   {
+   else if(IS_HEADER_TYPE_ACK(packet->hdr.type)){
       ((packetAck*)packet)->errorCode = 0;
    }
    return 0;
@@ -160,6 +159,12 @@ uint8_t application_parse_packet(struct Protocol* obj, appPacket* message, appPa
       case(CMD_WRITE_MEM_ACK):
          returnCode = 0;
          break;
+
+      case(CMD_USER_APP):
+         returnCode = user_application_parse_packet((userAppPacket*)message, messageAttr);
+         if (returnCode){
+            user_application_form_packet((userAppPacket*)response, responseAttr, CMD_USER_APP_ACK, NULL);
+         }
 
       default: //unknown command
          application_form_packet(response, responseAttr, CMD_NACK, message->cmd, ERR_COMMAND, NULL);

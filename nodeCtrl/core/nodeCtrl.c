@@ -1,4 +1,5 @@
 #include "nodeCtrl.h"
+#include <hw_init.h>
 
 #ifdef MSP430
 void setup() __attribute__ ((alias("nodeCtrl_init")));

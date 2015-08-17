@@ -62,7 +62,7 @@
 // -----------------------------------------------------------------------------
 
 #define DEMO_GRID 1
-#define MY_NODE_ID NODE_ID_1
+#define MY_NODE_ID NODE_ID_2
 #define DBG 0
 
 #ifdef __LPC8XX__
@@ -110,17 +110,5 @@
 #include "lpc812/pwm.h"
 #elif defined(MSP430) && defined(__cplusplus)
 #include "reliable_channel.h"
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-void gpio_init();
-void uart_init(int baudRate);
-void radio_init();
-void comparator_init();
-void timer_hw_init();
-#ifdef __cplusplus
-}
 #endif
 #endif
