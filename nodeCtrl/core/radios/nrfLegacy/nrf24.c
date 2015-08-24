@@ -128,22 +128,23 @@ uint8_t nrf24_payloadLength()
 
 uint8_t nrf24_timeoutRead(uint8_t* data, uint8_t depSize, uint16_t timeout)
 {
-	uint8_t dataNotReady = 1;
-	while((timeout-- > 0) && (dataNotReady == 1)){
-#ifdef __LPC8X__
-		mrtDelay(1);
+    uint8_t dataNotReady = 1;
+    // Start listening
+    nrf24_powerUpRx();
+    while((timeout-- > 0) && (dataNotReady == 1)){
+#ifdef __LPC8XX__
+        mrtDelay(1);
+#elif defined(MSP430)
+        delay(1);
 #endif
-#ifdef MSP430
-      delay(1);
-#endif
-		dataNotReady = nrf24_dataNotReady();
-	}
-	if(dataNotReady == 0){
-		nrf24_getData(data);
-		return payload_len;
-	}else{
-		return 0;
-	}
+        dataNotReady = nrf24_dataNotReady();
+    }
+    if(dataNotReady == 0){
+        nrf24_getData(data);
+        return payload_len;
+    }else{
+        return 0;
+    }
 }
 
 
@@ -218,6 +219,16 @@ void nrf24_send(uint8_t channel, uint8_t* value, uint8_t size)
 uint8_t nrf24_isSending()
 {
     uint8_t status;
+    uint8_t rv;
+
+    /* read RX/TX control config */
+    nrf24_readRegister(CONFIG, &rv, 1);
+
+    /* if in RX mode */
+    if(rv & (1 << PRIM_RX))
+    {
+        return 0; /* false */
+    }
 
     /* read the current status */
     status = nrf24_getStatus();
