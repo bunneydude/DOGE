@@ -2,6 +2,7 @@
 #define DOGE_TIMERS_H
 #include <stdint.h>
 #include "../protocol/type.h"
+#include "serial_c.h"
 
 #ifdef LINUX
 #include <time.h>
@@ -17,17 +18,17 @@
 extern "C" {
 #endif /* __cplusplus */
 
+#ifdef __LPC8XX__
+typedef uint32_t timerType;
+#define MAX_TIMER_VAL       (UINT32_MAX)
+#elif defined(MSP430)
+typedef uint16_t timerType;
 #define MAX_TIMER_VAL       (UINT16_MAX)
+#endif
+
 #define TIMER_OVERFLOW(a,b) ((MAX_TIMER_VAL - (a)) < (b))
 #define TIMER_BEGIN(timer)  (((timer)->end)-((timer)->duration))
 #define TIMER_END(timer)    ((timer)->end)
-
-#ifdef MSP430
-typedef uint16_t timerType;
-#endif
-#ifdef __LPC8XX__
-typedef uint32_t timerType;
-#endif
 
 typedef struct
 {
@@ -43,8 +44,13 @@ typedef struct
 #define PWM_PERIOD (F_CPU)/490 // F_CPU/490
 #define PWM_DUTY(x) ( (unsigned long)x*PWM_PERIOD / (unsigned long)ANALOG_RES )
 
+#ifdef __LPC8XX__
+#define TIMEOUT_500_MS (500)
+#define TIMEOUT_1000_MS (1000)
+#elif defined(MSP430)
 #define TIMEOUT_500_MS (12000/2)
 #define TIMEOUT_1000_MS (12000)
+#endif
 
 timerType current_time();
 void timer_init(dogeTimer* timer, timerType duration);

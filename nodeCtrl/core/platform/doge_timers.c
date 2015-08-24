@@ -1,25 +1,23 @@
 #include "doge_timers.h"
-  
+ 
 dogeBool timer_expired(dogeTimer* timer)
 {
    timerType currTime = current_time();
    dogeBool expired = TRUE;
-   if ((currTime < TIMER_END(timer)) && (currTime >= TIMER_BEGIN(timer))) {
+   if ((currTime < TIMER_END(timer)) && (currTime >= TIMER_BEGIN(timer))){
       expired = FALSE;
    }
    // Overflow
-   else if (TIMER_OVERFLOW(TIMER_BEGIN(timer), timer->duration)) {
+   else if (TIMER_OVERFLOW(TIMER_BEGIN(timer), timer->duration)){
       if ((currTime >= TIMER_BEGIN(timer) && currTime > TIMER_END(timer)) ||
-          (currTime < TIMER_BEGIN(timer)  && currTime < TIMER_END(timer))) {
+          (currTime < TIMER_BEGIN(timer)  && currTime < TIMER_END(timer))){
          expired = FALSE;
       }
    }
-   /*
-    *print_string("Timer Current: ");
-    *print_bytes((uint8_t*)&currTime);
-    *print_string("Timer End: ");
-    *print_bytes((uint8_t*)&timer->end);
-    */
+   /*print_string("Timer Current: ", NEWLINE);*/
+   /*print_decimal(currTime, NEWLINE);*/
+   /*print_string("Timer End: ", NEWLINE);*/
+   /*print_decimal(timer->end, NEWLINE);*/
 
    //printf("Timer Current: %d, Timer end: %d Timer->end - Timer->duration %x, Expired: %d \n", currTime, timer->end, (timer->end - timer->duration), expired);
    return expired;
@@ -54,23 +52,7 @@ timerType current_time()
    return sample2;
 #endif
 #ifdef __LPC8XX__
-   //test
-   timerType sample1 = doge_counter;
-   timerType sample2 = 0;
-   while(1)
-   {
-      sample2 = sample1;
-      sample1 = doge_counter;
-      if ((sample1 > sample2) && (sample1 - sample2 < THRESHOLD))
-      {
-         break;
-      }
-      else if ((sample2 > sample1) && (sample2-sample1 < THRESHOLD))
-      {
-         break;
-      }
-   }
-   return sample2;
+   return doge_counter;
 #endif
 }
 

@@ -49,8 +49,6 @@ mkdir -p $XPRESSO_WORKSPACE_DIR/src/radios
 
 ln -s $PWD/nodes/lpc812/lpc812_nodeCtrl/src/main.c            $XPRESSO_WORKSPACE_DIR/src/main.c
 ln -s $PWD/nodes/lpc812/lpc812_nodeCtrl/src/main.h            $XPRESSO_WORKSPACE_DIR/src/main.h
-ln -s $PWD/nodes/lpc812/lpc812_nodeCtrl/src/mrt.c             $XPRESSO_WORKSPACE_DIR/src/mrt.c
-ln -s $PWD/nodes/lpc812/lpc812_nodeCtrl/src/mrt.h             $XPRESSO_WORKSPACE_DIR/src/mrt.h
 ln -s $PWD/nodes/lpc812/lpc812_nodeCtrl/src/lpc_type.h        $XPRESSO_WORKSPACE_DIR/src/lpc_type.h
 ln -s $PWD/nodeCtrl/core/adc/adc.h                            $XPRESSO_WORKSPACE_DIR/src/adc/adc.h
 ln -s $PWD/nodeCtrl/core/adc/adc.c                            $XPRESSO_WORKSPACE_DIR/src/adc/adc.c
@@ -109,6 +107,8 @@ ln -s $PWD/nodeCtrl/core/platform/lpc812/printf.h             $XPRESSO_WORKSPACE
 ln -s $PWD/nodeCtrl/core/platform/lpc812/printf-retarget.c    $XPRESSO_WORKSPACE_DIR/src/platform/lpc812/printf-retarget.c
 ln -s $PWD/nodeCtrl/core/platform/lpc812/swm.c                $XPRESSO_WORKSPACE_DIR/src/platform/lpc812/swm.c
 ln -s $PWD/nodeCtrl/core/platform/lpc812/initializer.h        $XPRESSO_WORKSPACE_DIR/src/platform/lpc812/initializer.h
+ln -s $PWD/nodeCtrl/core/platform/lpc812/mrt.c                $XPRESSO_WORKSPACE_DIR/src/platform/lpc812/mrt.c
+ln -s $PWD/nodeCtrl/core/platform/lpc812/mrt.h                $XPRESSO_WORKSPACE_DIR/src/platform/lpc812/mrt.h
 ln -s $PWD/nodeCtrl/core/platform/hw_init.h                   $XPRESSO_WORKSPACE_DIR/src/platform/hw_init.h
 ln -s $PWD/nodeCtrl/core/platform/doge_app.c                  $XPRESSO_WORKSPACE_DIR/src/platform/doge_app.c
 ln -s $PWD/nodeCtrl/core/platform/doge_app.h                  $XPRESSO_WORKSPACE_DIR/src/platform/doge_app.h
