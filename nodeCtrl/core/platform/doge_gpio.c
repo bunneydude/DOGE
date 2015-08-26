@@ -9,13 +9,8 @@ int digital_read(uint8_t pin)
    /* TODO LPC812 */
    return 0;
 }
-void toggle_led(dogeBool init)
-{
-   /* TODO LPC812 */
-}
 #endif
 
-#ifdef MSP430
 void toggle_led(dogeBool init)
 {
    static dogeTimer LEDTimer = {0, 0};
@@ -25,7 +20,7 @@ void toggle_led(dogeBool init)
    switch(state){
       case(LED_RESET):
          counter = 0;
-         digitalWrite(RED_LED, LED_ON_VALUE);
+         digital_write(RED_LED, LED_ON_VALUE);
          timer_reset(&LEDTimer);
          if (init){
             state = LED_START_TOGGLE;
@@ -35,9 +30,9 @@ void toggle_led(dogeBool init)
             break;
          }
       case(LED_START_TOGGLE):
-         digitalWrite(RED_LED, LED_OFF_VALUE);
+         digital_write(RED_LED, LED_OFF_VALUE);
          timer_init(&LEDTimer, TIMEOUT_500_MS);
-				 state = LED_OFF;
+         state = LED_OFF;
          break;
       case(LED_OFF):
          if (timer_expired(&LEDTimer)){
@@ -49,7 +44,7 @@ void toggle_led(dogeBool init)
          break;
       case(LED_INC_COUNTER):
          timer_init(&LEDTimer, TIMEOUT_500_MS);
-         digitalWrite(RED_LED, LED_ON_VALUE);
+         digital_write(RED_LED, LED_ON_VALUE);
          counter++;
          state = LED_ON;
          break;
@@ -70,4 +65,3 @@ void toggle_led(dogeBool init)
          state = LED_RESET;
    }
 }
-#endif
