@@ -51,13 +51,18 @@ void char_to_RGB(uint8_t input, uint8_t* red, uint8_t* green, uint8_t* blue){
 
 void user_application_setup()
 {
+   /* Configure SCT */
+   pwm_set_channel(RED_CH, LED_LOCATION);
+   pwm_set_channel(GREEN_CH, LPC_TP2);
+   pwm_set_channel(BLUE_CH, LPC_TP1);
+   pwm_init();
 }
 
 void user_application_loop()
 {
 }
 
-uint8_t user_application_parse_packet(userAppPacket* message, packetAttr* messageAttr)
+uint8_t user_application_parse_packet(userAppPacket* message, userAppPacket* response, packetAttr* messageAttr, packetAttr* responseAttr)
 {
    uint8_t tempPercent = 0;
    uint8_t redValue = 0;
@@ -74,13 +79,14 @@ uint8_t user_application_parse_packet(userAppPacket* message, packetAttr* messag
    return 0;
 }
 
-uint8_t user_application_form_packet(userAppPacket* packet, packetAttr* attr, uint8_t cmd, uint8_t* bytes)
+uint8_t user_application_form_packet(userAppPacket* packet, packetAttr* attr, uint8_t cmd, uint8_t size, uint8_t* bytes)
 {
    packet->cmd = cmd;
    switch(packet->cmd){
       case(CMD_USER_APP):
-         copy_bytes(packet->payload, bytes, USER_APP_PAYLOAD_SIZE);
-         attr->size = CMD_USER_APP_DATA_SIZE;
+         copy_bytes(packet->payload, bytes, size);
+         attr->ack = FALSE;
+         attr->size = CMD_USER_APP_DATA_SIZE(size);
          break;
       case(CMD_USER_APP_ACK):
          attr->ack = TRUE;
@@ -105,13 +111,52 @@ void user_application_loop()
    }
 }
 
-uint8_t user_application_parse_packet(userAppPacket* message, packetAttr* messageAttr)
+uint8_t user_application_parse_packet(userAppPacket* message, userAppPacket* response, packetAttr* messageAttr, packetAttr* responseAttr)
 {
    return 0;
 }
 
-uint8_t user_application_form_packet(userAppPacket* packet, packetAttr* attr, uint8_t cmd, uint8_t* bytes)
+uint8_t user_application_form_packet(userAppPacket* packet, packetAttr* attr, uint8_t cmd, uint8_t size, uint8_t* bytes)
 {
    return 0;
+}
+#elif defined(LINUX)
+void user_application_setup()
+{
+}
+
+void user_application_loop()
+{
+}
+
+uint8_t user_application_parse_packet(userAppPacket* message, userAppPacket* response, packetAttr* messageAttr, packetAttr* responseAttr)
+{
+   dogeStatus status = SUCCESS;
+   printf("Got %d, %d, %d, %d, %d \n", message->payload[0], message->payload[1], message->payload[2], message->payload[3], message->payload[4]);
+   if (*((uint32_t*)message->payload) == NO_RESPONSE){
+      responseAttr->ack = FALSE;
+   }else{
+      user_application_form_packet(response, responseAttr, CMD_USER_APP_ACK, CMD_USER_APP_ACK_DATA_SIZE, NULL);
+   }
+   return status;
+}
+
+uint8_t user_application_form_packet(userAppPacket* packet, packetAttr* attr, uint8_t cmd, uint8_t size, uint8_t* bytes)
+{
+   packet->cmd = cmd;
+   switch(packet->cmd){
+      case(CMD_USER_APP):
+         copy_bytes(packet->payload, bytes, size);
+         attr->ack = FALSE;
+         attr->size = CMD_USER_APP_DATA_SIZE(size);
+         break;
+      case(CMD_USER_APP_ACK):
+         attr->ack = TRUE;
+         attr->size = CMD_USER_APP_ACK_DATA_SIZE;
+         break;
+      default: //unknown command
+         return 0;
+   }
+   return 1;
 }
 #endif

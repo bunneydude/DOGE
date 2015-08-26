@@ -66,11 +66,6 @@ static void timer_hw_init()
 #ifdef __LPC8XX__
    /* Configure the multi-rate timer for 1ms ticks */
    mrtInit(SystemCoreClock/1000);
-   /* Configure SCT */
-   pwm_set_channel(RED_CH, LED_LOCATION);
-   pwm_set_channel(GREEN_CH, LPC_TP2);
-   pwm_set_channel(BLUE_CH, LPC_TP1);
-   pwm_init();
 #elif defined(MSP430)
    /*
    * This setup code is similar to wiring_analog.c analogWrite

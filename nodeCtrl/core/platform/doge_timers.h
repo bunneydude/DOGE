@@ -18,7 +18,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#ifdef __LPC8XX__
+#if defined(__LPC8XX__) || defined(LINUX)
 typedef uint32_t timerType;
 #define MAX_TIMER_VAL       (UINT32_MAX)
 #elif defined(MSP430)

@@ -81,9 +81,15 @@ void print_hex(uint16_t buf, printOptions options)
 }
 #endif
 #else
+#ifdef __LPC8XX__
+void print_decimal(uint32_t buf, printOptions options){}
+void print_string(char const *buf, printOptions options){}
+void print_hex(uint32_t buf, printOptions options){}
+#elif defined(MSP430)
 void print_decimal(uint16_t buf, printOptions options){}
 void print_string(char const *buf, printOptions options){}
 void print_hex(uint16_t buf, printOptions options){}
+#endif
 #endif
 
 #if DBG

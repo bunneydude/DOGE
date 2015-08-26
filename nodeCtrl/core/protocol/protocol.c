@@ -40,8 +40,8 @@ uint8_t link_layer_parse_packet(struct Protocol* obj, dogePacket* message, dogeP
       messageAttr.ack = ack;
       messageAttr.size = RAW_PACKET_DATA_SIZE(message);
       status = application_parse_packet(obj,
-                                        (appPacket*)((uint8_t*)message + RAW_PACKET_DATA_OFFSET),
-                                        (appPacket*)((uint8_t*)response + RAW_PACKET_DATA_OFFSET),
+                                        (appPacket*)(((rawPacket*)message)->data),
+                                        (appPacket*)(((rawPacket*)response)->data),
                                         &messageAttr,
                                         &responseAttr);
       if (responseAttr.ack == TRUE){ // Application layer requests a response packet
@@ -161,10 +161,9 @@ uint8_t application_parse_packet(struct Protocol* obj, appPacket* message, appPa
          break;
 
       case(CMD_USER_APP):
-         returnCode = user_application_parse_packet((userAppPacket*)message, messageAttr);
-         if (returnCode){
-            user_application_form_packet((userAppPacket*)response, responseAttr, CMD_USER_APP_ACK, NULL);
-         }
+      case(CMD_USER_APP_ACK):
+         returnCode = user_application_parse_packet((userAppPacket*)message, (userAppPacket*)response, messageAttr, responseAttr);
+         break;
 
       default: //unknown command
          application_form_packet(response, responseAttr, CMD_NACK, message->cmd, ERR_COMMAND, NULL);

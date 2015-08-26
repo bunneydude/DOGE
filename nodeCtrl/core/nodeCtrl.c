@@ -20,8 +20,8 @@ packetAttr rxAttr;
 
 struct Protocol spiProtocol;
 uint8_t sendResponse = 0;
-uint8_t hbt_output = 0x1;
 uint8_t tempIndex;
+uint8_t neighborIndex = 0;
 
 void nodeCtrl_init()
 {
@@ -39,13 +39,15 @@ void nodeCtrl_init()
    memoryMapRegionMethods.static_route_handler = static_route_mm_handler;
    /* Creates static routes for IOTG competition demo grid */
    setup_iotg_demo_grid();
-   digital_write(RED_LED, hbt_output); // set the LED on
+   digital_write(RED_LED, LED_ON_VALUE); // set the LED on
+   /* User application setup */
+   user_application_setup();
 }
 
 void nodeCtrl_entry()
 {
    while (1) {
-      uint8_t neighborIndex = 0;
+      neighborIndex = 0;
       toggle_led(FALSE);
 
       //Make sure radio is ready to receive
@@ -99,11 +101,7 @@ void nodeCtrl_entry()
       else{//end if got packet
          //no packet
       }
-
-      if(dspStatus.counter == 1){ //reset counter and sample temperature sensor
-         dspStatus.counter = dspStatus.period;
-         dsp_add_sample( analog_read(TEMP_SENSOR) );
-      }
+      user_application_loop();
    }
 }
 

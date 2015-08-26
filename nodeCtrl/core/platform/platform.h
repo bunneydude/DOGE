@@ -95,6 +95,7 @@
 #include "doge_gpio.h"
 #include "doge_radio.h"
 #include "doge_adc.h"
+#include "doge_app.h"
 #include "static_routes.h"
 #include "serial_c.h"
 

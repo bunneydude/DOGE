@@ -35,9 +35,9 @@ extern "C" {
 #define CMD_READ_MEM_ACK_DATA_SIZE(size) ((size) + 2)
 #define CMD_WRITE_MEM_DATA_SIZE(size)    ((size) + 3)
 
-#define USER_APP_PAYLOAD_SIZE      (5)
-#define CMD_USER_APP_DATA_SIZE     (6)
-#define CMD_USER_APP_ACK_DATA_SIZE (2)
+#define USER_APP_PAYLOAD_SIZE        (5)
+#define CMD_USER_APP_DATA_SIZE(size) ((size) + 1)
+#define CMD_USER_APP_ACK_DATA_SIZE   (1)
 
 /** @brief Protocol Commands */
 enum Protocol_commands{
@@ -55,6 +55,8 @@ enum Protocol_commands{
    CMD_SPI = 0xC,
    CMD_READ_MEM_ACK = 0xD,
    CMD_WRITE_MEM_ACK = 0xE,
+   CMD_USER_APP = 0xF,
+   CMD_USER_APP_ACK = 0x10,
    CMD_PULL_ENABLE,
    CMD_PULL_DIR,
    CMD_PIN_OUTPUT,
@@ -62,8 +64,6 @@ enum Protocol_commands{
    CMD_PIN_VALUE,
    CMD_STATUS,
    CMD_DEVICE,
-   CMD_USER_APP,
-   CMD_USER_APP_ACK
 };
 
 //error codes
@@ -115,8 +115,7 @@ uint8_t link_layer_parse_packet(struct Protocol* obj, dogePacket* message, dogeP
 uint8_t link_layer_form_packet(dogePacket* packet, packetAttr* attr, uint8_t type, uint16_t src, uint16_t dst, uint16_t shSrc, uint16_t shDst);
 uint8_t application_parse_packet(struct Protocol* obj, appPacket* message, appPacket* response, packetAttr* messageAttr, packetAttr* responseAttr);
 uint8_t application_form_packet(appPacket* packet, packetAttr* attr, uint8_t cmd, uint8_t addr, uint8_t data, uint8_t* bytes);
-uint8_t user_application_parse_packet(userAppPacket* message, packetAttr* messageAttr);
-uint8_t user_application_form_packet(userAppPacket* packet, packetAttr* attr, uint8_t cmd, uint8_t* bytes);
+uint8_t user_application_parse_packet(userAppPacket* message, userAppPacket* response, packetAttr* messageAttr, packetAttr* responseAttr);
 
 #ifdef __cplusplus
 }

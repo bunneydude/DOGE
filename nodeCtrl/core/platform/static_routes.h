@@ -48,7 +48,15 @@ typedef enum{
    NRF24_NODE_18_STATIC_ADDRESS = MM_STATIC_ROUTE_BASE + NRF24_NODE_18_OFFSET
 }nrf24NodeAddresses;
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+void insert_neighbor(uint16_t nodeID, uint16_t LQE, uint8_t radioID);
+void insert_route(uint16_t dstNodeID, uint16_t neighborID, uint16_t LQE, uint8_t radioID);
 void setup_iotg_demo_grid();
 uint8_t static_route_mm_handler(uint8_t rw, uint8_t addr, uint8_t* data, uint8_t mask);
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif
