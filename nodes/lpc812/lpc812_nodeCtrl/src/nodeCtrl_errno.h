@@ -1,1 +1,0 @@
-../../../../nodeCtrl/core/nodeCtrl_errno.h
