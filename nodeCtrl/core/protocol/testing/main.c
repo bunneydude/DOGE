@@ -42,9 +42,6 @@ extern appPacket* const rxAppPacket;
 appPacket* const rxAppPacket = (appPacket*)(&((rawPacket*)(&rxPacket))->data);
 packetAttr rxAttr;
 
-packetAttr txPacketAttr;
-packetAttr rxPacketAttr;
-
 int main(void) __attribute__((noreturn));
 int main()
 {
@@ -71,11 +68,11 @@ void test_app_packet()
    // If the application layer is processing this packet, then the Single Hop
    // Destination Node ID must equal the Destination Node ID
    assert(TEST_SH_DST_NODE_ID == TEST_DST_NODE_ID);
-   application_form_packet(txAppPacket, &txPacketAttr, CMD_READ_REG, TEST_CMD_READ_REG_ADDR, 0x0, NULL);
+   application_form_packet(txAppPacket, &txAttr, CMD_READ_REG, TEST_CMD_READ_REG_ADDR, 0x0, NULL);
    memcpy(bytes, ((rawPacket*)&txPacket)->data, MAX_RAW_PACKET_PAYLOAD_SIZE);
    assert(bytes[0] == CMD_READ_REG);
    assert(bytes[1] == TEST_CMD_READ_REG_ADDR);
-   link_layer_form_packet(&txPacket, &txPacketAttr, RAW_PACKET, TEST_SRC_NODE_ID, TEST_DST_NODE_ID, TEST_SH_SRC_NODE_ID, TEST_SH_DST_NODE_ID);
+   link_layer_form_packet(&txPacket, &txAttr, RAW_PACKET, TEST_SRC_NODE_ID, TEST_DST_NODE_ID, TEST_SH_SRC_NODE_ID, TEST_SH_DST_NODE_ID);
    //Mock reliable transmit/receive crc calculation
    add_packet_crc(&txPacket);
    // Check to make sure application data is intact
@@ -150,7 +147,7 @@ void test_signaling_packets()
 
    memset(&txPacket, 0, sizeof(dogePacket));
    memset(&rxPacket, 0, sizeof(dogePacket));
-   link_layer_form_packet(&txPacket, &txPacketAttr, SIGNALING_BROADCAST_BEACON, TEST_SRC_NODE_ID, TEST_DST_NODE_ID, TEST_SH_SRC_NODE_ID, TEST_SH_DST_NODE_ID);
+   link_layer_form_packet(&txPacket, &txAttr, SIGNALING_BROADCAST_BEACON, TEST_SRC_NODE_ID, TEST_DST_NODE_ID, TEST_SH_SRC_NODE_ID, TEST_SH_DST_NODE_ID);
    //Mock reliable transmit/receive crc calculation
    add_packet_crc(&txPacket);
    status = link_layer_parse_packet(&obj, &txPacket, &rxPacket);
@@ -168,7 +165,7 @@ void test_signaling_packets()
 
    memset(&txPacket, 0, sizeof(dogePacket));
    memset(&rxPacket, 0, sizeof(dogePacket));
-   link_layer_form_packet(&txPacket, &txPacketAttr, SIGNALING_UNICAST_BEACON, TEST_SRC_NODE_ID, TEST_DST_NODE_ID, TEST_SH_SRC_NODE_ID, TEST_SH_DST_NODE_ID);
+   link_layer_form_packet(&txPacket, &txAttr, SIGNALING_UNICAST_BEACON, TEST_SRC_NODE_ID, TEST_DST_NODE_ID, TEST_SH_SRC_NODE_ID, TEST_SH_DST_NODE_ID);
    //Mock reliable transmit/receive crc calculation
    add_packet_crc(&txPacket);
    status = link_layer_parse_packet(&obj, &txPacket, &rxPacket);
@@ -205,12 +202,12 @@ void test_read_write_mem_packets()
    // If the application layer is processing this packet, then the Single Hop
    // Destination Node ID must equal the Destination Node ID
    assert(TEST_SH_DST_NODE_ID == TEST_DST_NODE_ID);
-   application_form_packet(txAppPacket, &txPacketAttr, CMD_READ_MEM, MM_NETWORK_BASE, MAX_CMD_READ_MEM_DATA_SIZE, NULL);
+   application_form_packet(txAppPacket, &txAttr, CMD_READ_MEM, MM_NETWORK_BASE, MAX_CMD_READ_MEM_DATA_SIZE, NULL);
    //Check app packet is inserted correctly into dogePacket by inspecting bytes
    memcpy(bytes, ((rawPacket*)(&txPacket))->data, MAX_RAW_PACKET_PAYLOAD_SIZE);
    assert(bytes[0] == CMD_READ_MEM);
    assert(bytes[1] == MM_NETWORK_BASE);
-   link_layer_form_packet(&txPacket, &txPacketAttr, RAW_PACKET, TEST_SRC_NODE_ID, TEST_DST_NODE_ID, TEST_SH_SRC_NODE_ID, TEST_SH_DST_NODE_ID);
+   link_layer_form_packet(&txPacket, &txAttr, RAW_PACKET, TEST_SRC_NODE_ID, TEST_DST_NODE_ID, TEST_SH_SRC_NODE_ID, TEST_SH_DST_NODE_ID);
    //Mock reliable transmit/receive crc calculation
    add_packet_crc(&txPacket);
    // Check to make sure application data is intact
@@ -236,8 +233,8 @@ void test_read_write_mem_packets()
    // Form message packet
    memset(&txPacket, 0, sizeof(dogePacket));
    memset(&rxPacket, 0, sizeof(dogePacket));
-   application_form_packet(txAppPacket, &txPacketAttr, CMD_WRITE_MEM, MM_NETWORK_BASE, MAX_CMD_WRITE_MEM_DATA_SIZE, newBytes);
-   link_layer_form_packet(&txPacket, &txPacketAttr, RAW_PACKET, TEST_SRC_NODE_ID, TEST_DST_NODE_ID, TEST_SH_SRC_NODE_ID, TEST_SH_DST_NODE_ID);
+   application_form_packet(txAppPacket, &txAttr, CMD_WRITE_MEM, MM_NETWORK_BASE, MAX_CMD_WRITE_MEM_DATA_SIZE, newBytes);
+   link_layer_form_packet(&txPacket, &txAttr, RAW_PACKET, TEST_SRC_NODE_ID, TEST_DST_NODE_ID, TEST_SH_SRC_NODE_ID, TEST_SH_DST_NODE_ID);
    //Mock reliable transmit/receive crc calculation
    add_packet_crc(&txPacket);
    // Check response
@@ -260,14 +257,14 @@ void test_user_app_packets()
    struct Protocol obj;
    dogeStatus status;
    int i;
-   uint8_t payload_array[USER_PACKET_NUM][5] = { {0x01, 0x02, 0x03, 0x04, 0x05}, {0x11, 0x12, 0x13, 0x14, 0x15}, 
+   uint8_t payload_array[USER_PACKET_NUM][5] = { {0x01, 0x02, 0x03, 0x04, 0x05}, {0x11, 0x12, 0x13, 0x14, 0x15},
                                                  {0x21, 0x22, 0x23, 0x24, 0x25}, {0x01, 0x01, 0x01, 0x01, 0x01} };
    Protocol_init(&obj);
    for (i = 0; i < USER_PACKET_NUM; i++){
       memset(&txPacket, 0, sizeof(dogePacket));
       memset(&rxPacket, 0, sizeof(dogePacket));
-      user_application_form_packet((userAppPacket*)txAppPacket, &txPacketAttr, CMD_USER_APP, USER_APP_PAYLOAD_SIZE, &payload_array[i][0]);
-      link_layer_form_packet(&txPacket, &txPacketAttr, RAW_PACKET, TEST_SRC_NODE_ID, TEST_DST_NODE_ID, TEST_SH_SRC_NODE_ID, TEST_SH_DST_NODE_ID);
+      user_application_form_packet((userAppPacket*)txAppPacket, &txAttr, CMD_USER_APP, USER_APP_PAYLOAD_SIZE, &payload_array[i][0]);
+      link_layer_form_packet(&txPacket, &txAttr, RAW_PACKET, TEST_SRC_NODE_ID, TEST_DST_NODE_ID, TEST_SH_SRC_NODE_ID, TEST_SH_DST_NODE_ID);
       //Mock reliable transmit/receive crc calculation
       add_packet_crc(&txPacket);
       // Check rxPacket
