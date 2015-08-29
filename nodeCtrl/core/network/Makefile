@@ -4,11 +4,11 @@ PLATFORM=LINUX
 NM=nm
 SIZE=size
 RUNENV=$(shell uname -o)
-INC = -I. -I..
+INC = -I. -I.. -I../platform  -I../protocol -I../radios/nrfLegacy
 ifeq ($(DBG), 1)
-	CFLAGS = -g3 -DDBG=1
+	CFLAGS = -g3
 else
-	CFLAGS = -Os -DDBG=0
+	CFLAGS = -Os
 endif
 
 ifeq ($(PLATFORM),MSP430)
@@ -29,6 +29,11 @@ PACK = 0
 %.o: %.c $(DEPS)
 	$(CC) $(CFLAGS) -c -DPACK_STRUCT=$(PACK) -D$(PLATFORM) $(INC) -o $@ $<
 	$(CC) $(CFLAGS) -S -DPACK_STRUCT=$(PACK) -D$(PLATFORM) $(INC) -o $(basename $@)_$(PACK)_$(PLATFORM).asm $< 
+
+%.o: %.cpp $(DEPS)
+	$(CC) $(CFLAGS) -c -D$(PLATFORM) $(INC) -o $@ $<
+	$(CC) $(CFLAGS) -S -D$(PLATFORM) $(INC) -o $(basename $@)_$(PLATFORM).asm $<
+
 
 pgrm: $(OBJ)
 	@echo "built network"

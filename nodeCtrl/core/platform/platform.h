@@ -94,6 +94,8 @@
 #include "doge_timers.h"
 #include "doge_gpio.h"
 #include "doge_radio.h"
+/* Undefine nrf24.h CONFIG definition */
+#undef CONFIG
 #include "doge_adc.h"
 #include "doge_app.h"
 #include "static_routes.h"
@@ -101,8 +103,6 @@
 
 #ifdef __LPC8XX__
 #include "reliable_channel.h"
-/* Undefine nrf24.h CONFIG definition */
-#undef CONFIG
 #include <LPC8XX.h>
 #include "lpc812/gpio/gpio.h"
 #include "lpc812/initializer.h"

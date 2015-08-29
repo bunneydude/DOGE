@@ -203,3 +203,21 @@ uint8_t network_update(uint16_t id, uint8_t LQE, uint8_t radioID, uint8_t networ
    }
 #endif
 }
+
+void insert_neighbor(uint16_t nodeID, uint16_t LQE, uint8_t radioID)
+{
+   //Insert neighbor into Neighbor Table
+   struct neighborEntry neighborEntry = {
+      nodeID, LQE, radioID, NETWORK_ID_0 };
+   network_insert((union networkEntry*)&neighborEntry, NEIGHBOR_ENTRY);
+}
+
+void insert_route(uint16_t dstNodeID, uint16_t neighborID, uint16_t LQE, uint8_t radioID)
+{
+   uint8_t index;
+   if (network_has_neighbor(neighborID, &index, radioID, FALSE)){
+      struct routingEntry routingEntry = {
+         dstNodeID, LQE, index };
+      network_insert((union networkEntry*)&routingEntry, ROUTING_ENTRY);
+   }
+}

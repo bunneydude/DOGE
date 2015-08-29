@@ -53,36 +53,16 @@ uint8_t i = 0;
 
 void init_test_table_1()
 {
-   uint8_t index;
-   struct neighborEntry neighborEntry1 = {
-      NODE_ID_2, PERFECT_LQE, RADIO_ID_915, NETWORK_ID_0 };
-   struct neighborEntry neighborEntry2 = {
-      NODE_ID_4, MASKED_LQE, RADIO_ID_915, NETWORK_ID_0 };
-   struct neighborEntry neighborEntry3 = {
-      NODE_ID_5, PERFECT_LQE, RADIO_ID_915, NETWORK_ID_0 };
-   struct neighborEntry neighborEntry4 = {
-      NODE_ID_6, MASKED_LQE, RADIO_ID_915, NETWORK_ID_0 };
-   network_insert((union networkEntry*)&neighborEntry1, NEIGHBOR_ENTRY);
-   network_insert((union networkEntry*)&neighborEntry2, NEIGHBOR_ENTRY);
-   network_insert((union networkEntry*)&neighborEntry3, NEIGHBOR_ENTRY);
-   network_insert((union networkEntry*)&neighborEntry4, NEIGHBOR_ENTRY);
+   //Neighbor Table
+   insert_neighbor(NODE_ID_2, PERFECT_LQE, RADIO_ID_915);
+   insert_neighbor(NODE_ID_4, MASKED_LQE, RADIO_ID_915);
+   insert_neighbor(NODE_ID_5, PERFECT_LQE, RADIO_ID_915);
+   insert_neighbor(NODE_ID_6, MASKED_LQE, RADIO_ID_915);
    //Routing Table
-   network_has_neighbor(NODE_ID_2, &index, RADIO_ID_ALL, TRUE);
-   struct routingEntry routingEntry1 = {
-      ROOT_NODE, 0x0, index };
-   network_has_neighbor(NODE_ID_5, &index, RADIO_ID_ALL, TRUE);
-   struct routingEntry routingEntry2 = {
-      NODE_ID_4, 0x0, index };
-   network_has_neighbor(NODE_ID_5, &index, RADIO_ID_ALL, TRUE);
-   struct routingEntry routingEntry3 = {
-      NODE_ID_7, 0x0, index };
-   network_has_neighbor(NODE_ID_4, &index, RADIO_ID_ALL, TRUE);
-   struct routingEntry routingEntry4 = {
-      NODE_ID_7, 0x0, index };
-   network_insert((union networkEntry*)&routingEntry1, ROUTING_ENTRY);
-   network_insert((union networkEntry*)&routingEntry2, ROUTING_ENTRY);
-   network_insert((union networkEntry*)&routingEntry3, ROUTING_ENTRY);
-   network_insert((union networkEntry*)&routingEntry4, ROUTING_ENTRY);
+   insert_route(ROOT_NODE, NODE_ID_2, MASKED_LQE, RADIO_ID_ALL);
+   insert_route(NODE_ID_4, NODE_ID_5, MASKED_LQE, RADIO_ID_ALL);
+   insert_route(NODE_ID_7, NODE_ID_5, MASKED_LQE, RADIO_ID_ALL);
+   insert_route(NODE_ID_7, NODE_ID_4, MASKED_LQE, RADIO_ID_ALL);
 }
 
 void init_test_table_2()
@@ -99,32 +79,24 @@ void init_test_table_2()
    */
    int8_t index;
    network_init(NETWORK_DIVISION_DEFAULT);
-   //Neighbor Table
-   struct neighborEntry neighborEntry1 = {
-      NODE_ID_4, TEST_SH_LOW_LQE, RADIO_ID_915, NETWORK_ID_0 };
-   struct neighborEntry neighborEntry2 = {
-      NODE_ID_4, MASKED_LQE, RADIO_ID_2400, NETWORK_ID_0 };
-   struct neighborEntry neighborEntry3 = {
-      NODE_ID_4, TEST_SH_MEDIUM_LQE, RADIO_ID_915, NETWORK_ID_1 };
-   struct neighborEntry neighborEntry4 = {
-      NODE_ID_4, TEST_SH_HIGH_LQE, RADIO_ID_2400, NETWORK_ID_1 };
-   network_insert((union networkEntry*)&neighborEntry1, NEIGHBOR_ENTRY);
-   network_insert((union networkEntry*)&neighborEntry2, NEIGHBOR_ENTRY);
-   //Insert the other neighbors later...
-
-   //Routing Table (insert neighbors gradually to get different routes)
+   //Insert first two neighbors
+   insert_neighbor(NODE_ID_4, TEST_SH_LOW_LQE, RADIO_ID_915);
+   insert_neighbor(NODE_ID_4, MASKED_LQE, RADIO_ID_2400);
+   
+   //Insert the other neighbors gradually to get different routes
    network_has_neighbor(NODE_ID_4, &index, RADIO_ID_915, TRUE);
    struct routingEntry routingEntry1 = {
       NODE_ID_7, 0x0, index };
+
    network_has_neighbor(NODE_ID_4, &index, RADIO_ID_2400, TRUE);
    struct routingEntry routingEntry2 = {
       NODE_ID_7, 0x0, index };
-   network_insert((union networkEntry*)&neighborEntry3, NEIGHBOR_ENTRY);
+   insert_neighbor(NODE_ID_4, TEST_SH_MEDIUM_LQE, RADIO_ID_915);
 
    network_has_neighbor(NODE_ID_4, &index, RADIO_ID_915, TRUE);
    struct routingEntry routingEntry3 = {
       NODE_ID_7, 0x0, index };
-   network_insert((union networkEntry*)&neighborEntry4, NEIGHBOR_ENTRY);
+   insert_neighbor(NODE_ID_4, TEST_SH_HIGH_LQE, RADIO_ID_2400);
 
    network_has_neighbor(NODE_ID_4, &index, RADIO_ID_2400, TRUE);
    struct routingEntry routingEntry4 = {

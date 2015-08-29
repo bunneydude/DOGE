@@ -2,6 +2,7 @@
 #define DOGE_RADIO_H
 
 #include <stdint.h>
+#include "../nrfLegacy/nrfLegacy.h"
 
 #ifdef MSP430
 #include <Energia.h>

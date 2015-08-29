@@ -1,13 +1,6 @@
 #ifndef STATIC_ROUTES_H
 #define STATIC_ROUTES_H
 #include <stdint.h>
-#include "../memory_map/memory_map.h"
-#include "../nodeCtrl_errno.h"
-#include "../packet.h"
-#include "../protocol/protocol.h"
-#include "type.h"
-#include "../platform/platform.h"
-#include "../nrfLegacy/nrfLegacy.h"
 #include "../network/network.h"
 
 #define NRF24_DEFAULT_MM_MASK (0xFF)
@@ -51,8 +44,6 @@ typedef enum{
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-void insert_neighbor(uint16_t nodeID, uint16_t LQE, uint8_t radioID);
-void insert_route(uint16_t dstNodeID, uint16_t neighborID, uint16_t LQE, uint8_t radioID);
 void setup_iotg_demo_grid();
 uint8_t static_route_mm_handler(uint8_t rw, uint8_t addr, uint8_t* data, uint8_t mask);
 #ifdef __cplusplus

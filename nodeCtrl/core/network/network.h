@@ -72,10 +72,11 @@ extern struct networkControl* networkInfo;
 void network_init(uint8_t division);
 dogeBool network_has_neighbor(uint16_t id, uint8_t* index, uint8_t radioID, dogeBool includeMasked);
 dogeBool network_has_route(uint16_t id, uint8_t* index, uint8_t radioID, dogeBool includeMasked);
-
 //add an entry to network array
 dogeBool network_insert(union networkEntry* entry, enum networkEntryType type);
 uint8_t network_update(uint16_t id, uint8_t LQE, uint8_t radioId, uint8_t networkId, enum networkEntryType type);
+void insert_neighbor(uint16_t nodeID, uint16_t LQE, uint8_t radioID);
+void insert_route(uint16_t dstNodeID, uint16_t neighborID, uint16_t LQE, uint8_t radioID);
 
 //remove entry
 //TODO might not be used. Allow master node to remove specific entries.
