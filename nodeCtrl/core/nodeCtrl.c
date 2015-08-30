@@ -23,6 +23,7 @@ uint8_t sendResponse = 0;
 uint8_t tempIndex;
 uint8_t neighborIndex = 0;
 
+#define TX_TEST 1
 void nodeCtrl_init()
 {
    /* Initialize HW */
@@ -41,12 +42,26 @@ void nodeCtrl_init()
    setup_iotg_demo_grid();
    digital_write(RED_LED, LED_ON_VALUE); // set the LED on
    /* User application setup */
+   #if !TX_TEST
    user_application_setup();
+   #endif
 }
 
 void nodeCtrl_entry()
 {
    while (1) {
+#if TX_TEST
+      uint8_t byte;
+      byte = rand_int() % 0xff;
+      user_application_form_packet((userAppPacket*)txAppPacket, &txAttr, CMD_USER_APP, USER_APP_PAYLOAD_SIZE, &byte);
+      link_layer_form_packet(&txPacket, &txAttr, RAW_PACKET, NODE_ID_1, NODE_ID_3, NODE_ID_1, NODE_ID_3);
+      print_packet(&txPacket);
+      //Send to destination
+      dogeBool success = reliable_transmit();
+      print_string("S:", NONE);
+      print_hex(success, NEWLINE);
+      toggle_led(TRUE);
+#endif
       neighborIndex = 0;
       toggle_led(FALSE);
 

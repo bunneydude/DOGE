@@ -1,4 +1,18 @@
 #include "doge_app.h"
+
+lfsrType value = INIT;
+// Galois LFSR based on "Maximal Length LFSR Feedback Terms"
+// http://users.ece.cmu.edu/~koopman/lfsr/index.html
+lfsrType rand_int()
+{
+   if (value & 0x1){
+      value = (value >> 1) ^ feed;
+   }else{
+      value >>= 1;
+   }
+   return value;
+}
+
 #ifdef __LPC8XX__
 void char_to_RGB(uint8_t input, uint8_t* red, uint8_t* green, uint8_t* blue){
 
@@ -49,6 +63,7 @@ void char_to_RGB(uint8_t input, uint8_t* red, uint8_t* green, uint8_t* blue){
    }
 }
 
+/* This application repurposes the nodeCtrl LED on GPIO pin TP0 */
 void user_application_setup()
 {
    /* Configure SCT */
@@ -69,8 +84,9 @@ uint8_t user_application_parse_packet(userAppPacket* message, userAppPacket* res
    uint8_t greenValue = 0;
    uint8_t blueValue = 0;
 
-   printf("Got %d, %d, %d, %d, %d ", message->payload[0], message->payload[1], message->payload[2], message->payload[3], message->payload[4]);
-   tempPercent = (message->payload[3] / 255.0)*100;
+   responseAttr->ack = FALSE;
+   printf("Got %d \n", message->payload[0]);
+   tempPercent = (message->payload[0] / 255.0)*100;
    char_to_RGB(tempPercent, &redValue, &greenValue, &blueValue);
 
    pwm_write(RED_CH, redValue);
@@ -132,8 +148,8 @@ void user_application_loop()
 uint8_t user_application_parse_packet(userAppPacket* message, userAppPacket* response, packetAttr* messageAttr, packetAttr* responseAttr)
 {
    dogeStatus status = SUCCESS;
-   printf("Got %d, %d, %d, %d, %d \n", message->payload[0], message->payload[1], message->payload[2], message->payload[3], message->payload[4]);
-   if (*((uint32_t*)message->payload) == NO_RESPONSE){
+   printf("Got %d \n", message->payload[0]);
+   if (message->payload[0] == NO_RESPONSE){
       responseAttr->ack = FALSE;
    }else{
       user_application_form_packet(response, responseAttr, CMD_USER_APP_ACK, CMD_USER_APP_ACK_DATA_SIZE, NULL);
@@ -152,7 +168,7 @@ uint8_t user_application_form_packet(userAppPacket* packet, packetAttr* attr, ui
          break;
       case(CMD_USER_APP_ACK):
          attr->ack = TRUE;
-         attr->size = CMD_USER_APP_ACK_DATA_SIZE;
+         attr->size = size;
          break;
       default: //unknown command
          return 0;

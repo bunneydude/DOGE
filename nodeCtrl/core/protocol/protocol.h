@@ -35,7 +35,7 @@ extern "C" {
 #define CMD_READ_MEM_ACK_DATA_SIZE(size) ((size) + 2)
 #define CMD_WRITE_MEM_DATA_SIZE(size)    ((size) + 3)
 
-#define USER_APP_PAYLOAD_SIZE        (5)
+#define USER_APP_PAYLOAD_SIZE        (1)
 #define CMD_USER_APP_DATA_SIZE(size) ((size) + 1)
 #define CMD_USER_APP_ACK_DATA_SIZE   (1)
 

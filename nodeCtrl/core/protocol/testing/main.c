@@ -257,19 +257,18 @@ void test_user_app_packets()
    struct Protocol obj;
    dogeStatus status;
    int i;
-   uint8_t payload_array[USER_PACKET_NUM][5] = { {0x01, 0x02, 0x03, 0x04, 0x05}, {0x11, 0x12, 0x13, 0x14, 0x15},
-                                                 {0x21, 0x22, 0x23, 0x24, 0x25}, {0x01, 0x01, 0x01, 0x01, 0x01} };
+   uint8_t payload_array[USER_PACKET_NUM] = { 0x01, 0x02, 0x03, 0x04 };
    Protocol_init(&obj);
    for (i = 0; i < USER_PACKET_NUM; i++){
       memset(&txPacket, 0, sizeof(dogePacket));
       memset(&rxPacket, 0, sizeof(dogePacket));
-      user_application_form_packet((userAppPacket*)txAppPacket, &txAttr, CMD_USER_APP, USER_APP_PAYLOAD_SIZE, &payload_array[i][0]);
+      user_application_form_packet((userAppPacket*)txAppPacket, &txAttr, CMD_USER_APP, USER_APP_PAYLOAD_SIZE, &payload_array[i]);
       link_layer_form_packet(&txPacket, &txAttr, RAW_PACKET, TEST_SRC_NODE_ID, TEST_DST_NODE_ID, TEST_SH_SRC_NODE_ID, TEST_SH_DST_NODE_ID);
       //Mock reliable transmit/receive crc calculation
       add_packet_crc(&txPacket);
       // Check rxPacket
       status = link_layer_parse_packet(&obj, &txPacket, &rxPacket);
-      if (*(uint32_t*)(&payload_array[i][0]) != NO_RESPONSE){
+      if (payload_array[i] != NO_RESPONSE){
          assert(status == TRANSMIT_RESPONSE);
          assert(rxPacket.payload[0] == CMD_USER_APP_ACK_DATA_SIZE);
          assert(rxPacket.payload[1] == CMD_USER_APP_ACK);
