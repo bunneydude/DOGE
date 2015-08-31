@@ -48,8 +48,6 @@ mkdir -p $XPRESSO_WORKSPACE_DIR/src/platform/lpc812/gpio
 mkdir -p $XPRESSO_WORKSPACE_DIR/src/radios
 
 ln -s $PWD/nodes/lpc812/lpc812_nodeCtrl/src/main.c            $XPRESSO_WORKSPACE_DIR/src/main.c
-ln -s $PWD/nodes/lpc812/lpc812_nodeCtrl/src/main.h            $XPRESSO_WORKSPACE_DIR/src/main.h
-ln -s $PWD/nodes/lpc812/lpc812_nodeCtrl/src/lpc_type.h        $XPRESSO_WORKSPACE_DIR/src/lpc_type.h
 ln -s $PWD/nodeCtrl/core/adc/adc.h                            $XPRESSO_WORKSPACE_DIR/src/adc/adc.h
 ln -s $PWD/nodeCtrl/core/adc/adc.c                            $XPRESSO_WORKSPACE_DIR/src/adc/adc.c
 ln -s $PWD/nodeCtrl/core/neighbor/neighbor-config.h           $XPRESSO_WORKSPACE_DIR/src/neighbor/neighbor-config.h

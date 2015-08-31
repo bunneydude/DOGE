@@ -14,7 +14,7 @@
 #include "nrf24.h"
 
 #ifdef __LPC8XX__
-#include "../mrt.h"
+#include <lpc812/mrt.h>
 #endif
 
 uint8_t payload_len;

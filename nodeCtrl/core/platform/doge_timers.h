@@ -11,7 +11,7 @@
 #include <msp430g2553.h>
 #endif
 #ifdef __LPC8XX__
-#include "../mrt.h"
+#include <lpc812/mrt.h>
 #endif
 
 #ifdef __cplusplus
