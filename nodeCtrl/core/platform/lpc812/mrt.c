@@ -44,6 +44,7 @@ void MRT_IRQHandler(void)
   if ( LPC_MRT->Channel[0].STAT & MRT_STAT_IRQ_FLAG )
   {
     LPC_MRT->Channel[0].STAT = MRT_STAT_IRQ_FLAG;      /* clear interrupt flag */
+    doge_counter++;
     mrt_counter++;
   }
   return;
