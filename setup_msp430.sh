@@ -126,6 +126,8 @@ ln -s $PWD/nodeCtrl/core/platform/doge_radio.cpp             $ENERGIA_LIB_DIR/pl
 ln -s $PWD/nodeCtrl/core/platform/doge_adc.h                 $ENERGIA_LIB_DIR/platform/doge_adc.h
 ln -s $PWD/nodeCtrl/core/platform/doge_adc.c                 $ENERGIA_LIB_DIR/platform/doge_adc.c
 #Rename to *.cpp to correctly link AIR430BoostFCC C++ library
-ln -s $PWD/nodeCtrl/core/platform/hw_init.c                  $ENERGIA_LIB_DIR/platform/hw_init.cpp
+ln -s $PWD/nodeCtrl/core/platform/hw_init.h                  $ENERGIA_LIB_DIR/platform/hw_init.h
+ln -s $PWD/nodeCtrl/core/platform/doge_app.c                 $ENERGIA_LIB_DIR/platform/doge_app.cpp
+ln -s $PWD/nodeCtrl/core/platform/doge_app.h                 $ENERGIA_LIB_DIR/platform/doge_app.h
 ln -s $PWD/nodeCtrl/core/cobs/cobs.c                         $ENERGIA_LIB_DIR/cobs/cobs.cpp
 ln -s $PWD/nodeCtrl/core/cobs/cobs.h                         $ENERGIA_LIB_DIR/cobs/cobs.h

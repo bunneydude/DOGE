@@ -4,6 +4,8 @@
 #ifdef __LPC8XX__
 #include "lpc812/pwm.h"
 #include "lpc812/printf.h"
+#elif defined(MSP430)
+#include "../dsp/dsp.h"
 #endif
 #include <protocol.h>
 
@@ -15,7 +17,7 @@
 #if defined(__LPC8XX__) || defined(LINUX)
 #define feed 0x80000057
 typedef uint32_t lfsrType;
-#elif defined(MSP43)
+#elif defined(MSP430)
 #define feed 0x8016
 typedef uint16_t lfsrType;
 #endif

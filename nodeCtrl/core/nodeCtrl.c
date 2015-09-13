@@ -23,7 +23,7 @@ uint8_t sendResponse = 0;
 uint8_t tempIndex;
 uint8_t neighborIndex = 0;
 
-#define TX_TEST 1
+#define TX_TEST 0
 void nodeCtrl_init()
 {
    /* Initialize HW */

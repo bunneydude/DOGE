@@ -2,6 +2,10 @@
 #ifndef NODECTRL_H
 #define NODECTRL_H
 
+#ifdef __cplusplus 
+#define __STDC_LIMIT_MACROS
+#endif
+
 #include <stdint.h>
 #include <memory_map.h>
 #include <network.h>
