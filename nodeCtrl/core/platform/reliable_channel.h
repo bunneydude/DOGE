@@ -33,7 +33,7 @@
 #define RADIO_RX_TIMEOUT (20) //20ms
 #endif
 
-dogeBool reliable_transmit();
-dogeBool reliable_receive(uint16_t timeout);
+dogeBool reliable_transmit(struct radioMethods* radio);
+dogeBool reliable_receive(uint16_t timeout, struct radioMethods* radio);
 
 #endif

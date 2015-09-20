@@ -5,7 +5,7 @@ extern dogePacket txPacket;
 extern packetAttr txAttr;
 extern packetAttr rxAttr;
 
-dogeBool reliable_transmit()
+dogeBool reliable_transmit(struct radioMethods* radio)
 {
   static uint8_t txPacketId = 0;
   uint8_t nextPacketId      = txPacketId;
@@ -21,11 +21,11 @@ dogeBool reliable_transmit()
       SET_TXINFO_PACKET_ID(txPacket.hdr.txInfo, nextPacketId);
       add_packet_crc(&txPacket);
       /*print_packet(&txPacket);*/
-      send_data(ADDRESS_BROADCAST, (uint8_t*)(&txPacket), RAW_PACKET_TOTAL_SIZE(&txPacket));
-      while (sending());
+      radio->send_data(ADDRESS_BROADCAST, (uint8_t*)(&txPacket), RAW_PACKET_TOTAL_SIZE(&txPacket));
+      while (radio->sending());
       timer_init(&retryTimer, RETRY_TIMER_INTERVAL);
     }
-    else if (get_data((uint8_t*)(&rxPacket), MAX_DATA_LENGTH, RADIO_RX_TIMEOUT) > 0){
+    else if (radio->get_data((uint8_t*)(&rxPacket), MAX_DATA_LENGTH, RADIO_RX_TIMEOUT) > 0){
       /*print_string("Received packet: ", NONE);*/
       /*print_packet(&rxPacket);*/
       if (IS_HEADER_TYPE_ACK(rxPacket.hdr.type) &&
@@ -48,8 +48,8 @@ dogeBool reliable_transmit()
       SET_TXINFO_RTA(txPacket.hdr.txInfo, retryCount);
       add_packet_crc(&txPacket);
       /*print_packet(&txPacket);*/
-      send_data(ADDRESS_BROADCAST, (uint8_t*)(&txPacket), RAW_PACKET_TOTAL_SIZE(&txPacket));
-      while (sending());
+      radio->send_data(ADDRESS_BROADCAST, (uint8_t*)(&txPacket), RAW_PACKET_TOTAL_SIZE(&txPacket));
+      while (radio->sending());
       timer_init(&retryTimer, RETRY_TIMER_INTERVAL);
     }
   }
@@ -68,7 +68,7 @@ dogeBool reliable_transmit()
   }
 }
 
-dogeBool reliable_receive(uint16_t timeout)
+dogeBool reliable_receive(uint16_t timeout, struct radioMethods* radio)
 {
   uint8_t rxPacketId      = 0;
   uint8_t nextPacketId    = 0;
@@ -80,7 +80,7 @@ dogeBool reliable_receive(uint16_t timeout)
 
   timer_init(&rxTimer, timeout);
   while(!timer_expired(&rxTimer)){
-    if (get_data((uint8_t*)(&queuedPacket), MAX_DATA_LENGTH, RADIO_RX_TIMEOUT) > 0){
+    if (radio->get_data((uint8_t*)(&queuedPacket), MAX_DATA_LENGTH, RADIO_RX_TIMEOUT) > 0){
       /* Reject the message if the CRC is invalid or we can't forward or parse the message */
       /*print_packet(&queuedPacket);*/
       if(check_packet_crc(&queuedPacket) != SUCCESS || MY_NODE_ID != queuedPacket.hdr.shDst){
@@ -114,10 +114,10 @@ dogeBool reliable_receive(uint16_t timeout)
         add_packet_crc(&txPacket);
         /*print_string("Transmitting ACK", NEWLINE);*/
         /*print_packet(&txPacket);*/
-        send_data(ADDRESS_BROADCAST, (uint8_t*)(&txPacket), sizeof(packetAck));
+        radio->send_data(ADDRESS_BROADCAST, (uint8_t*)(&txPacket), sizeof(packetAck));
         /* Copy packet while radio is busy */
         copy_doge_packet(&rxPacket, &queuedPacket);
-        while (sending());
+        while (radio->sending());
         nextPacketId++;
       }
       else{
@@ -126,8 +126,8 @@ dogeBool reliable_receive(uint16_t timeout)
         link_layer_form_packet(&txPacket, &txAttr, LINK_LAYER_PACKET, MY_NODE_ID, shSrc, MY_NODE_ID, shSrc);
         SET_TXINFO_PACKET_ID(txPacket.hdr.txInfo, nextPacketId - 1);
         add_packet_crc(&txPacket);
-        send_data(ADDRESS_BROADCAST, (uint8_t*)(&txPacket), sizeof(packetAck));
-        while (sending());
+        radio->send_data(ADDRESS_BROADCAST, (uint8_t*)(&txPacket), sizeof(packetAck));
+        while (radio->sending());
         if (GET_TXINFO_RTA(rxPacket.hdr.txInfo) == RETRY_COUNT)
         {
           break;

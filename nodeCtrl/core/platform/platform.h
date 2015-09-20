@@ -44,14 +44,12 @@
 /**@brief Maximum Radio Packet Length */
 #define MAX_DATA_LENGTH 32
 
-/**@brief 433MHz Radio ID */
-#define RADIO_ID_433 (0x0)
-/**@brief 915MHz Radio ID */
-#define RADIO_ID_915 (0x1)
-/**@brief 2.4GHz Radio ID */
-#define RADIO_ID_2400 (0x2)
-/**@brief Radio ID for all frequency bands */
-#define RADIO_ID_ALL (0x4)
+/**@brief Enable 433MHz Radio */
+#define RADIO_433_EN 0
+/**@brief Enable 915MHz Radio */
+#define RADIO_915_EN 0
+/**@brief Enable 2.4GHz Radio */
+#define RADIO_2400_EN 1
 /**@brief Network ID 0 */
 #define NETWORK_ID_0  (0x0)
 /**@brief Network ID 1 */
@@ -62,7 +60,7 @@
 // -----------------------------------------------------------------------------
 
 #define DEMO_GRID 1
-#define MY_NODE_ID NODE_ID_2
+#define MY_NODE_ID NODE_ID_3
 #define DBG 0
 
 #ifdef __LPC8XX__

@@ -3,20 +3,53 @@
 
 #include <stdint.h>
 #include "../nrfLegacy/nrfLegacy.h"
+#ifdef __LPC8XX__
+#undef CONFIG
+#endif
+#include <platform.h>
 
 #ifdef MSP430
 #include <Energia.h>
 #endif
 
+#if !RADIO_2400_EN && !RADIO_915_EN && !RADIO_433_EN
+#error "No radios are enabled"
+#elif !RADIO_2400_EN && !RADIO_915_EN && RADIO_433_EN
+#define NUM_RADIOS 1
+#define RADIO_ID_433 0
+#define RADIO_ID_ALL 0
+#elif !RADIO_2400_EN && RADIO_915_EN && !RADIO_433_EN
+#define NUM_RADIOS 1
+#define RADIO_ID_915 0
+#define RADIO_ID_ALL 0
+#elif !RADIO_2400_EN && RADIO_915_EN && RADIO_433_EN
+#define NUM_RADIOS 3
+#define RADIO_ID_433 0
+#define RADIO_ID_915 1
+#define RADIO_ID_ALL 2
+#elif RADIO_2400_EN && !RADIO_915_EN && !RADIO_433_EN
+#define NUM_RADIOS 1
+#define RADIO_ID_2400 0
+#define RADIO_ID_ALL 0
+#elif RADIO_2400_EN && !RADIO_915_EN && RADIO_433_EN
+#define NUM_RADIOS 3
+#define RADIO_ID_433 0
+#define RADIO_ID_2400 1
+#define RADIO_ID_ALL 2
+#elif RADIO_2400_EN && RADIO_915_EN && !RADIO_433_EN
+#define NUM_RADIOS 3
+#define RADIO_ID_915 0
+#define RADIO_ID_2400 1
+#define RADIO_ID_ALL 2
+#elif RADIO_2400_EN && RADIO_915_EN && RADIO_433_EN
+#define NUM_RADIOS 4
+#define RADIO_ID_433 0
+#define RADIO_ID_915 1
+#define RADIO_ID_2400 2
+#define RADIO_ID_ALL 3
+#endif
+
 #ifdef __LPC8XX__
-uint8_t sending();
-uint8_t get_data(uint8_t* data, uint8_t length, uint16_t timeout);
-void send_data(uint8_t address, uint8_t* data, uint8_t length);
-int8_t get_rssi();
-#elif defined(MSP430)
-static uint8_t sending() __attribute__ ((weakref("_ZN14A110x2500Radio4busyEv")));
-static uint8_t get_data(uint8_t* data, uint8_t length, uint16_t timeout) __attribute__ ((weakref("_ZN14A110x2500Radio10receiverOnEPhhj")));
-static void send_data(uint8_t address, uint8_t* data, uint8_t length) __attribute__ ((weakref("_ZN14A110x2500Radio8transmitEhPhh")));
-static int8_t get_rssi() __attribute__ ((weakref("_ZN14A110x2500Radio7getRssiEv")));
+int8_t empty_get_rssi();
 #endif
 #endif

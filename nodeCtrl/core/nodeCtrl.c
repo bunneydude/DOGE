@@ -22,6 +22,7 @@ struct Protocol spiProtocol;
 uint8_t sendResponse = 0;
 uint8_t tempIndex;
 uint8_t neighborIndex = 0;
+uint8_t radioIndex = 0;
 
 #define TX_TEST 0
 void nodeCtrl_init()
@@ -55,9 +56,9 @@ void nodeCtrl_entry()
       byte = rand_int() % 0xff;
       user_application_form_packet((userAppPacket*)txAppPacket, &txAttr, CMD_USER_APP, USER_APP_PAYLOAD_SIZE, &byte);
       link_layer_form_packet(&txPacket, &txAttr, RAW_PACKET, NODE_ID_1, NODE_ID_3, NODE_ID_1, NODE_ID_3);
-      print_packet(&txPacket);
+      /*print_packet(&txPacket);*/
       //Send to destination
-      dogeBool success = reliable_transmit();
+      dogeBool success = reliable_transmit(&dogeRadios[RADIO_ID_ALL]);
       print_string("S:", NONE);
       print_hex(success, NEWLINE);
       toggle_led(TRUE);
@@ -65,58 +66,57 @@ void nodeCtrl_entry()
       neighborIndex = 0;
       toggle_led(FALSE);
 
-      //Make sure radio is ready to receive
-      while (sending());
+      for (radioIndex = 0; radioIndex < NUM_RADIOS; radioIndex++){
+         //Make sure radio is ready to receive
+         while (dogeRadios[radioIndex].sending());
 
-      // Turn on the receiver and listen for incoming data. Timeout after 500ms.
-      if (reliable_receive(TIMEOUT_500_MS)){
-         if(MY_NODE_ID == rxPacket.hdr.dst && MY_NODE_ID == rxPacket.hdr.shDst){ //parse message
-            toggle_led(TRUE);
-            sendResponse = link_layer_parse_packet(&spiProtocol, &rxPacket, &txPacket);
-            //update neighbor table
-            network_update(rxPacket.hdr.shSrc, get_rssi(), RADIO_ID_915, NETWORK_ID_0, NEIGHBOR_ENTRY);
-            if (sendResponse == TRANSMIT_RESPONSE){
-               if (HEADER_TYPE_EQUALS(txPacket.hdr.type, RAW_PACKET)){
-                  reliable_transmit();
+         // Turn on the receiver and listen for incoming data. Timeout after 500ms.
+         if (reliable_receive(TIMEOUT_500_MS, &dogeRadios[radioIndex])){
+            if(MY_NODE_ID == rxPacket.hdr.dst && MY_NODE_ID == rxPacket.hdr.shDst){ //parse message
+               toggle_led(TRUE);
+               sendResponse = link_layer_parse_packet(&spiProtocol, &rxPacket, &txPacket);
+               //update neighbor table
+               network_update(rxPacket.hdr.shSrc, dogeRadios[radioIndex].get_rssi(), radioIndex, NETWORK_ID_0, NEIGHBOR_ENTRY);
+               if (sendResponse == TRANSMIT_RESPONSE){
+                  if (HEADER_TYPE_EQUALS(txPacket.hdr.type, RAW_PACKET)){
+                     reliable_transmit(&dogeRadios[radioIndex]);
+                  }
                }
             }
-         }
-         else if (MY_NODE_ID == rxPacket.hdr.shDst && MY_NODE_ID != rxPacket.hdr.dst){
-            if(network_has_neighbor(rxPacket.hdr.dst, &tempIndex, RADIO_ID_915, FALSE)){
-               if (HEADER_TYPE_EQUALS(rxPacket.hdr.type, RAW_PACKET)){
-                  toggle_led(TRUE);
-                  txAttr.ack = GET_HEADER_TYPE_ACK(rxPacket.hdr.type);
-                  txAttr.size = RAW_PACKET_DATA_SIZE(&rxPacket);
-                  copy_raw_packet_data((rawPacket*)&txPacket, (rawPacket*)&rxPacket);
-                  link_layer_form_packet(&txPacket, &txAttr, GET_HEADER_TYPE(rxPacket.hdr.type),
-                        rxPacket.hdr.src, rxPacket.hdr.dst, MY_NODE_ID,
-                        network[tempIndex].neighbor.shNodeID);
-                  reliable_transmit();
+            else if (MY_NODE_ID == rxPacket.hdr.shDst && MY_NODE_ID != rxPacket.hdr.dst){
+               if(network_has_neighbor(rxPacket.hdr.dst, &tempIndex, RADIO_ID_ALL, FALSE)){
+                  if (HEADER_TYPE_EQUALS(rxPacket.hdr.type, RAW_PACKET)){
+                     toggle_led(TRUE);
+                     txAttr.ack = GET_HEADER_TYPE_ACK(rxPacket.hdr.type);
+                     txAttr.size = RAW_PACKET_DATA_SIZE(&rxPacket);
+                     copy_raw_packet_data((rawPacket*)&txPacket, (rawPacket*)&rxPacket);
+                     link_layer_form_packet(&txPacket, &txAttr, GET_HEADER_TYPE(rxPacket.hdr.type),
+                                            rxPacket.hdr.src, rxPacket.hdr.dst, MY_NODE_ID,
+                                            network[tempIndex].neighbor.shNodeID);
+                     reliable_transmit(&dogeRadios[network[tempIndex].neighbor.radioID]);
+                  }
+               }
+               else if (network_has_route(rxPacket.hdr.dst, &tempIndex, RADIO_ID_ALL, FALSE)){
+                  if (HEADER_TYPE_EQUALS(rxPacket.hdr.type, RAW_PACKET)){
+                     toggle_led(TRUE);
+                     txAttr.ack = GET_HEADER_TYPE_ACK(rxPacket.hdr.type);
+                     txAttr.size = RAW_PACKET_DATA_SIZE(&rxPacket);
+                     copy_raw_packet_data((rawPacket*)&txPacket, (rawPacket*)&rxPacket);
+                     neighborIndex = network[tempIndex].routing.neighborIndex;
+                     link_layer_form_packet(&txPacket, &txAttr, GET_HEADER_TYPE(rxPacket.hdr.type), 
+                                            rxPacket.hdr.src, rxPacket.hdr.dst, MY_NODE_ID, 
+                                            network[neighborIndex].neighbor.shNodeID);
+                     reliable_transmit(&dogeRadios[network[neighborIndex].neighbor.radioID]);
+                  }
+               }
+               else
+               {
+                  print_string("ERROR: Attempt to forward packet that does not exist in neighbor or routing tables", NEWLINE);
                }
             }
-            else if (network_has_route(rxPacket.hdr.dst, &tempIndex, RADIO_ID_915, FALSE)){
-               if (HEADER_TYPE_EQUALS(rxPacket.hdr.type, RAW_PACKET)){
-                  toggle_led(TRUE);
-                  txAttr.ack = GET_HEADER_TYPE_ACK(rxPacket.hdr.type);
-                  txAttr.size = RAW_PACKET_DATA_SIZE(&rxPacket);
-                  copy_raw_packet_data((rawPacket*)&txPacket, (rawPacket*)&rxPacket);
-                  neighborIndex = network[tempIndex].routing.neighborIndex;
-                  link_layer_form_packet(&txPacket, &txAttr, GET_HEADER_TYPE(rxPacket.hdr.type), 
-                        rxPacket.hdr.src, rxPacket.hdr.dst, MY_NODE_ID, 
-                        network[neighborIndex].neighbor.shNodeID);
-                  reliable_transmit();
-               }
-            }
-            else
-            {
-               print_string("ERROR: Attempt to forward packet that does not exist in neighbor or routing tables", NEWLINE);
-            }
-         }
+         }//end if got packet
+         user_application_loop();
       }
-      else{//end if got packet
-         //no packet
-      }
-      user_application_loop();
    }
 }
 
