@@ -1,3 +1,5 @@
+#Script to autogenerate header file/source code for multiple radios on multiple
+#platforms.
 class platform:
     def __init__(self, name, define):
         self.name = name
@@ -139,7 +141,7 @@ for i in range(2**MAX_RADIOS):
         for platform in platforms:
             source.write(ifdef.format(platform.define))
             source.write("struct radioMethods dogeRadios[NUM_RADIOS] = {\n")
-            for radio in platform.radios:
+            for radio in [platform.get_radio(id) for id in radio_defines]:
                 source.write("   {\n")
                 source.write("      {}, {}, {}, {}\n".format(radio.sending, radio.get_data, radio.send_data, radio.get_rssi))
                 if (radio.id != "RADIO_ID_ALL"):

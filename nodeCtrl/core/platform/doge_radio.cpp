@@ -47,9 +47,6 @@ struct radioMethods dogeRadios[NUM_RADIOS] = {
       empty_sending, empty_get_data, empty_send_data, empty_get_rssi
    },
    {
-      nrf24_isSending, nrf24_timeoutRead, nrf24_send, empty_get_rssi
-   },
-   {
       empty_sending, empty_get_data, empty_send_data, empty_get_rssi
    }
 };
@@ -60,9 +57,6 @@ struct radioMethods dogeRadios[NUM_RADIOS] = {
    },
    {
       Radio.busy, Radio.receiverOn, Radio.transmit, Radio.getRssi
-   },
-   {
-      nrf24_isSending, nrf24_timeoutRead, nrf24_send, empty_get_rssi
    },
    {
       empty_sending, empty_get_data, empty_send_data, empty_get_rssi
@@ -90,9 +84,6 @@ struct radioMethods dogeRadios[NUM_RADIOS] = {
       empty_sending, empty_get_data, empty_send_data, empty_get_rssi
    },
    {
-      empty_sending, empty_get_data, empty_send_data, empty_get_rssi
-   },
-   {
       nrf24_isSending, nrf24_timeoutRead, nrf24_send, empty_get_rssi
    },
    {
@@ -103,9 +94,6 @@ struct radioMethods dogeRadios[NUM_RADIOS] = {
 struct radioMethods dogeRadios[NUM_RADIOS] = {
    {
       empty_sending, empty_get_data, empty_send_data, empty_get_rssi
-   },
-   {
-      Radio.busy, Radio.receiverOn, Radio.transmit, Radio.getRssi
    },
    {
       nrf24_isSending, nrf24_timeoutRead, nrf24_send, empty_get_rssi
@@ -122,9 +110,6 @@ struct radioMethods dogeRadios[NUM_RADIOS] = {
       empty_sending, empty_get_data, empty_send_data, empty_get_rssi
    },
    {
-      empty_sending, empty_get_data, empty_send_data, empty_get_rssi
-   },
-   {
       nrf24_isSending, nrf24_timeoutRead, nrf24_send, empty_get_rssi
    },
    {
@@ -133,9 +118,6 @@ struct radioMethods dogeRadios[NUM_RADIOS] = {
 };
 #elif defined(MSP430)
 struct radioMethods dogeRadios[NUM_RADIOS] = {
-   {
-      empty_sending, empty_get_data, empty_send_data, empty_get_rssi
-   },
    {
       Radio.busy, Radio.receiverOn, Radio.transmit, Radio.getRssi
    },
