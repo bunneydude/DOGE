@@ -57,7 +57,7 @@ angular.module('DeviceManager.graphController', []).
        var nodesArrayLength = nodesJsonObj.length;
       
        //Set this bit to 1 if you want the n/w to be layed out in a X by 3 config
-       var demo_grid = 0;
+       var demo_grid = 1;
 
        //Set up nodes in X by 3 grid
        if (demo_grid) {
@@ -90,14 +90,16 @@ angular.module('DeviceManager.graphController', []).
        var edgesArrayLength = edgesJsonObj.length;
 
        for (var i=0;i < edgesArrayLength; i++){
-          var edge = {'from':JSON.stringify(edgesJsonObj[i].from),'to':JSON.stringify(edgesJsonObj[i].to),'label':JSON.stringify(edgesJsonObj[i].label),'id':JSON.stringify(edgesJsonObj[i].id),'style':'arrow','arrowScaleFactor': .5,};
+          //var edge = {'from':JSON.stringify(edgesJsonObj[i].from),'to':JSON.stringify(edgesJsonObj[i].to),'label':JSON.stringify(edgesJsonObj[i].label),'id':JSON.stringify(edgesJsonObj[i].id),'style':'arrow','arrowScaleFactor': .5,};
+	var edge = {'from':JSON.stringify(edgesJsonObj[i].from),'to':JSON.stringify(edgesJsonObj[i].to),'id':JSON.stringify(edgesJsonObj[i].id),'style':'arrow','arrowScaleFactor': .5,};
           edges.add(edge);
        }
 
        var routingEdgesArrayLength = routingEdgesJsonObj.length;
 
        for (var i=0;i < routingEdgesArrayLength; i++){
-          var route_edge = {'from':JSON.stringify(routingEdgesJsonObj[i].from),'to':JSON.stringify(routingEdgesJsonObj[i].to),'label':JSON.stringify(routingEdgesJsonObj[i].label),'id':JSON.stringify(routingEdgesJsonObj[i].id),'style':'arrow','arrowScaleFactor': .5,'color':'gold'};
+           //var route_edge = {'from':JSON.stringify(routingEdgesJsonObj[i].from),'to':JSON.stringify(routingEdgesJsonObj[i].to),'label':JSON.stringify(routingEdgesJsonObj[i].label),'id':JSON.stringify(routingEdgesJsonObj[i].id),'style':'arrow','arrowScaleFactor': .5,'color':'gold'};
+	    var route_edge = {'from':JSON.stringify(routingEdgesJsonObj[i].from),'to':JSON.stringify(routingEdgesJsonObj[i].to),'id':JSON.stringify(routingEdgesJsonObj[i].id),'style':'arrow','arrowScaleFactor': .5,'color':'gold'};
           edges.add(route_edge);
 
        }
