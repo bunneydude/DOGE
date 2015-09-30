@@ -12,6 +12,7 @@ static uint32_t cycleTicks;
 
 // PWM cycle time - time of a single PWM sweep
 #define PWMCYCLERATE (1000)
+extern uint32_t SystemCoreClock;     /*!< System Clock Frequency (Core Clock)  */
 
 void pwm_init(){
 
@@ -24,7 +25,7 @@ void pwm_init(){
 	// Initial CTOUT0 state is high
 	LPC_SCT->OUTPUT = (7 << 0);
 
-	cycleTicks = __SYSTEM_CLOCK / PWMCYCLERATE; //1ms ticks
+	cycleTicks = SystemCoreClock / PWMCYCLERATE; //1ms ticks
 
 	// Setup for match mode
 	LPC_SCT->REGMODE_L = 0;

@@ -39,19 +39,15 @@
 #include "mrt.h"
 #include "uart.h"
 #include "spi.h"
-#include "./nrf24/nrf24.h"
-#include "./nrf24/nRF24L01.h"
+#include "./nrfLegacy/nrf24.h"
+#include "./nrfLegacy/nRF24L01.h"
 #include "lpc_type.h"
 #include "./protocol/protocol.h"
 #include "pwm.h"
 #include "./platform/doge_timers.h"
 #include "./radios/radios.h"
 
-#if defined(__CODE_RED)
 #include <cr_section_macros.h>
-#include <NXP/crp.h>
-__CRP const unsigned int CRP_WORD = CRP_NO_CRP ;
-#endif
 
 #define LED_LOCATION    (2)
 
@@ -212,7 +208,7 @@ int main(void)
 	//uart0Init(115200);
 	uart0Init(9600);
 	/* Configure the multi-rate timer for 1ms ticks */
-	mrtInit(__SYSTEM_CLOCK/1000);
+	mrtInit(SystemCoreClock/1000);
 
 	/* Configure the switch matrix (setup pins for UART0 and GPIO) */
 	//configurePins();
