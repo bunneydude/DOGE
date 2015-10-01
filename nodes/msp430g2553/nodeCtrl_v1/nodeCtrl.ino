@@ -166,7 +166,7 @@ void loop()
    while (Radio.busy());
 
    // Turn on the receiver and listen for incoming data. Timeout after 500ms.
-   if (reliable_receive(TIMEOUT_500_MS)){
+   if (reliable_receive(TIMEOUT_100_MS)){
       if(MY_NODE_ID == rxPacket.hdr.dst && MY_NODE_ID == rxPacket.hdr.shDst){ //parse message
          toggle_led(TRUE);
          sendResponse = link_layer_parse_packet(&spiProtocol, &rxPacket, &txPacket);
