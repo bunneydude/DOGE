@@ -716,7 +716,10 @@ angular.module('DeviceManager.graphController', []).
    
     dragNetwork: true,
     zoomable: true,
-    
+    autoResize: true,
+    height: '100%',
+    width: '100%',
+ 
     
     //Enable Navigation controls
     navigation: true,
