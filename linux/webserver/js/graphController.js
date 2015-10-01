@@ -66,7 +66,7 @@ angular.module('DeviceManager.graphController', []).
            var node_y = 0;
        
            //This is Edison  
-           var node = {'group':nodesJsonObj[nodesArrayLength-1].group,'id':JSON.stringify(nodesJsonObj[nodesArrayLength-1].id),'label':JSON.stringify(nodesJsonObj[nodesArrayLength-1].label),'x':200,'y':70};
+           var node = {'group':nodesJsonObj[nodesArrayLength-1].group,'id':JSON.stringify(nodesJsonObj[nodesArrayLength-1].id),'label':JSON.stringify(nodesJsonObj[nodesArrayLength-1].label),'x':200,'y':100};
            nodes.add(node);
  
            for (var i=0;i < nodesArrayLength-1; i++){
@@ -720,7 +720,17 @@ angular.module('DeviceManager.graphController', []).
     height: '100%',
     width: '100%',
  
-    
+    physics:{
+    enabled: true,
+      barnesHut: {
+        gravitationalConstant: -2000,
+        centralGravity: 0.6,
+        springLength: 95,
+        springConstant: 0.08,
+        damping: 0.09,
+        avoidOverlap: 1
+      },
+    }, 
     //Enable Navigation controls
     navigation: true,
     keyboard: true,  
