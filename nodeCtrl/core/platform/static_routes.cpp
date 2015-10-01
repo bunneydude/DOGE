@@ -52,7 +52,16 @@ uint8_t static_route_mm_handler(uint8_t rw, uint8_t addr, uint8_t* data, uint8_t
 #endif
    */
    if (addr == SW_RESET){
-     WDTCTL = 0xDEAD;
+      application_form_packet(txAppPacket, &txAttr, CMD_ACK, 80, 0, NULL);
+      link_layer_form_packet(&txPacket, &txAttr, RAW_PACKET, MY_NODE_ID, ROOT_NODE, MY_NODE_ID, ROOT_NODE);
+      add_packet_crc(&txPacket);
+      dogeBool success = reliable_transmit();
+      if (success)
+      {
+         print_string("RESET", NEWLINE);
+         delay(15);
+         WDTCTL = 0xDEAD;
+      }
    }
    return 0;
 }
