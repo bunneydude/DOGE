@@ -68,15 +68,15 @@ uint8_t nrf_read_timeout(uint16_t timeout){
 void setup()
 {
   setup_timer_hw();
-  pinMode(RADIO_NRF_CE, OUTPUT);
-  digitalWrite(RADIO_NRF_CE, LOW);     
-  pinMode(RADIO_NRF_CSN, OUTPUT);
-  digitalWrite(RADIO_NRF_CSN, HIGH); 
 
   Radio.begin(MY_NODE_ID, CHANNEL_1, POWER_MAX);
 
 /*
 #ifdef DUAL_RADIO
+  pinMode(RADIO_NRF_CE, OUTPUT);
+  digitalWrite(RADIO_NRF_CE, LOW);     
+  pinMode(RADIO_NRF_CSN, OUTPUT);
+  digitalWrite(RADIO_NRF_CSN, HIGH); 
   SPI.begin(); 
   nrf24_init();
   nrf24_config(2, DATA_LENGTH);

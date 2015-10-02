@@ -365,6 +365,23 @@ class HardwareNode:
         else:
             print("Node {0}.get_rssi(): Node {1} is not in the neighbor table".format(self._nodeID, nodeID))
             return -1
+   
+    #Sends a packet to address 80 (0x50, NRF24_NODE_11) to reset the node
+    def reset(self):
+        if(not self._loaded): raise Exception("Node {0} has not been loaded. Call load_state() on it first".format(self._nodeID))
+        
+        shID = self._masterNode.get_forward_id(self._nodeID)
+        if(shID == -1): 
+            warnings.warn("Node {0}: No route possible".format(self._nodeID), Warning)
+            return 0, []
+
+        address = 0x50
+
+        self._pipe.proxy_send(destination=self._nodeID, command=ProtocolDefs.CMD_WRITE_REG, address=0x50, payload=0, singleHopDest=shID)
+        self._pipe.proxy_receive()
+
+        return self._pipe.rxPacket.size, list(self._pipe.rxPacket.data)
+        if(nodeID is None): nodeID = self._masterNode.get_nodeID()
 
 class VirtualNode:
     _pipe = None
