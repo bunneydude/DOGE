@@ -34,6 +34,33 @@
 #define NODE_ID_12 0xc
 /**@brief Node ID 13 **/
 #define NODE_ID_13 0xd
+/**@brief Node ID 14 **/
+#define NODE_ID_14 0xe
+/**@brief Node ID 15 **/
+#define NODE_ID_15 0xf
+/**@brief Node ID 16 **/
+#define NODE_ID_16 0x10
+/**@brief Node ID 17 **/
+#define NODE_ID_17 0x11
+/**@brief Node ID 18 **/
+#define NODE_ID_18 0x12
+/**@brief Node ID 19 **/
+#define NODE_ID_19 0x13
+/**@brief Node ID 20 **/
+#define NODE_ID_20 0x14
+/**@brief Node ID 21 **/
+#define NODE_ID_21 0x15
+/**@brief Node ID 22 **/
+#define NODE_ID_22 0x16
+/**@brief Node ID 23 **/
+#define NODE_ID_23 0x17
+/**@brief Node ID 24 **/
+#define NODE_ID_24 0x18
+/**@brief Node ID 25 **/
+#define NODE_ID_25 0x19
+/**@brief Node ID 26 **/
+#define NODE_ID_26 0x1a
+
 /**@brief Root Node ID(Edison) **/
 #define ROOT_NODE NODE_ID_1
 
