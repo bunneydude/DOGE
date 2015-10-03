@@ -1,6 +1,6 @@
 #include "doge_gpio.h"
 
-#if (MY_NODE_ID == NODE_ID_26)
+#if 0
 void toggle_led(dogeBool init)
 {
   return;

@@ -70,7 +70,7 @@ void setup()
    Radio.begin(ADDRESS_BROADCAST, CHANNEL_1, POWER_MAX); 
 
    pinMode(RED_LED, OUTPUT);
-#if (MY_NODE_ID == NODE_ID_26)
+#if 0
    digitalWrite(RED_LED, LOW);   // set the LED off
 #else
    digitalWrite(RED_LED, HIGH);   // set the LED on
