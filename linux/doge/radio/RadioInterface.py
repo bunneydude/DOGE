@@ -11,7 +11,7 @@ class RadioInterface():
    _nodeID = 1
    _logLevel = 1
    READ_REG_ACK_SIZE_COBS = 18
-   VALID_PACKET_SIZES = [ READ_REG_ACK_SIZE_COBS ]
+   VALID_PACKET_SIZES = [ READ_REG_ACK_SIZE_COBS, 16, 17 ]
 
    def __init__(self, name, nodeID, debug=False, logLevel=2):
       if(not isinstance(name, str)): raise Exception("The name must be a string")
