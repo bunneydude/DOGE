@@ -4,6 +4,7 @@
 
 #ifdef MSP430
 #include <Energia.h>
+#include <platform.h>
 #endif
 
 #define LED_OFF_VALUE (0)

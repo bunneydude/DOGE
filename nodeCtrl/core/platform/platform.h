@@ -8,6 +8,8 @@
 /**@brief NodeCtrl version */
 #define NODECTRL_VERSION 1
 
+#define TEMP_SENSOR_DEMO 1
+
 /**@brief Node ID 1 **/
 #define NODE_ID_1 0x1
 /**@brief Node ID 2 **/
@@ -61,8 +63,13 @@
 /**@brief Node ID 26 **/
 #define NODE_ID_26 0x1a
 
+#if TEMP_SENSOR_DEMO
+/**@brief Root Node ID(Edison) **/
+#define ROOT_NODE NODE_ID_20
+#else
 /**@brief Root Node ID(Edison) **/
 #define ROOT_NODE NODE_ID_1
+#endif
 
 /**@brief Maximum Radio Packet Length */
 #define MAX_DATA_LENGTH 32
@@ -85,7 +92,7 @@
 // -----------------------------------------------------------------------------
 
 #define DEMO_GRID 1
-#define MY_NODE_ID NODE_ID_1
+#define MY_NODE_ID NODE_ID_21
 //#define DUAL_RADIO
 
 

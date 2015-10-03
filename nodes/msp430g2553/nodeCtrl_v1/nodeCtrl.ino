@@ -70,7 +70,11 @@ void setup()
    Radio.begin(ADDRESS_BROADCAST, CHANNEL_1, POWER_MAX); 
 
    pinMode(RED_LED, OUTPUT);
-   digitalWrite(RED_LED, hbt_output);   // set the LED on
+#if (MY_NODE_ID == NODE_ID_26)
+   digitalWrite(RED_LED, LOW);   // set the LED off
+#else
+   digitalWrite(RED_LED, HIGH);   // set the LED on
+#endif
 #if (DEMO_GRID == 1)
    uint8_t index;
 #if (MY_NODE_ID == ROOT_NODE)
@@ -165,7 +169,7 @@ void loop()
    //Make sure radio is ready to receive
    while (Radio.busy());
 
-   // Turn on the receiver and listen for incoming data. Timeout after 500ms.
+   // Turn on the receiver and listen for incoming data. Timeout after 100ms.
    if (reliable_receive(TIMEOUT_100_MS)){
       if(MY_NODE_ID == rxPacket.hdr.dst && MY_NODE_ID == rxPacket.hdr.shDst){ //parse message
          toggle_led(TRUE);
