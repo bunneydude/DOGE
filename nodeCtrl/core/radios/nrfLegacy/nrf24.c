@@ -128,10 +128,18 @@ uint8_t nrf24_payloadLength()
 
 uint8_t nrf24_timeoutRead(uint8_t* data, uint8_t depSize, uint16_t timeout)
 {
-    uint8_t dataNotReady = 1;
+    uint8_t dataNotReady = 1, status;
     // Start listening
     nrf24_powerUpRx();
     while((timeout-- > 0) && (dataNotReady == 1)){
+        /* read the current status */
+        status = nrf24_getStatus();
+        /* Handle HW bug where radio is in RX mode (CONFIG = 0xB) but radio still triggers a TX_DS or MAX_RT interrupt */
+        if (status & ((1 << TX_DS) | (1 << MAX_RT)))
+        {
+            nrf24_configRegister(STATUS, (1 << TX_DS) | (1 << MAX_RT));
+        }
+
 #ifdef __LPC8XX__
         mrtDelay(1);
 #elif defined(MSP430)
