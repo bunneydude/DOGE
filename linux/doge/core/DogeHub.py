@@ -110,7 +110,7 @@ def connect_sketch():
     '''
     Connect to the IPC objects from sketch
     '''
-    rootID = 1 #TODO: where to read this in from?
+    rootID = 20 #TODO: where to read this in from?
     pipe = RadioInterface("edison", rootID, config['debug_no_sketch'] and config['debug'], config['radio_log_level'])
     pipe.connect_sketch()
     
