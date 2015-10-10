@@ -20,7 +20,7 @@ void toggle_led(dogeBool init)
          }
       case(LED_START_TOGGLE):
          digitalWrite(RED_LED, LED_OFF_VALUE);
-         timer_init(&LEDTimer, TIMEOUT_500_MS);
+         timer_init(&LEDTimer, TIMEOUT_100_MS);
 				 state = LED_OFF;
          break;
       case(LED_OFF):
@@ -32,7 +32,7 @@ void toggle_led(dogeBool init)
          }
          break;
       case(LED_INC_COUNTER):
-         timer_init(&LEDTimer, TIMEOUT_500_MS);
+         timer_init(&LEDTimer, TIMEOUT_100_MS);
          digitalWrite(RED_LED, LED_ON_VALUE);
          counter++;
          state = LED_ON;

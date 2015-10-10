@@ -25,6 +25,8 @@ typedef enum{
    NRF24_NODE_18_OFFSET = 7
 }nrf24NodeOffsets;
 
+#define SW_RESET NRF24_NODE_11_OFFSET
+
 typedef enum{
    NRF24_NODE_11 = 11,
    NRF24_NODE_12 = 12,

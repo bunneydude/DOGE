@@ -8,7 +8,7 @@
 
 #define LED_OFF_VALUE (0)
 #define LED_ON_VALUE  (1)
-#define NUM_BLINKS (2)
+#define NUM_BLINKS (1)
 
 typedef enum {
    LED_RESET,

@@ -5,23 +5,18 @@ body {
 }
 
 #mynetwork {
-    position:relative;
-    width: 1000px;
-    height: 325px;
+    height: 60%;
+    width:  90%;
     border: 1px solid lightgray;
 }
 
 #mynetworklegend {
-    position:absolute;
     border-width: 0;
-    width: 1000px;
-    height: 30px;
 }
 
 #mynetwork-control {
     position:relative;
-    width: 1000px;
-    height: 30px;
+    width: 90%;
     border: 1px solid lightgray;
     background: #ffffff; /* Old browsers */
     background: -moz-linear-gradient(top,  #ffffff 0%, #fcfcfc 48%, #fafafa 50%, #fcfcfc 100%); /* FF3.6+ */
@@ -39,8 +34,6 @@ body {
     border-radius:40px;
     font-family:verdana;
     font-size:12px;
-    width:180px;
-    height:28px;
     background-color:transparent;
     padding: 8px 8px 5px 8px;
 
@@ -57,7 +50,7 @@ body {
 .pageText {
     font-family:verdana;
     font-size:24;
-    margin-left: 180px;
+    margin-left: 5%;
 }
 .center {
     margin-left: auto;

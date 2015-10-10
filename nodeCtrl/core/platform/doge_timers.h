@@ -44,6 +44,8 @@ typedef struct
 #define PWM_DUTY(x) ( (unsigned long)x*PWM_PERIOD / (unsigned long)ANALOG_RES )
 
 #define TIMEOUT_500_MS (12000/2)
+#define TIMEOUT_250_MS (12000/4)
+#define TIMEOUT_100_MS (12000/10)
 #define TIMEOUT_1000_MS (12000)
 
 void setup_timer_hw();
