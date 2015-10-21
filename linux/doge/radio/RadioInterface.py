@@ -11,7 +11,7 @@ class RadioInterface():
    _nodeID = 1
    _logLevel = 1
    READ_REG_ACK_SIZE_COBS = 18
-   VALID_PACKET_SIZES = [ READ_REG_ACK_SIZE_COBS, 16, 17 ]
+   VALID_PACKET_SIZES = [ READ_REG_ACK_SIZE_COBS ]
 
    def __init__(self, name, nodeID, debug=False, logLevel=2):
       if(not isinstance(name, str)): raise Exception("The name must be a string")
@@ -78,39 +78,46 @@ class RadioInterface():
       if(self.debug == False):
          while(duration < timeout):
             if self._logLevel >= 3: print("   Available bytes = {0}".format(self.rxBuffer.available()))
-            if(self.rxBuffer.available() > 0): 
-               if (self.rxBuffer.available() not in RadioInterface.VALID_PACKET_SIZES):
+            if(self.rxBuffer.available() > 0):
+               if (self.rxBuffer.available() < min(RadioInterface.VALID_PACKET_SIZES)):
+                  pass
+               elif (self.rxBuffer.available() > max(RadioInterface.VALID_PACKET_SIZES)):
                   print("   Unknown packet size detected: {}. Flushing serial buffer...".format(self.rxBuffer.available()))
                   while(self.rxBuffer.available() != 0):
-                     self.rxBuffer.read()
-                  continue
-               encData.append(ord(self.rxBuffer.read()))
-               if(encData[0] == 0): #caught the end of a previous frame
-                  return 0
-      
-               while(encData[-1] != 0): #get bytes until end of frame
-                  encData.append(ord(self.rxBuffer.read()))
-
-               encData = encData[0:-1] #remove trailing 0
-
-               tempData = list(cobs.decode(''.join(struct.pack('<B',x) for x in encData)))
-               self.rxPacket = Protocol.parse_packet(tempData)
-               self.rxData = list(ord(x) for x in tempData)
-
-               if self._logLevel >= 3: 
+                     encData.append(ord(self.rxBuffer.read()))
                   print("   Encoded: {0}".format(["{:02X}".format(x) for x in encData]))
-                  print("   Raw: {0}".format(["{:02X}".format(x) for x in self.rxData]))
-               
-               if(self.rxPacket.data[0] == ProtocolDefs.CMD_NACK):
-                  print("   Radio proxy node returned an error: {}".format(["{:02X}".format(x) for x in self.rxPacket.data]))
                   return 0
+               else:
+                  encData.append(ord(self.rxBuffer.read()))
+                  if(encData[0] == 0): #caught the end of a previous frame
+                     return 0
+          
+                  while(encData[-1] != 0): #get bytes until end of frame
+                     encData.append(ord(self.rxBuffer.read()))
+
+                  encData = encData[0:-1] #remove trailing 0
+
+                  tempData = list(cobs.decode(''.join(struct.pack('<B',x) for x in encData)))
+                  self.rxPacket = Protocol.parse_packet(tempData)
+                  self.rxData = list(ord(x) for x in tempData)
+
+                  if self._logLevel >= 3: 
+                     print("   Encoded: {0}".format(["{:02X}".format(x) for x in encData]))
+                     print("   Raw: {0}".format(["{:02X}".format(x) for x in self.rxData]))
                   
-               return 1
-            else:
-               duration += 100
-               time.sleep(0.1)
+                  if(self.rxPacket.data[0] == ProtocolDefs.CMD_NACK):
+                     print("   Radio proxy node returned an error: {}".format(["{:02X}".format(x) for x in self.rxPacket.data]))
+                     return 0
+                  return 1
+            duration += 100
+            time.sleep(0.1)
          if(duration >= timeout):
             print("RadioInterface.proxy_receive: Timeout")
+            if(self.rxBuffer.available() > 0):
+               print("   Buffer is not empty. {} bytes available. Flushing serial buffer...".format(self.rxBuffer.available()))
+               while(self.rxBuffer.available() != 0):
+                  encData.append(ord(self.rxBuffer.read()))
+               print("   Encoded: {0}".format(["{:02X}".format(x) for x in encData]))
             self.rxPacket = ProtocolDefs.rawPacket()
             self.rxData = []
             return -1

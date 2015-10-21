@@ -146,7 +146,7 @@ class IntelAnalytics():
  def check(self,resp, code):
     if resp.status_code != code:
         print "Expected {0}. Got {1} {2}".format(code, resp.status_code, resp.text)
-        sys.exit(1)
+        resp.raise_for_status()
 
 
 # Given a username and password, get the user token
