@@ -23,13 +23,13 @@ fi
 
 if [[ ! -e "$PWD/linux/libs/IPCBuffer/sketch/IPCBuffer.cpp" ]]
   then
-	  echo "ERROR: IPCBuffer library does not exist. Please run \'git submodule init\' and \'git submodule update linux/libs/IPCBuffer\'"
+	  echo "ERROR: IPCBuffer library does not exist. Please run 'git submodule init' and 'git submodule update linux/libs/IPCBuffer'"
     exit 1
 fi
 
 if [[ ! -e "$PWD/nodeCtrl/core/cobs/cobs.c" ]]
   then
-	  echo "ERROR: cobs library does not exist. Please run \'git submodule init\' and \'git submodule update nodeCtrl/core/cobs\'"
+	  echo "ERROR: cobs library does not exist. Please run 'git submodule init' and 'git submodule update nodeCtrl/core/cobs'"
     exit 1
 fi
 
