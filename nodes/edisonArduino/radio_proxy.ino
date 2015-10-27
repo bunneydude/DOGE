@@ -1,6 +1,7 @@
 #include <IPCBuffer.h>
 #include <stdint.h>
 #include "radio_proxy.h"
+#include <doge_timers.h>
 
 // state
 uint8_t hbt_output = 0;
@@ -11,6 +12,7 @@ uint8_t serialBuffer[MAX_DATA_LENGTH + 2];
 
 uint8_t bytesRead = 0;
 uint8_t i = 0;
+dogeTimer timeout_timer;
 
 void setup() {                
 
@@ -40,20 +42,25 @@ void loop() {
       digitalWrite(HBT_LED, hbt_output^=0x01);  
       
       bytesRead = 0;
+      memset(serialBuffer, 0, MAX_DATA_LENGTH + 2);
+      // Read until '0' or timeout
       do{
-         while(!Serial1.available());
-         serialBuffer[bytesRead++] = Serial1.read();
-      }while(serialBuffer[bytesRead-1] != 0);
+         if(Serial1.available()){
+            serialBuffer[bytesRead++] = Serial1.read();
+            timer_init(&timeout_timer, SERIAL_TIMEOUT);
+         }
+      }while(serialBuffer[bytesRead - 1] != 0 && !timer_expired(&timeout_timer));
 
       for(i=0; i<bytesRead; i++){
          toPythonBuffer.write(&serialBuffer[i]);
-      }      
+      }
    }
 
    if(fromPythonBuffer.available() > 0){ //read from python, send to Serial1
       digitalWrite(HBT_LED, hbt_output^=0x01);  
 
       bytesRead = 0;
+      memset(serialBuffer, 0, MAX_DATA_LENGTH + 2);
       do{
          fromPythonBuffer.read(&serialBuffer[bytesRead++]);
       }while(serialBuffer[bytesRead-1] != 0);

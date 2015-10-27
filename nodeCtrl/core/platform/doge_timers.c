@@ -15,7 +15,7 @@ void setup_timer_hw()
    TA0CTL = TASSEL_1 + MC_1 + ANALOG_DIV;       // ACLK, up mode
 }
 #endif
-#ifdef LINUX
+#if defined(LINUX) || defined(__ARDUINO_X86__)
 void setup_timer_hw(){}
 #endif
 
@@ -46,7 +46,7 @@ dogeBool timer_expired(dogeTimer* timer)
 
 timerType current_time()
 {
-#ifdef LINUX
+#if defined(LINUX) || defined(__ARDUINO_X86__)
    struct timespec ts;
    clock_gettime(CLOCK_REALTIME, &ts);
    double ms = (ts.tv_sec * 1e3) + (ts.tv_nsec * 1e-6);
