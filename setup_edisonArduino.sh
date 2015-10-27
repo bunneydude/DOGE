@@ -27,12 +27,6 @@ if [[ ! -e "$PWD/linux/libs/IPCBuffer/sketch/IPCBuffer.cpp" ]]
     exit 1
 fi
 
-if [[ ! -e "$PWD/nodeCtrl/core/cobs/cobs.c" ]]
-  then
-	  echo "ERROR: cobs library does not exist. Please run 'git submodule init' and 'git submodule update nodeCtrl/core/cobs'"
-    exit 1
-fi
-
 if [[ $RUNENV == "Cygwin" ]]
   then
     echo "Please make sure this cygwin shell is run with administrator privileges."
@@ -47,13 +41,15 @@ if [[ "$1" == "clean" ]]
 fi
 
 mkdir -p $SKETCH_LIB_DIR/../radio_proxy
+mkdir -p $SKETCH_LIB_DIR/doge_timers
+mkdir -p $SKETCH_LIB_DIR/protocol
 mkdir -p $SKETCH_LIB_DIR/IPCBuffer
-mkdir -p $SKETCH_LIB_DIR/cobs
 
 #Use hard links for ino project files and symbolic links for library files
 ln $PWD/nodes/edisonArduino/radio_proxy.ino                    $SKETCH_LIB_DIR/../radio_proxy/radio_proxy.ino
 ln $PWD/nodes/edisonArduino/radio_proxy.h                      $SKETCH_LIB_DIR/../radio_proxy/radio_proxy.h
-ln -s $PWD/nodeCtrl/core/cobs/cobs.c                           $SKETCH_LIB_DIR/cobs/cobs.cpp
-ln -s $PWD/nodeCtrl/core/cobs/cobs.h                           $SKETCH_LIB_DIR/cobs/cobs.h
+ln -s $PWD/nodeCtrl/core/platform/doge_timers.h                $SKETCH_LIB_DIR/doge_timers/doge_timers.h
+ln -s $PWD/nodeCtrl/core/platform/doge_timers.c                $SKETCH_LIB_DIR/doge_timers/doge_timers.c
+ln -s $PWD/nodeCtrl/core/protocol/type.h                       $SKETCH_LIB_DIR/protocol/type.h
 ln -s $PWD/linux/libs/IPCBuffer/sketch/IPCBuffer.h             $SKETCH_LIB_DIR/IPCBuffer/IPCBuffer.h
 ln -s $PWD/linux/libs/IPCBuffer/sketch/IPCBuffer.cpp           $SKETCH_LIB_DIR/IPCBuffer/IPCBuffer.cpp
