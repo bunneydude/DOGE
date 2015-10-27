@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include "../protocol/type.h"
 
-#ifdef LINUX
+#if defined(LINUX) || defined(__ARDUINO_X86__)
 #include <time.h>
 #endif
 #ifdef MSP430
@@ -17,17 +17,17 @@
 extern "C" {
 #endif /* __cplusplus */
 
+#if defined(__LPC8XX__) || defined(LINUX) || defined(__ARDUINO_X86__)
+typedef uint32_t timerType;
+#define MAX_TIMER_VAL       (UINT32_MAX)
+#elif defined(MSP430)
+typedef uint16_t timerType;
 #define MAX_TIMER_VAL       (UINT16_MAX)
+#endif
+
 #define TIMER_OVERFLOW(a,b) ((MAX_TIMER_VAL - (a)) < (b))
 #define TIMER_BEGIN(timer)  (((timer)->end)-((timer)->duration))
 #define TIMER_END(timer)    ((timer)->end)
-
-#ifdef MSP430
-typedef uint16_t timerType;
-#endif
-#ifdef __LPC8XX__
-typedef uint32_t timerType;
-#endif
 
 typedef struct
 {
