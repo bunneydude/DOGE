@@ -23,6 +23,8 @@ volatile uint16_t task_hbt = TASK_HBT_PERIOD;
 #define PRODUCERS 1
 #define CONSUMERS 1
 
+#define SERIAL_TIMEOUT 100 //100 ms
+
 //a union for accessing an address as two bytes or one two byte int
 typedef union Addressu
 {
