@@ -104,6 +104,10 @@ while True:
                            delay = 30
                        log.warning("Sleeping for {} seconds".format(delay))
                        time.sleep(delay)
+               elif (he.response.status_code == 401):
+                   log.warning(he.response.content)
+                   log.warning("Session timeout detected. Reconnecting to Intel dashboard...")
+                   intelStream = connect_cloud("intel")
            except Exception as e:
                log.warning("{}".format(type(e)))
                log.warning("{}\n".format(e))
