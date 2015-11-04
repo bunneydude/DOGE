@@ -32,31 +32,6 @@ if [[ "$1" == "clean" ]]
   then
     rm -rf $ENERGIA_LIB_DIR/*
     rm -rf $ENERGIA_LIB_DIR/../nodeCtrl
-    NODE_CTRL_PATH="$PWD/nodes/msp430g2553/nodeCtrl_v1"
-    GIT_PATH="$NODE_CTRL_PATH/nodeCtrl.ino"
-    MOVED_DIR="$NODE_CTRL_PATH/nodeCtrl"
-    MOVED_PATH="$MOVED_DIR/nodeCtrl.ino"
-    #Delete any empty nodeCtrl directories
-    find "$NODE_CTRL_PATH" -depth -type d -empty -delete
-    #Check to see if Energia moved nodeCtrl.ino
-    if [[ -e $MOVED_PATH ]] && [[ ! -e $GIT_PATH ]]
-      then
-        mv "$MOVED_PATH" "$GIT_PATH"
-        rm -rf "$MOVED_DIR"
-    elif [[ -e "$MOVED_PATH" ]] && [[ -e "$GIT_PATH" ]]
-      then
-        NODE_CTRL_DIFF=$(diff "$GIT_PATH" "$MOVED_PATH")
-        if [[ "$NODE_CTRL_DIFF" != "" ]]
-          then
-            echo "Could not erase $MOVED_PATH"
-            echo "$NODE_CTRL_DIFF"
-        else
-            rm -rf "$MOVED_DIR"
-        fi
-    elif [[ ! -e "$GIT_PATH" ]]
-      then
-        git checkout "$GIT_PATH"
-    fi
     exit 0
 fi
 
@@ -75,8 +50,9 @@ mkdir -p $ENERGIA_LIB_DIR/platform
 mkdir -p $ENERGIA_LIB_DIR/cobs
 mkdir -p $ENERGIA_LIB_DIR/radios
 
-ln -s $PWD/nodes/msp430g2553/nodeCtrl_v1/nodeCtrl.ino        $ENERGIA_LIB_DIR/../nodeCtrl/nodeCtrl.ino
-ln -s $PWD/nodes/msp430g2553/proxy_nodeCtrl/proxy_nodeCtrl.h $ENERGIA_LIB_DIR/proxy_nodeCtrl.h
+#Use hard links for ino project files and symbolic links for library files
+ln $PWD/nodes/msp430g2553/nodeCtrl_v1/nodeCtrl.ino           $ENERGIA_LIB_DIR/../nodeCtrl/nodeCtrl.ino
+ln $PWD/nodes/msp430g2553/proxy_nodeCtrl/proxy_nodeCtrl.h    $ENERGIA_LIB_DIR/proxy_nodeCtrl.h
 ln -s $PWD/nodeCtrl/core/adc/adc.h                           $ENERGIA_LIB_DIR/adc/adc.h
 ln -s $PWD/nodeCtrl/core/adc/adc.c                           $ENERGIA_LIB_DIR/adc/adc.c
 ln -s $PWD/nodeCtrl/core/neighbor/neighbor-config.h          $ENERGIA_LIB_DIR/neighbor/neighbor-config.h
