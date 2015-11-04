@@ -3,17 +3,30 @@
 #ifdef MSP430
 void setup_timer_hw()
 {
-   /*
-   * This setup code is similar to wiring_analog.c analogWrite
-   * Differences:
-   * 1. Changed TACCR0 to count to MAX TIMER VAL
-   * 2. Changed clock source to ACLK instead of SMCLK
-   */
-   TA0CCR0 = MAX_TIMER_VAL;       // PWM Period
-   TA0CCTL1 = OUTMOD_7;           // reset/set
-   TA0CCR1 = PWM_DUTY(100);       // PWM duty cycle
-   TA0CTL = TASSEL_1 + MC_1 + ANALOG_DIV;       // ACLK, up mode
+   TA0CCR0 = MAX_TIMER_VAL;
+   TA0CCTL0 = OUTMOD_0; // Output only
+   TA0CTL = TASSEL_1 + MC_2 + ANALOG_DIV + TAIE;       // ACLK, continuous mode, Enable Timer A interrupts
 }
+
+void restart_wdt()
+{
+   TA0CTL = TACLR + TASSEL_1 + MC_2 + ANALOG_DIV + TAIE; // ACLK, continuous mode, Enable Timer A interrupts
+}
+
+__attribute__((interrupt(TIMER0_A1_VECTOR)))
+void timer_a0_overflow_isr (void)
+{
+    volatile uint16_t TAIVIFG; 
+    TAIVIFG=TA0IV; (void)TAIVIFG; // just reading TAIV will reset the interrupt flag
+    dogeTimer delay;
+    timer_init(&delay, TIMEOUT_1000_MS);
+    while(!timer_expired(&delay))
+    {
+      toggle_led(TRUE);
+    }
+    WDTCTL = 0xDEAD;
+}
+
 #endif
 #if defined(LINUX) || defined(__ARDUINO_X86__)
 void setup_timer_hw(){}

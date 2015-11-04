@@ -8,6 +8,7 @@
 #endif
 #ifdef MSP430
 #include <msp430g2553.h>
+#include <doge_gpio.h>
 #endif
 #ifdef __LPC8XX__
 #include "../mrt.h"
@@ -49,6 +50,7 @@ typedef struct
 #define TIMEOUT_1000_MS (12000)
 
 void setup_timer_hw();
+void restart_wdt();
 timerType current_time();
 void timer_init(dogeTimer* timer, timerType duration);
 dogeBool timer_expired(dogeTimer* timer);
