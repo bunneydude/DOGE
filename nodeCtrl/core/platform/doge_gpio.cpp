@@ -10,6 +10,8 @@ void toggle_led(dogeBool init)
       case(LED_RESET):
          counter = 0;
          digitalWrite(RED_LED, LED_ON_VALUE);
+         // Restart WDT when the node is idle
+         restart_wdt();
          timer_reset(&LEDTimer);
          if (init){
             state = LED_START_TOGGLE;

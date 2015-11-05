@@ -159,7 +159,6 @@ void setup()
 
 void loop()
 {
-   restart_wdt();
    uint8_t neighborIndex = 0;
    toggle_led(FALSE);
 
