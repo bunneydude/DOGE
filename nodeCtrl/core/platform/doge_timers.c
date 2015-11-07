@@ -5,14 +5,18 @@ void setup_timer_hw()
 {
    TA0CCR0 = MAX_TIMER_VAL;
    TA0CCTL0 = OUTMOD_0; // Output only
-   TA0CTL = TASSEL_1 + MC_2 + ANALOG_DIV + TAIE;       // ACLK, continuous mode, Enable Timer A interrupts
+   TA0CTL = TACLR + TASSEL_1 + MC_2 + ANALOG_DIV;       // ACLK, continuous mode
 }
 
 void restart_wdt()
 {
-   TA0CTL = TACLR + TASSEL_1 + MC_2 + ANALOG_DIV + TAIE; // ACLK, continuous mode, Enable Timer A interrupts
+   TA0CTL = TASSEL_1 + MC_2 + ANALOG_DIV + TAIE; // ACLK, continuous mode, Enable Timer A interrupts
+   TA0R = 0;
 }
 
+/* DO NOT USE ENERGIA SERIAL PRINT LIBRARIES ANYWHERE WITHIN THIS ISR
+ * (including toggle_led). THE LIBRARY WILL BE BLOCKED FROM USING INTERRUPTS
+ * AND WILL HANG THE MSP. */
 __attribute__((interrupt(TIMER0_A1_VECTOR)))
 void timer_a0_overflow_isr (void)
 {
