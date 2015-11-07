@@ -155,6 +155,7 @@ void setup()
    insert_route(ROOT_NODE, NODE_ID_9, MAX_LQE);
 #endif
 #endif
+   restart_wdt();
 }
 
 void loop()
