@@ -6,7 +6,12 @@ void toggle_led(dogeBool init)
    static dogeLEDState state = LED_RESET;
    static uint8_t counter = 0;
 
+   //Use fall through to do WDT_RESET->LED_RESET->LED_START_TOGGLE in a single pass
    switch(state){
+      case(WDT_RESET):
+        // Restart WDT when the node is idle
+        restart_wdt();
+        state = LED_RESET;
       case(LED_RESET):
          counter = 0;
          digitalWrite(RED_LED, LED_ON_VALUE);
@@ -15,13 +20,13 @@ void toggle_led(dogeBool init)
             state = LED_START_TOGGLE;
          }
          else{
-            state = LED_RESET;
+            state = WDT_RESET;
             break;
          }
       case(LED_START_TOGGLE):
          digitalWrite(RED_LED, LED_OFF_VALUE);
          timer_init(&LEDTimer, TIMEOUT_100_MS);
-				 state = LED_OFF;
+         state = LED_OFF;
          break;
       case(LED_OFF):
          if (timer_expired(&LEDTimer)){

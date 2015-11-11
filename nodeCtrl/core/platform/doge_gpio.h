@@ -11,6 +11,7 @@
 #define NUM_BLINKS (1)
 
 typedef enum {
+   WDT_RESET,
    LED_RESET,
    LED_START_TOGGLE,
    LED_ON,
@@ -18,6 +19,13 @@ typedef enum {
    LED_INC_COUNTER
 }dogeLEDState;
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
 void toggle_led(dogeBool init);
+#ifdef __cplusplus
+}
+#endif
 
 #endif

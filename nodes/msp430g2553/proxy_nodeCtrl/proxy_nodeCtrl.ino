@@ -90,14 +90,16 @@ void setup()
   digitalWrite(RED_LED, hbt_output);
 
   memset(&txPacket, 0, sizeof(dogePacket));
-  memset(&rxPacket, 0, sizeof(dogePacket));  
-//  txAppPacket = (appPacket*)((uint8_t*)&txPacket + RAW_PACKET_DATA_OFFSET);
-//  rxAppPacket = (appPacket*)((uint8_t*)&rxPacket + RAW_PACKET_DATA_OFFSET);
+  memset(&rxPacket, 0, sizeof(dogePacket));
+
+  restart_wdt();
 }
 
 void loop(){
-
-  while(serial_receive((uint8_t*)(&rxPacket)) == 0); //wait for data
+  //wait for data
+  while(serial_receive((uint8_t*)(&rxPacket)) == 0){
+    restart_wdt();
+  }
 
   if(rxPacket.hdr.dst == MY_NODE_ID){ //ACK back same address and data
     application_form_packet(txAppPacket, &txAttr, CMD_ACK, rxAppPacket->addr, rxAppPacket->data, NULL);
