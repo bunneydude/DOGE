@@ -1,5 +1,41 @@
 #include "doge_timers.h"
- 
+  
+#ifdef MSP430
+void setup_timer_hw()
+{
+   TA0CCR0 = MAX_TIMER_VAL;
+   TA0CCTL0 = OUTMOD_0; // Output only
+   TA0CTL = TACLR + TASSEL_1 + MC_2 + ANALOG_DIV;       // ACLK, continuous mode
+}
+
+void restart_wdt()
+{
+   TA0CTL = TASSEL_1 + MC_2 + ANALOG_DIV + TAIE; // ACLK, continuous mode, Enable Timer A interrupts
+   TA0R = 0;
+}
+
+/* DO NOT USE ENERGIA SERIAL PRINT LIBRARIES ANYWHERE WITHIN THIS ISR
+ * (including toggle_led). THE LIBRARY WILL BE BLOCKED FROM USING INTERRUPTS
+ * AND WILL HANG THE MSP. */
+__attribute__((interrupt(TIMER0_A1_VECTOR)))
+void timer_a0_overflow_isr (void)
+{
+    volatile uint16_t TAIVIFG; 
+    TAIVIFG=TA0IV; (void)TAIVIFG; // just reading TAIV will reset the interrupt flag
+    dogeTimer delay;
+    timer_init(&delay, TIMEOUT_1000_MS);
+    while(!timer_expired(&delay))
+    {
+      toggle_led(TRUE);
+    }
+    WDTCTL = 0xDEAD;
+}
+
+#endif
+#if defined(LINUX) || defined(__ARDUINO_X86__)
+void setup_timer_hw(){}
+#endif
+
 dogeBool timer_expired(dogeTimer* timer)
 {
    timerType currTime = current_time();
@@ -25,7 +61,7 @@ dogeBool timer_expired(dogeTimer* timer)
 
 timerType current_time()
 {
-#ifdef LINUX
+#if defined(LINUX) || defined(__ARDUINO_X86__)
    struct timespec ts;
    clock_gettime(CLOCK_REALTIME, &ts);
    double ms = (ts.tv_sec * 1e3) + (ts.tv_nsec * 1e-6);

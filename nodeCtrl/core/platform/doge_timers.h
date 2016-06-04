@@ -4,11 +4,12 @@
 #include "../protocol/type.h"
 #include "serial_c.h"
 
-#ifdef LINUX
+#if defined(LINUX) || defined(__ARDUINO_X86__)
 #include <time.h>
 #endif
 #ifdef MSP430
 #include <msp430g2553.h>
+#include <doge_gpio.h>
 #endif
 #ifdef __LPC8XX__
 #include <lpc812/mrt.h>
@@ -18,7 +19,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#if defined(__LPC8XX__) || defined(LINUX)
+#if defined(__LPC8XX__) || defined(LINUX) || defined(__ARDUINO_X86__)
 typedef uint32_t timerType;
 #define MAX_TIMER_VAL       (UINT32_MAX)
 #elif defined(MSP430)
@@ -49,6 +50,8 @@ typedef struct
 #define TIMEOUT_1000_MS (1000)
 #elif defined(MSP430)
 #define TIMEOUT_500_MS (12000/2)
+#define TIMEOUT_250_MS (12000/4)
+#define TIMEOUT_100_MS (12000/10)
 #define TIMEOUT_1000_MS (12000)
 #endif
 

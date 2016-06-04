@@ -49,7 +49,7 @@
 #define RADIO_ID_ALL 3
 #endif
 
-#ifdef __LPC8XX__
+#if defined(__LPC8XX__) || defined(MSP430)
 int8_t empty_get_rssi();
 #endif
 #endif

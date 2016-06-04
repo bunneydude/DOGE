@@ -124,6 +124,8 @@ uint8_t static_route_mm_handler(uint8_t rw, uint8_t addr, uint8_t* data, uint8_t
          break;
    }
    */
+
+   /*
    application_form_packet(txAppPacket, &txAttr, CMD_WRITE_REG, NRF24_DEFAULT_APP_ADDRESS, *data, NULL);
    link_layer_form_packet(&txPacket, &txAttr, RAW_PACKET, MY_NODE_ID, NRF24_NODE_OFFSET_TO_ID(addr), MY_NODE_ID, NRF24_NODE_OFFSET_TO_ID(addr));
    add_packet_crc(&txPacket);
@@ -133,5 +135,18 @@ uint8_t static_route_mm_handler(uint8_t rw, uint8_t addr, uint8_t* data, uint8_t
    nrf24_send(0, (uint8_t*)(&txPacket), MAX_DATA_LENGTH);
    while(nrf24_isSending());
 #endif
+   */
+   if (addr == SW_RESET){
+      application_form_packet(txAppPacket, &txAttr, CMD_ACK, 80, 0, NULL);
+      link_layer_form_packet(&txPacket, &txAttr, RAW_PACKET, MY_NODE_ID, ROOT_NODE, MY_NODE_ID, ROOT_NODE);
+      add_packet_crc(&txPacket);
+      dogeBool success = reliable_transmit(&dogeRadios[RADIO_ID_ALL]);
+      if (success)
+      {
+         print_string("RESET", NEWLINE);
+         delay(15);
+         WDTCTL = 0xDEAD;
+      }
+   }
    return 0;
 }

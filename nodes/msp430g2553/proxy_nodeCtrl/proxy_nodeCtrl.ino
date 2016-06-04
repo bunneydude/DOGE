@@ -72,6 +72,7 @@ void setup()
    uart_init(9600);
    radio_init();
    digital_write(RED_LED, hbt_output); // set the LED on
+  restart_wdt();
 /*
 #ifdef DUAL_RADIO
   pinMode(RADIO_NRF_CE, OUTPUT);
@@ -88,8 +89,10 @@ void setup()
 }
 
 void loop(){
-
-  while(serial_receive((uint8_t*)(&rxPacket)) == 0); //wait for data
+  //wait for data
+  while(serial_receive((uint8_t*)(&rxPacket)) == 0){
+    restart_wdt();
+  }
 
   if(rxPacket.hdr.dst == MY_NODE_ID){ //ACK back same address and data
     application_form_packet(txAppPacket, &txAttr, CMD_ACK, rxAppPacket->addr, rxAppPacket->data, NULL);

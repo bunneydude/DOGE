@@ -57,7 +57,7 @@ angular.module('DeviceManager.graphController', []).
        var nodesArrayLength = nodesJsonObj.length;
       
        //Set this bit to 1 if you want the n/w to be layed out in a X by 3 config
-       var demo_grid = 0;
+       var demo_grid = 1;
 
        //Set up nodes in X by 3 grid
        if (demo_grid) {
@@ -66,7 +66,7 @@ angular.module('DeviceManager.graphController', []).
            var node_y = 0;
        
            //This is Edison  
-           var node = {'group':nodesJsonObj[nodesArrayLength-1].group,'id':JSON.stringify(nodesJsonObj[nodesArrayLength-1].id),'label':JSON.stringify(nodesJsonObj[nodesArrayLength-1].label),'x':200,'y':70};
+           var node = {'group':nodesJsonObj[nodesArrayLength-1].group,'id':JSON.stringify(nodesJsonObj[nodesArrayLength-1].id),'label':JSON.stringify(nodesJsonObj[nodesArrayLength-1].label),'x':200,'y':100};
            nodes.add(node);
  
            for (var i=0;i < nodesArrayLength-1; i++){
@@ -90,14 +90,17 @@ angular.module('DeviceManager.graphController', []).
        var edgesArrayLength = edgesJsonObj.length;
 
        for (var i=0;i < edgesArrayLength; i++){
-          var edge = {'from':JSON.stringify(edgesJsonObj[i].from),'to':JSON.stringify(edgesJsonObj[i].to),'label':JSON.stringify(edgesJsonObj[i].label),'id':JSON.stringify(edgesJsonObj[i].id),'style':'arrow','arrowScaleFactor': .5,};
+       //Commenting out edge labels 
+      //var edge = {'from':JSON.stringify(edgesJsonObj[i].from),'to':JSON.stringify(edgesJsonObj[i].to),'label':JSON.stringify(edgesJsonObj[i].label),'id':JSON.stringify(edgesJsonObj[i].id),'style':'arrow','arrowScaleFactor': .5,};
+	var edge = {'from':JSON.stringify(edgesJsonObj[i].from),'to':JSON.stringify(edgesJsonObj[i].to),'id':JSON.stringify(edgesJsonObj[i].id),'style':'arrow','arrowScaleFactor': .5,};
           edges.add(edge);
        }
 
        var routingEdgesArrayLength = routingEdgesJsonObj.length;
 
        for (var i=0;i < routingEdgesArrayLength; i++){
-          var route_edge = {'from':JSON.stringify(routingEdgesJsonObj[i].from),'to':JSON.stringify(routingEdgesJsonObj[i].to),'label':JSON.stringify(routingEdgesJsonObj[i].label),'id':JSON.stringify(routingEdgesJsonObj[i].id),'style':'arrow','arrowScaleFactor': .5,'color':'gold'};
+           //var route_edge = {'from':JSON.stringify(routingEdgesJsonObj[i].from),'to':JSON.stringify(routingEdgesJsonObj[i].to),'label':JSON.stringify(routingEdgesJsonObj[i].label),'id':JSON.stringify(routingEdgesJsonObj[i].id),'style':'arrow','arrowScaleFactor': .5,'color':'gold'};
+	    var route_edge = {'from':JSON.stringify(routingEdgesJsonObj[i].from),'to':JSON.stringify(routingEdgesJsonObj[i].to),'id':JSON.stringify(routingEdgesJsonObj[i].id),'style':'arrow','arrowScaleFactor': .5,'color':'gold'};
           edges.add(route_edge);
 
        }
@@ -713,8 +716,21 @@ angular.module('DeviceManager.graphController', []).
    
     dragNetwork: true,
     zoomable: true,
-    
-    
+    autoResize: true,
+    height: '100%',
+    width: '100%',
+ 
+    physics:{
+    enabled: true,
+      barnesHut: {
+        gravitationalConstant: -2000,
+        centralGravity: 0.6,
+        springLength: 95,
+        springConstant: 0.08,
+        damping: 0.09,
+        avoidOverlap: 1
+      },
+    }, 
     //Enable Navigation controls
     navigation: true,
     keyboard: true,  

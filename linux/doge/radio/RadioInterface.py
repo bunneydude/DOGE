@@ -10,6 +10,8 @@ class RadioInterface():
    _name = None
    _nodeID = 1
    _logLevel = 1
+   READ_REG_ACK_SIZE_COBS = 18
+   VALID_PACKET_SIZES = [ READ_REG_ACK_SIZE_COBS ]
 
    def __init__(self, name, nodeID, debug=False, logLevel=2):
       if(not isinstance(name, str)): raise Exception("The name must be a string")
@@ -47,14 +49,16 @@ class RadioInterface():
       if(singleHopDest not in range(0, 2**16)): raise Exception("The single-hop destination, {0}, must be in the range [0,65535]".format(singleHopDest))
 
       self.txData = Protocol.form_packet(type=ProtocolDefs.RAW_PACKET, srcID=self._nodeID, dstID=destination, shSrcID=self._nodeID, shDstID=singleHopDest, cmd=command, addr=address, data=payload, bytes=cbytes, enc='bytes')
-      if self._logLevel >= 2: #print("   About to send: {0}".format(list(ord(x) for x in self.txData)))
+      if self._logLevel >= 2: 
          txPacket = Protocol.parse_packet(self.txData)
          print("About to send: [header: [{0}], size = {1}, data = {2}]".format(ProtocolDefs.print_structure(txPacket.hdr), txPacket.size, list(i for i in txPacket.data)))
 
       encData = cobs.encode(''.join(self.txData))
-#      print("   Encoded: {0}".format(list(encData)))
       encData = list(ord(x) for x in encData) 
-      if self._logLevel >= 3: print("   Encoded: {0}".format(encData))
+
+      if self._logLevel >= 3: 
+         print("   Raw: {0}".format(["{:02X}".format(int(x.encode("HEX"), 16)) for x in self.txData]))
+         print("   Encoded: {0}".format(["{:02X}".format(x) for x in encData]))
 
       if(self.debug == False):
          if(self._connected == True):
@@ -74,28 +78,48 @@ class RadioInterface():
       if(self.debug == False):
          while(duration < timeout):
             if self._logLevel >= 3: print("   Available bytes = {0}".format(self.rxBuffer.available()))
-            if(self.rxBuffer.available() > 0): 
-               encData.append(ord(self.rxBuffer.read()))
-               if(encData[0] == 0): #caught the end of a previous frame
+            if(self.rxBuffer.available() > 0):
+               if (self.rxBuffer.available() < min(RadioInterface.VALID_PACKET_SIZES)):
+                  pass
+               elif (self.rxBuffer.available() > max(RadioInterface.VALID_PACKET_SIZES)):
+                  print("   Unknown packet size detected: {}. Flushing serial buffer...".format(self.rxBuffer.available()))
+                  while(self.rxBuffer.available() != 0):
+                     encData.append(ord(self.rxBuffer.read()))
+                  print("   Encoded: {0}".format(["{:02X}".format(x) for x in encData]))
                   return 0
-      
-               while(encData[-1] != 0): #get bytes until end of frame
+               else:
                   encData.append(ord(self.rxBuffer.read()))
+                  if(encData[0] == 0): #caught the end of a previous frame
+                     return 0
+          
+                  while(encData[-1] != 0): #get bytes until end of frame
+                     encData.append(ord(self.rxBuffer.read()))
 
-               encData = encData[0:-1] #remove trailing 0
-               #print(" Got encData: {0}".format(list(encData)))
+                  encData = encData[0:-1] #remove trailing 0
 
-               tempData = list(cobs.decode(''.join(struct.pack('<B',x) for x in encData)))
-               self.rxPacket = Protocol.parse_packet(tempData)
-               self.rxData = list(ord(x) for x in tempData)
-               return 1
-            else:
-               duration += 100
-               time.sleep(0.1)
-         if(duration >= timeout):      
-  	    print("RadioInterface.proxy_receive: Timeout")
-	    self.rxPacket = ProtocolDefs.rawPacket()
-	    self.rxData = []
+                  tempData = list(cobs.decode(''.join(struct.pack('<B',x) for x in encData)))
+                  self.rxPacket = Protocol.parse_packet(tempData)
+                  self.rxData = list(ord(x) for x in tempData)
+
+                  if self._logLevel >= 3: 
+                     print("   Encoded: {0}".format(["{:02X}".format(x) for x in encData]))
+                     print("   Raw: {0}".format(["{:02X}".format(x) for x in self.rxData]))
+                  
+                  if(self.rxPacket.data[0] == ProtocolDefs.CMD_NACK):
+                     print("   Radio proxy node returned an error: {}".format(["{:02X}".format(x) for x in self.rxPacket.data]))
+                     return 0
+                  return 1
+            duration += 100
+            time.sleep(0.1)
+         if(duration >= timeout):
+            print("RadioInterface.proxy_receive: Timeout")
+            if(self.rxBuffer.available() > 0):
+               print("   Buffer is not empty. {} bytes available. Flushing serial buffer...".format(self.rxBuffer.available()))
+               while(self.rxBuffer.available() != 0):
+                  encData.append(ord(self.rxBuffer.read()))
+               print("   Encoded: {0}".format(["{:02X}".format(x) for x in encData]))
+            self.rxPacket = ProtocolDefs.rawPacket()
+            self.rxData = []
             return -1
       else:
          tempData = Protocol.form_packet(type=1, srcID=6, dstID=self._nodeID, shSrcID=6, shDstID=self._nodeID, cmd=ProtocolDefs.CMD_ACK, addr=1, data=2, enc='bytes')

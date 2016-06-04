@@ -22,11 +22,12 @@ rootNode.mask_neighbor(action="unmask")
 
 node10 = networkNodes[10]
 
-node10.add_sensor("rgLED1", "static_route", mmFields.NRF24_NODE_11)
+#NRF24_NODE_11 address is repurposed as SW_RESET
+#node10.add_sensor("rgLED1", "static_route", mmFields.NRF24_NODE_11)
 node10.add_sensor("rgbLED", "static_route", mmFields.NRF24_NODE_12)
 node10.add_sensor("rgLED2", "static_route", mmFields.NRF24_NODE_13)
 
-leds = ["rgLED1", "rgbLED", "rgLED2"]
+leds = ["rgbLED", "rgLED2"]
 
 plotData = []
 
@@ -34,6 +35,12 @@ rgbValue = 0
 switchCounter = 0
 ledIndex = 0
 led = leds[0]
+
+
+for i in networkNodes:
+   if "reset" in dir(networkNodes[i]):
+      print("Resetting node {}".format(i))
+      networkNodes[i].reset()
 
 while True:
    #handle any network requests (blocking 1 second wait)

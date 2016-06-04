@@ -163,7 +163,7 @@ struct radioMethods dogeRadios[NUM_RADIOS] = {
 #endif
 #endif
 
-#ifdef __LPC8XX__
+#if defined(__LPC8XX__) || defined(MSP430)
 int8_t empty_get_rssi()
 {
    return 0;
